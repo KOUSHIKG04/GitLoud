@@ -45,6 +45,7 @@ const BINARY_EXTENSIONS = [
 ];
 
 const MAX_PATCH_LENGTH = 4000;
+const TRIM_MARKER = "\n\n[Patch trimmed]"
 
 function isGeneratedOrLockFile(filename: string) {
     return GENERATED_OR_LOCK_FILES.some((pattern) => filename.includes(pattern));
@@ -91,7 +92,7 @@ export function cleanPullRequestFiles(
             ...file,
             patch:
                 file.patch.length > MAX_PATCH_LENGTH
-                    ? `${file.patch.slice(0, MAX_PATCH_LENGTH)}\n\n[Patch trimmed]`
+                    ? `${file.patch.slice(0, MAX_PATCH_LENGTH- TRIM_MARKER.length)}${TRIM_MARKER}`
                     : file.patch,
             skipped: false,
             skipReason: null,

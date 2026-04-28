@@ -16,7 +16,7 @@ export function ContentBlock({
 }: {
   title: string;
   value: string;
-  onCopy: (value: string) => void | Promise<void>;
+  onCopy: (value: string) => Promise<void>;
 }) {
   return (
     <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 text-card-foreground shadow-sm">
@@ -32,7 +32,13 @@ export function ContentBlock({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => onCopy(value)}
+        onClick={async () => {
+          try {
+            await onCopy(value);
+          } catch {
+            //Todo: surface failure via toast/state here
+          }
+        }}
         className="w-full sm:w-fit"
       >
         Copy
@@ -48,7 +54,7 @@ export function ContentListBlock({
 }: {
   title: string;
   values: string[];
-  onCopy: (value: string) => void | Promise<void>;
+  onCopy: (value: string) => Promise<void>;
 }) {
   const text = values.map((value) => `- ${value}`).join("\n");
 
@@ -70,7 +76,13 @@ export function ContentListBlock({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => onCopy(text)}
+        onClick={async () => {
+          try {
+            await onCopy(text);
+          } catch {
+            //Todo: surface failure via toast/state here
+          }
+        }}
         className="w-full sm:w-fit"
       >
         Copy

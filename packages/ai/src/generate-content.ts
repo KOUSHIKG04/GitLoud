@@ -1,70 +1,166 @@
-import { generatedContentSchema } from "@repo/shared/generated-content";
+import { GoogleGenAI, Type } from "@google/genai";
+import {
+    generatedContentSchema,
+    type GeneratedContent,
+} from "@repo/shared/generated-content";
 import type { PullRequestResult } from "@repo/shared/pull-request";
 import type { CommitResult } from "@repo/shared/commit";
 
-export async function generateContentFromPullRequest(pr: PullRequestResult) {
-    const changedFileNames = pr.files
-        .filter((file) => !file.skipped)
-        .slice(0, 5)
-        .map((file) => file.filename);
+const generatedContentResponseSchema = {
+    type: Type.OBJECT,
+    properties: {
+        shortSummary: {
+            type: Type.STRING,
+            description: "A concise 1-2 sentence summary of the change.",
+        },
+        technicalSummary: {
+            type: Type.STRING,
+            description: "A developer-focused technical summary of the change.",
+        },
+        features: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "Feature additions, behavior changes, or notable implementation work.",
+        },
+        techUsed: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: "Technologies, libraries, files, patterns, or concepts involved.",
+        },
+        tweet: {
+            type: Type.STRING,
+            description: "A concise X/Twitter-ready post.",
+        },
+        linkedInPost: {
+            type: Type.STRING,
+            description: "A professional LinkedIn-ready post.",
+        },
+        redditPost: {
+            type: Type.STRING,
+            description: "A conversational Reddit-ready post.",
+        },
+        portfolioBullet: {
+            type: Type.STRING,
+            description: "A portfolio resume-style bullet.",
+        },
+        changelogEntry: {
+            type: Type.STRING,
+            description: "A changelog-style entry.",
+        },
+        beginnerSummary: {
+            type: Type.STRING,
+            description: "A beginner-friendly explanation without assuming deep context.",
+        },
+    },
+    required: [
+        "shortSummary",
+        "technicalSummary",
+        "features",
+        "techUsed",
+        "tweet",
+        "linkedInPost",
+        "redditPost",
+        "portfolioBullet",
+        "changelogEntry",
+        "beginnerSummary",
+    ],
+    propertyOrdering: [
+        "shortSummary",
+        "technicalSummary",
+        "features",
+        "techUsed",
+        "tweet",
+        "linkedInPost",
+        "redditPost",
+        "portfolioBullet",
+        "changelogEntry",
+        "beginnerSummary",
+    ],
+} as const;
 
-    const result = {
-        shortSummary: `${pr.title} updates ${pr.repo} with ${pr.changedFiles} changed files.`,
-        technicalSummary: `This pull request changes ${pr.changedFiles} files with ${pr.additions}
-  additions and ${pr.deletions} deletions. Key touched files include ${changedFileNames.join(",") || "no readable text files"}.`,
-        features: [
-            `Updated ${pr.repo} through PR #${pr.number}`,
-            `Changed ${pr.changedFiles} files`,
-            `Prepared implementation details for review`,
-        ],
-        techUsed: changedFileNames.length > 0 ? changedFileNames : ["GitHub pull request metadata"],
-        tweet: `Shipped: ${pr.title}\n\n${pr.url}`,
-        linkedInPost: `I worked on ${pr.title} in ${pr.owner}/${pr.repo}.\n\nThis PR updates
-  ${pr.changedFiles} files with ${pr.additions} additions and ${pr.deletions} deletions.`,
-        redditPost: `I opened a PR for ${pr.title}. It touches ${pr.changedFiles} files and
-  includes ${pr.additions} additions / ${pr.deletions} deletions.\n\n${pr.url}`,
-        portfolioBullet: `Implemented ${pr.title} in ${pr.owner}/${pr.repo}.`,
-        changelogEntry: `- ${pr.title}`,
-        beginnerSummary: `This pull request is a set of code changes named "${pr.title}". It
-  changes files in the ${pr.repo} project and is ready to be reviewed.`,
-    };
+function buildFilesContext(
+    files: {
+        filename: string; status: string; additions: number; deletions: number;
+        patch: string | null; skipped: boolean; skipReason: string | null
+    }[],
+) {
+    return files
+        .slice(0, 20)
+        .map((file) => {
+            if (file.skipped) {
+                return `File: ${file.filename}\nSkipped: ${file.skipReason}`;
+            }
 
-    return generatedContentSchema.parse(result);
+            return [
+                `File: ${file.filename}`,
+                `Status: ${file.status}`,
+                `Changes: +${file.additions} -${file.deletions}`,
+                `Patch:\n${file.patch ?? "No patch"}`,
+            ].join("\n");
+        })
+        .join("\n\n---\n\n");
 }
 
-export async function generateContentFromCommit(commit: CommitResult) {
-    const changedFileNames = commit.files
-        .filter((file) => !file.skipped)
-        .slice(0, 5)
-        .map((file) => file.filename);
+async function generateContent(input: string): Promise<GeneratedContent> {
+    if (!process.env.GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY is missing");
+    }
 
-    const firstLine = commit.message.split("\n")[0] ?? commit.message;
+    const ai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+    });
 
-    const result = {
-        shortSummary: `${firstLine} updates ${commit.repo} in commit ${commit.shortSha}.`,
-        technicalSummary: `This commit changes ${commit.changedFiles} files with
-  ${commit.additions} additions and ${commit.deletions} deletions. Key touched files include
-  ${changedFileNames.join(", ") || "no readable text files"}.`,
-        features: [
-            `Committed ${firstLine}`,
-            `Changed ${commit.changedFiles} files`,
-            `Prepared focused code changes in ${commit.repo}`,
-        ],
-        techUsed:
-            changedFileNames.length > 0
-                ? changedFileNames
-                : ["GitHub commit metadata"],
-        tweet: `Committed: ${firstLine}\n\n${commit.url}`,
-        linkedInPost: `I worked on a focused commit in ${commit.owner}/${commit.repo}:
-  ${firstLine}.\n\nIt changes ${commit.changedFiles} files with ${commit.additions} additions
-  and ${commit.deletions} deletions.`,
-        redditPost: `I made a commit for ${firstLine}. It touches ${commit.changedFiles} files and
-  includes ${commit.additions} additions / ${commit.deletions} deletions.\n\n${commit.url}`,
-        portfolioBullet: `Implemented ${firstLine} in ${commit.owner}/${commit.repo}.`,
-        changelogEntry: `- ${firstLine}`,
-        beginnerSummary: `This commit is a focused code change named "${firstLine}". It updates
-  files in the ${commit.repo} project.`,
-    };
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+            "You create clear developer summaries and share-ready posts from GitHub code changes.",
+            "Return concise, accurate content only. Do not invent details that are not supported by the supplied PR or commit context.",
+            "Use the user's extra context when provided. If they mention learning, write the content as a learning or progress update.",
+            input,
+        ].join("\n\n"),
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: generatedContentResponseSchema,
+        },
+    });
 
-    return generatedContentSchema.parse(result);
+    if (!response.text) {
+        throw new Error("Gemini returned an empty response");
+    }
+
+    return generatedContentSchema.parse(JSON.parse(response.text));
+}
+
+export async function generateContentFromPullRequest(
+    pr: PullRequestResult,
+    userContext?: string,
+) {
+    return generateContent(`Generate content for this GitHub pull request.
+  Repository: ${pr.owner}/${pr.repo}
+  PR number: ${pr.number}
+  Title: ${pr.title}
+  Description: ${pr.body ?? "No description"}
+  Author: ${pr.author ?? "Unknown"}
+  Stats: +${pr.additions} -${pr.deletions}, ${pr.changedFiles} changed files
+  URL: ${pr.url}
+  User extra context: ${userContext ?? "No extra context provided"}
+  Files:${buildFilesContext(pr.files)}
+  `);
+}
+
+export async function generateContentFromCommit(
+    commit: CommitResult,
+    userContext?: string,
+) {
+    return generateContent(`
+  Generate content for this GitHub commit.
+  Repository: ${commit.owner}/${commit.repo}
+  Commit: ${commit.sha}
+  Message: ${commit.message}
+  Author: ${commit.author ?? "Unknown"}
+  Stats: +${commit.additions} -${commit.deletions}, ${commit.changedFiles} changed files
+  URL: ${commit.url}
+  User extra context: ${userContext ?? "No extra context provided"}
+  Files:${buildFilesContext(commit.files)}
+  `);
 }
