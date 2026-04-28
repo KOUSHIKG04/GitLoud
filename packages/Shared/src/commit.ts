@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { pullRequestFileSchema } from "@/pull-request";
-
+import { changedFileSchema } from "./changed-file";
 
 export const commitResultSchema = z.object({
     owner: z.string(),
@@ -13,7 +12,7 @@ export const commitResultSchema = z.object({
     additions: z.number(),
     deletions: z.number(),
     changedFiles: z.number(),
-    files: z.array(pullRequestFileSchema),
+    files: z.array(changedFileSchema),
 });
 
 export type CommitResult = z.infer<typeof commitResultSchema>;

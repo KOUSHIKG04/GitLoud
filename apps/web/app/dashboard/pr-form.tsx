@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { githubPullRequestUrlSchema } from "@repo/shared/github";
 import axios from "axios";
-import { ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -13,16 +12,33 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PullRequestResult } from "@repo/shared/pull-request";
 import type { GeneratedContent } from "@repo/shared/generated-content";
+import type { CommitResult } from "@repo/shared/commit";
+import {
+  ContentBlock,
+  ContentListBlock,
+  InfoCard,
+} from "@/dashboard/form-helper";
+import { ExternalLink } from "lucide-react";
 
 const formSchema = z.object({
   url: githubPullRequestUrlSchema,
 });
 
 type FormValues = z.infer<typeof formSchema>;
-type GenerateResponse = {
+
+type PullRequestGenerateResponse = {
+  sourceType: "pull-request";
   pullRequest: PullRequestResult;
   generatedContent: GeneratedContent;
 };
+
+type CommitGenerateResponse = {
+  sourceType: "commit";
+  commit: CommitResult;
+  generatedContent: GeneratedContent;
+};
+
+type GenerateResponse = PullRequestGenerateResponse | CommitGenerateResponse;
 
 export function PrForm() {
   const [result, setResult] = useState<GenerateResponse | null>(null);
@@ -38,6 +54,10 @@ export function PrForm() {
       url: "",
     },
   });
+
+  async function copyText(text: string) {
+    await navigator.clipboard.writeText(text);
+  }
 
   async function onSubmit(values: FormValues) {
     setSubmitError(null);
@@ -110,52 +130,90 @@ export function PrForm() {
 
       {result ? (
         <section className="space-y-6 rounded-2xl border bg-background p-4 shadow-sm sm:p-6">
-          <div className="space-y-2">
-            <p className="break-all text-sm text-muted-foreground">
-              {result.pullRequest.owner}/{result.pullRequest.repo} #
-              {result.pullRequest.number}
-            </p>
+          {result.sourceType === "pull-request" ? (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="break-all text-sm text-muted-foreground">
+                  Pull request: {result.pullRequest.owner}/
+                  {result.pullRequest.repo} #{result.pullRequest.number}
+                </p>
 
-            <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
-              {result.pullRequest.title}
-            </h2>
-          </div>
+                <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
+                  {result.pullRequest.title}
+                </h2>
+              </div>
 
-          <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-xl border p-3">
-              <p className="text-muted-foreground">Author</p>
-              <p className="break-all font-medium">
-                {result.pullRequest.author ?? "Unknown"}
-              </p>
+              <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <InfoCard
+                  label="Author"
+                  value={result.pullRequest.author ?? "Unknown"}
+                />
+                <InfoCard label="Type" value="Pull Request" />
+                <InfoCard
+                  label="Files"
+                  value={String(result.pullRequest.changedFiles)}
+                />
+              </div>
+
+              <div className="rounded-xl border p-3 text-sm">
+                <p className="text-muted-foreground">Changes</p>
+                <p className="font-medium">
+                  +{result.pullRequest.additions} -
+                  {result.pullRequest.deletions} across{" "}
+                  {result.pullRequest.changedFiles} files
+                </p>
+              </div>
+
+              <Button asChild variant="outline" className="w-full sm:w-auto">
+                <a
+                  href={result.pullRequest.url}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open on GitHub
+                </a>
+              </Button>
             </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="break-all text-sm text-muted-foreground">
+                  Commit: {result.commit.owner}/{result.commit.repo}{" "}
+                  {result.commit.shortSha}
+                </p>
 
-            <div className="rounded-xl border p-3">
-              <p className="text-muted-foreground">State</p>
-              <p className="font-medium capitalize">
-                {result.pullRequest.state}
-              </p>
+                <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
+                  {result.commit.message.split("\n")[0]}
+                </h2>
+              </div>
+
+              <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
+                <InfoCard
+                  label="Author"
+                  value={result.commit.author ?? "Unknown"}
+                />
+                <InfoCard label="Type" value="Commit" />
+                <InfoCard
+                  label="Files"
+                  value={String(result.commit.changedFiles)}
+                />
+              </div>
+
+              <div className="rounded-xl border p-3 text-sm">
+                <p className="text-muted-foreground">Changes</p>
+                <p className="font-medium">
+                  +{result.commit.additions} -{result.commit.deletions} across{" "}
+                  {result.commit.changedFiles} files
+                </p>
+              </div>
+
+              <Button asChild variant="outline" className="w-full sm:w-auto">
+                <a href={result.commit.url} target="_blank" rel="noreferrer">
+                  Open on GitHub
+                </a>
+              </Button>
             </div>
-
-            <div className="rounded-xl border p-3 sm:col-span-2 lg:col-span-1">
-              <p className="text-muted-foreground">Files</p>
-              <p className="font-medium">{result.pullRequest.changedFiles}</p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border p-3 text-sm">
-            <p className="text-muted-foreground">Changes</p>
-            <p className="font-medium">
-              +{result.pullRequest.additions} -{result.pullRequest.deletions}{" "}
-              across {result.pullRequest.changedFiles} files
-            </p>
-          </div>
-
-          <Button asChild variant="outline" className="w-full sm:w-auto">
-            <a href={result.pullRequest.url} target="_blank" rel="noreferrer">
-              Open on GitHub
-              <ExternalLink className="ml-2 h-4 w-4" />
-            </a>
-          </Button>
+          )}
 
           <div className="space-y-4 border-t pt-6">
             <h3 className="text-lg font-semibold tracking-tight">
@@ -163,81 +221,69 @@ export function PrForm() {
             </h3>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <ContentCard title="Short summary">
-                {result.generatedContent.shortSummary}
-              </ContentCard>
+              <ContentBlock
+                title="Short summary"
+                value={result.generatedContent.shortSummary}
+                onCopy={copyText}
+              />
 
-              <ContentCard title="Technical summary">
-                {result.generatedContent.technicalSummary}
-              </ContentCard>
+              <ContentBlock
+                title="Technical summary"
+                value={result.generatedContent.technicalSummary}
+                onCopy={copyText}
+              />
 
-              <div className="rounded-xl border p-4">
-                <h4 className="mb-2 font-medium">Features</h4>
-                <ul className="list-disc space-y-1 pl-5 text-sm leading-6 text-muted-foreground">
-                  {result.generatedContent.features.map((feature) => (
-                    <li key={feature}>{feature}</li>
-                  ))}
-                </ul>
-              </div>
+              <ContentListBlock
+                title="Features"
+                values={result.generatedContent.features}
+                onCopy={copyText}
+              />
 
-              <div className="rounded-xl border p-4">
-                <h4 className="mb-2 font-medium">Technologies used</h4>
-                <ul className="flex flex-wrap gap-2">
-                  {result.generatedContent.techUsed.map((tech) => (
-                    <li
-                      key={tech}
-                      className="rounded-full border bg-muted px-3 py-1 text-xs text-muted-foreground"
-                    >
-                      {tech}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <ContentListBlock
+                title="Technologies used"
+                values={result.generatedContent.techUsed}
+                onCopy={copyText}
+              />
 
-              <ContentCard title="X/Twitter post">
-                {result.generatedContent.tweet}
-              </ContentCard>
+              <ContentBlock
+                title="X/Twitter post"
+                value={result.generatedContent.tweet}
+                onCopy={copyText}
+              />
 
-              <ContentCard title="LinkedIn post">
-                {result.generatedContent.linkedInPost}
-              </ContentCard>
+              <ContentBlock
+                title="LinkedIn post"
+                value={result.generatedContent.linkedInPost}
+                onCopy={copyText}
+              />
 
-              <ContentCard title="Reddit post">
-                {result.generatedContent.redditPost}
-              </ContentCard>
+              <ContentBlock
+                title="Reddit post"
+                value={result.generatedContent.redditPost}
+                onCopy={copyText}
+              />
 
-              <ContentCard title="Portfolio bullet">
-                {result.generatedContent.portfolioBullet}
-              </ContentCard>
+              <ContentBlock
+                title="Portfolio bullet"
+                value={result.generatedContent.portfolioBullet}
+                onCopy={copyText}
+              />
 
-              <ContentCard title="Changelog entry">
-                {result.generatedContent.changelogEntry}
-              </ContentCard>
+              <ContentBlock
+                title="Changelog entry"
+                value={result.generatedContent.changelogEntry}
+                onCopy={copyText}
+              />
 
-              <ContentCard title="Beginner-friendly explanation">
-                {result.generatedContent.beginnerSummary}
-              </ContentCard>
+              <ContentBlock
+                title="Beginner-friendly explanation"
+                value={result.generatedContent.beginnerSummary}
+                onCopy={copyText}
+              />
             </div>
           </div>
         </section>
       ) : null}
-    </div>
-  );
-}
-
-function ContentCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border p-4">
-      <h4 className="mb-2 font-medium">{title}</h4>
-      <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
-        {children}
-      </p>
     </div>
   );
 }

@@ -1,14 +1,7 @@
 import { z } from "zod";
+import { changedFileSchema } from "./changed-file";
 
-export const pullRequestFileSchema = z.object({
-    filename: z.string(),
-    status: z.string(),
-    additions: z.number(),
-    deletions: z.number(),
-    patch: z.string().nullable(),
-    skipped: z.boolean(),
-    skipReason: z.string().nullable(),
-});
+export const pullRequestFileSchema = changedFileSchema;
 
 export const pullRequestResultSchema = z.object({
     owner: z.string(),

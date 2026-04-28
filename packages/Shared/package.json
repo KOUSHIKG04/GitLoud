@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./github": "./src/github.ts",
+    "./changed-file": "./src/changed-file.ts",
     "./pull-request": "./src/pull-request.ts",
     "./pr-cleanup": "./src/pr-cleanup.ts",
     "./generated-content": "./src/generated-content.ts",
