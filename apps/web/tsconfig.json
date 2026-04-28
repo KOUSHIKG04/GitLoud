@@ -6,6 +6,9 @@
         "name": "next"
       }
     ],
+    "paths": {
+      "@/*": ["./app/*"]
+    },
     "strictNullChecks": true
   },
   "include": [

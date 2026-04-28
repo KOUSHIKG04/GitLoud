@@ -1,0 +1,20 @@
+{
+  "name": "@repo/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./github": "./src/github.ts",
+    "./pull-request": "./src/pull-request.ts",
+    "./pr-cleanup": "./src/pr-cleanup.ts",
+    "./generated-content": "./src/generated-content.ts",
+    "./commit": "./src/commit.ts"
+  },
+  "dependencies": {
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@repo/github",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./fetch-pr": "./src/fetch-pr.ts",
+    "./fetch-commit": "./src/fetch-commit.ts"
+  },
+  "dependencies": {
+    "@octokit/rest": "^22.0.0",
+    "@repo/shared": "*"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "5.9.2"
+  }
+}
