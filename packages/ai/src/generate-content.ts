@@ -78,6 +78,8 @@ const generatedContentResponseSchema = {
     ],
 } as const;
 
+const MAX_PATCH_CHARS = 4000;
+
 function buildFilesContext(
     files: {
         filename: string; status: string; additions: number; deletions: number;
@@ -95,11 +97,16 @@ function buildFilesContext(
                 `File: ${file.filename}`,
                 `Status: ${file.status}`,
                 `Changes: +${file.additions} -${file.deletions}`,
-                `Patch:\n${file.patch ?? "No patch"}`,
+                `Patch:\n${file.patch
+                    ? file.patch.slice(0, MAX_PATCH_CHARS)
+                    : "No patch"
+                }`,
             ].join("\n");
         })
         .join("\n\n---\n\n");
 }
+
+const GEMINI_TIMEOUT_MS = 20_000;
 
 async function generateContent(input: string): Promise<GeneratedContent> {
     if (!process.env.GEMINI_API_KEY) {
@@ -110,19 +117,24 @@ async function generateContent(input: string): Promise<GeneratedContent> {
         apiKey: process.env.GEMINI_API_KEY,
     });
 
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: [
-            "You create clear developer summaries and share-ready posts from GitHub code changes.",
-            "Return concise, accurate content only. Do not invent details that are not supported by the supplied PR or commit context.",
-            "Use the user's extra context when provided. If they mention learning, write the content as a learning or progress update.",
-            input,
-        ].join("\n\n"),
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: generatedContentResponseSchema,
-        },
-    });
+    const response = await Promise.race([
+        ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [
+                "You create clear developer summaries and share-ready posts from GitHub code changes.",
+                "Return concise, accurate content only. Do not invent details that are not supported by the supplied PR or commit context.",
+                "Use the user's extra context when provided. If they mention learning, write the content as a learning or progress update.",
+                input,
+            ].join("\n\n"),
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: generatedContentResponseSchema,
+            },
+        }),
+        new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("Gemini request timed out")), GEMINI_TIMEOUT_MS),
+        ),
+    ]);
 
     if (!response.text) {
         throw new Error("Gemini returned an empty response");

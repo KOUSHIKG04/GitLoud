@@ -5,31 +5,46 @@ import {
     getGithubUrlType,
     parseGithubCommitUrl,
     parseGithubPullRequestUrl,
+    githubPrOrCommitUrlSchema
 } from "@repo/shared/github";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { Octokit } from "@octokit/rest";
 
 const requestBodySchema = z.object({
-    url: z.url().trim(),
-    context: z.string().max(1000).optional(),
+    url: githubPrOrCommitUrlSchema,
+    context: z.string().trim().max(1000).optional(),
 });
 
 async function isRepoPublic(owner: string, repo: string): Promise<boolean> {
+    const octokit = new Octokit({
+        auth: process.env.GITHUB_TOKEN,
+    });
+
     try {
-        const octokit = new Octokit(); // No auth token
+        // const octokit = new Octokit(); // No auth token
         await octokit.repos.get({ owner, repo });
         return true;
     } catch (error: any) {
-        // If we get a 404, the repo doesn't exist or is private
-        // If we get a 403, it might be private or rate limited
-        return false;
+        if (isGithubRequestError(error) && error.status === 404) {
+            return false;
+        }
+        throw error;
     }
 }
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
+
+        let body: unknown;
+        try {
+            body = await request.json();
+        } catch {
+            return NextResponse.json(
+                { error: "Invalid JSON body" },
+                { status: 400 },
+            );
+        }
 
         const parsedBody = requestBodySchema.safeParse(body);
 
@@ -42,7 +57,7 @@ export async function POST(request: Request) {
 
         const userContext =
             typeof parsedBody.data.context === "string" &&
-            parsedBody.data.context.trim().length > 0
+                parsedBody.data.context.trim().length > 0
                 ? parsedBody.data.context.trim()
                 : undefined;
 

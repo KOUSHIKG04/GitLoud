@@ -11,7 +11,7 @@ export const githubPullRequestUrlSchema = z
                 url.hostname === "github.com" &&
                 parts.length === 4 &&
                 parts[2] === "pull" &&
-                /^\d+$/.test(Number(parts[3]).toString())
+                /^\d+$/.test(parts[3] ?? "")
             );
         } catch {
             return false;
@@ -35,7 +35,8 @@ export function parseGithubPullRequestUrl(value: string) {
         type !== "pull" ||
         !owner ||
         !repo ||
-        !number
+        !number ||
+        !/^\d+$/.test(number)
     ) {
         throw new Error("Invalid GitHub pull request URL");
     }
@@ -43,7 +44,7 @@ export function parseGithubPullRequestUrl(value: string) {
     return {
         owner,
         repo,
-        number: Number(number),
+        number: Number.parseInt(number, 10),
     };
 }
 
@@ -63,7 +64,8 @@ export function parseGithubCommitUrl(value: string) {
         type !== "commit" ||
         !owner ||
         !repo ||
-        !sha
+        !sha ||
+        !/^[a-f0-9]{7,40}$/i.test(sha)
     ) {
         throw new Error("Invalid GitHub commit URL");
     }
@@ -85,15 +87,24 @@ export function getGithubUrlType(value: string) {
             return "unknown";
         }
 
-        if (parts[2] === "pull") {
+        // if (parts[2] === "pull") {
+        //     return "pull-request";
+        // }
+
+        // if (parts[2] === "commit") {
+        //     return "commit";
+        // }
+
+        if (parts[2] === "pull" && /^\d+$/.test(parts[3] ?? "")) {
             return "pull-request";
         }
 
-        if (parts[2] === "commit") {
+        if (parts[2] === "commit" && /^[a-f0-9]{7,40}$/i.test(parts[3] ?? "")) {
             return "commit";
         }
 
         return "unknown";
+        
     } catch {
         return "unknown";
     }
