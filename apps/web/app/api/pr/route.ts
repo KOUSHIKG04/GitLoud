@@ -153,38 +153,40 @@ export async function POST(request: Request): Promise<Response> {
 
             send({ type: "progress", message: "Saving generated content..." });
 
-            const savedPullRequest = await db.pullRequest.create({
-                data: {
-                    owner: pullRequest.owner,
-                    repo: pullRequest.repo,
-                    number: pullRequest.number,
-                    title: pullRequest.title,
-                    body: pullRequest.body,
-                    author: pullRequest.author,
-                    url: pullRequest.url,
-                    state: pullRequest.state,
-                    headSha: pullRequest.headSha,
-                    additions: pullRequest.additions,
-                    deletions: pullRequest.deletions,
-                    changedFiles: pullRequest.changedFiles,
-                },
-            });
+            const savedGeneratedContent = await db.$transaction(async (tx) => {
+                const savedPullRequest = await tx.pullRequest.create({
+                    data: {
+                        owner: pullRequest.owner,
+                        repo: pullRequest.repo,
+                        number: pullRequest.number,
+                        title: pullRequest.title,
+                        body: pullRequest.body,
+                        author: pullRequest.author,
+                        url: pullRequest.url,
+                        state: pullRequest.state,
+                        headSha: pullRequest.headSha,
+                        additions: pullRequest.additions,
+                        deletions: pullRequest.deletions,
+                        changedFiles: pullRequest.changedFiles,
+                    },
+                });
 
-            const savedGeneratedContent = await db.generatedContent.create({
-                data: {
-                    sourceType: "PULL_REQUEST",
-                    pullRequestId: savedPullRequest.id,
-                    shortSummary: generatedContent.shortSummary,
-                    technicalSummary: generatedContent.technicalSummary,
-                    features: generatedContent.features,
-                    techUsed: generatedContent.techUsed,
-                    tweet: generatedContent.tweet,
-                    linkedInPost: generatedContent.linkedInPost,
-                    redditPost: generatedContent.redditPost,
-                    portfolioBullet: generatedContent.portfolioBullet,
-                    changelogEntry: generatedContent.changelogEntry,
-                    beginnerSummary: generatedContent.beginnerSummary,
-                },
+                return tx.generatedContent.create({
+                    data: {
+                        sourceType: "PULL_REQUEST",
+                        pullRequestId: savedPullRequest.id,
+                        shortSummary: generatedContent.shortSummary,
+                        technicalSummary: generatedContent.technicalSummary,
+                        features: generatedContent.features,
+                        techUsed: generatedContent.techUsed,
+                        tweet: generatedContent.tweet,
+                        linkedInPost: generatedContent.linkedInPost,
+                        redditPost: generatedContent.redditPost,
+                        portfolioBullet: generatedContent.portfolioBullet,
+                        changelogEntry: generatedContent.changelogEntry,
+                        beginnerSummary: generatedContent.beginnerSummary,
+                    },
+                });
             });
 
             send({
@@ -236,36 +238,38 @@ export async function POST(request: Request): Promise<Response> {
 
             send({ type: "progress", message: "Saving generated content..." });
 
-            const savedCommit = await db.commit.create({
-                data: {
-                    owner: commit.owner,
-                    repo: commit.repo,
-                    sha: commit.sha,
-                    shortSha: commit.shortSha,
-                    message: commit.message,
-                    author: commit.author,
-                    url: commit.url,
-                    additions: commit.additions,
-                    deletions: commit.deletions,
-                    changedFiles: commit.changedFiles,
-                },
-            });
+            const savedGeneratedContent = await db.$transaction(async (tx) => {
+                const savedCommit = await tx.commit.create({
+                    data: {
+                        owner: commit.owner,
+                        repo: commit.repo,
+                        sha: commit.sha,
+                        shortSha: commit.shortSha,
+                        message: commit.message,
+                        author: commit.author,
+                        url: commit.url,
+                        additions: commit.additions,
+                        deletions: commit.deletions,
+                        changedFiles: commit.changedFiles,
+                    },
+                });
 
-            const savedGeneratedContent = await db.generatedContent.create({
-                data: {
-                    sourceType: "COMMIT",
-                    commitId: savedCommit.id,
-                    shortSummary: generatedContent.shortSummary,
-                    technicalSummary: generatedContent.technicalSummary,
-                    features: generatedContent.features,
-                    techUsed: generatedContent.techUsed,
-                    tweet: generatedContent.tweet,
-                    linkedInPost: generatedContent.linkedInPost,
-                    redditPost: generatedContent.redditPost,
-                    portfolioBullet: generatedContent.portfolioBullet,
-                    changelogEntry: generatedContent.changelogEntry,
-                    beginnerSummary: generatedContent.beginnerSummary,
-                },
+                return tx.generatedContent.create({
+                    data: {
+                        sourceType: "COMMIT",
+                        commitId: savedCommit.id,
+                        shortSummary: generatedContent.shortSummary,
+                        technicalSummary: generatedContent.technicalSummary,
+                        features: generatedContent.features,
+                        techUsed: generatedContent.techUsed,
+                        tweet: generatedContent.tweet,
+                        linkedInPost: generatedContent.linkedInPost,
+                        redditPost: generatedContent.redditPost,
+                        portfolioBullet: generatedContent.portfolioBullet,
+                        changelogEntry: generatedContent.changelogEntry,
+                        beginnerSummary: generatedContent.beginnerSummary,
+                    },
+                });
             });
 
             send({
@@ -287,12 +291,13 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 function getErrorMessage(error: unknown) {
-    if (isAiProviderError(error)) {
-        return "The AI provider is temporarily unavailable. Please try again in a minute.";
-    }
-
+    
     if (isGithubRequestError(error)) {
         return `GitHub API error: ${error.message}`;
+    }
+
+    if (isAiProviderError(error)) {
+        return "The AI provider is temporarily unavailable. Please try again in a minute.";
     }
 
     if (error instanceof Error) {

@@ -107,6 +107,7 @@ function buildFilesContext(
 }
 
 const GEMINI_TIMEOUT_MS = 20_000;
+const TOTAL_GENERATION_TIMEOUT_MS = 45_000;
 const MAX_GENERATION_ATTEMPTS = 3;
 const FALLBACK_MODELS = ["gemini-2.5-flash-lite", "gemini-2.0-flash"];
 
@@ -138,9 +139,14 @@ function isRetryableGeminiError(error: unknown) {
 
 async function generateWithRetry(ai: GoogleGenAI, contents: string) {
     let lastError: unknown;
+    const deadline = Date.now() + TOTAL_GENERATION_TIMEOUT_MS;
 
     for (const model of getModelFallbacks()) {
         for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt += 1) {
+            if (Date.now() > deadline) {
+                throw new Error("Global generation timeout exceeded");
+            }
+
             try {
                 return await ai.models.generateContent({
                     model,

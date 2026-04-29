@@ -137,8 +137,7 @@
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--muted-foreground) / 0.45) transparent;
-}
+scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;}
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
@@ -149,10 +148,8 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.35);
-  border-radius: 999px;
+scrollbar-color: color-mix(in srgb, var(--muted-foreground) 35%, transparent) transparent;  border-radius: 999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.55);
-}
+scrollbar-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent) transparent;}

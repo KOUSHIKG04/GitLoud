@@ -3,7 +3,7 @@ import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { EditableGeneratedContent } from "./editable-content";
+import { GeneratedContentView } from "./generated-content";
 
 export default async function GenerationDetailPage({
   params,
@@ -63,8 +63,7 @@ export default async function GenerationDetailPage({
           </Button>
         </div>
 
-        <EditableGeneratedContent
-          generationId={generation.id}
+        <GeneratedContentView
           initialContent={{
             shortSummary: generation.shortSummary,
             technicalSummary: generation.technicalSummary,

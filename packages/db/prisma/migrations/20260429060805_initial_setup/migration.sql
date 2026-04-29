@@ -76,7 +76,11 @@ CREATE TABLE "GeneratedContent" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "GeneratedContent_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "GeneratedContent_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "GeneratedContent_source_link_check" CHECK (
+        ("sourceType" = 'PULL_REQUEST' AND "pullRequestId" IS NOT NULL AND "commitId" IS NULL) OR
+        ("sourceType" = 'COMMIT' AND "commitId" IS NOT NULL AND "pullRequestId" IS NULL)
+    )
 );
 
 -- CreateIndex
