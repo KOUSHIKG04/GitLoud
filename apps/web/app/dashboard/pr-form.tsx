@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { Loader2 } from "lucide-react";
-
+import type { ComponentPropsWithoutRef } from "react";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
@@ -118,7 +118,10 @@ async function readProgressStream(
   throw new Error("Generation finished without a result");
 }
 
-export function PrForm() {
+export function PrForm({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
 
   const {
@@ -190,7 +193,10 @@ export function PrForm() {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div
+      {...props}
+      className={["w-full space-y-6", className].filter(Boolean).join(" ")}
+    >
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
         <form
           onSubmit={handleSubmit(onSubmit, onInvalid)}
@@ -213,7 +219,6 @@ export function PrForm() {
                 className={errors.url ? "border-destructive" : undefined}
                 {...register("url")}
               />
-
             </div>
 
             <div className="space-y-2">
@@ -231,7 +236,6 @@ export function PrForm() {
                 className="custom-scrollbar min-h-36 w-full resize-y rounded-md border bg-background p-3 text-sm leading-6 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 {...register("context")}
               />
-
             </div>
           </div>
 

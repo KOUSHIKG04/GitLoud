@@ -6,6 +6,12 @@ import { DeleteGenerationButton } from "./delete-generation-button";
 
 export default async function HistoryPage() {
   const generations = await db.generatedContent.findMany({
+    where: {
+      OR: [
+        { pullRequestId: { not: null } },
+        { commitId: { not: null } },
+      ],
+    },
     orderBy: { createdAt: "desc" },
     include: {
       pullRequest: true,

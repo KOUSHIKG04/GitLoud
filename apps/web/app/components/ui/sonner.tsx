@@ -23,7 +23,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         warning: <TriangleAlertIcon className="size-4" />,
         error: <OctagonXIcon className="size-4" />,
         loading: (
-          <span className="inline-flex size-4 shrink-0 items-center justify-center mt-2">
+          <span className="inline-flex size-4 shrink-0 items-center justify-center mt-1.5">
             <Loader2Icon className="block size-4 animate-spin origin-center" />
           </span>
         ),

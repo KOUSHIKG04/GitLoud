@@ -14,6 +14,9 @@ import {
 import { Octokit } from "@octokit/rest";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getRequestIp } from "@/lib/ip";
+import { rateLimit } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 const requestBodySchema = z.object({
     url: githubPrOrCommitUrlSchema,
@@ -52,15 +55,15 @@ function createProgressStream(
         new ReadableStream({
             async start(controller) {
                 const send: SendProgress = (event) => {
-                    controller.enqueue(
-                        encoder.encode(`${JSON.stringify(event)}\n`),
-                    );
+                    controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
                 };
 
                 try {
                     await run(send);
                 } catch (error) {
-                    console.error("GitHub URL processing failed:", error);
+                    logger.error("GitHub URL processing failed", {
+                        error: getErrorMessage(error),
+                    });
                     send({ type: "error", message: getErrorMessage(error) });
                 } finally {
                     controller.close();
@@ -68,15 +71,32 @@ function createProgressStream(
             },
         }),
         {
-            headers: {
-                "Cache-Control": "no-cache",
-                "Content-Type": "application/x-ndjson",
-            },
+            headers: { "Cache-Control": "no-cache", "Content-Type": "application/x-ndjson" },
         },
     );
 }
 
 export async function POST(request: Request): Promise<Response> {
+
+    const ip = getRequestIp(request);
+    const limit = rateLimit({
+        key: `generate:${ip}`,
+        limit: 5,
+        windowMs: 10 * 60 * 1000,
+    });
+
+    if (!limit.success) {
+        return NextResponse.json(
+            { error: "Too many generation requests. Please try again later.", },
+            {
+                status: 429,
+                headers: {
+                    "Retry-After": Math.ceil((limit.resetAt.getTime() - Date.now()) / 1000).toString(),
+                },
+            },
+        );
+    }
+
     let body: unknown;
 
     try {
@@ -189,6 +209,13 @@ export async function POST(request: Request): Promise<Response> {
                 });
             });
 
+            logger.info("Generated pull request content", {
+                owner,
+                repo,
+                number,
+                generatedContentId: savedGeneratedContent.id,
+            });
+
             send({
                 type: "done",
                 data: {
@@ -272,6 +299,13 @@ export async function POST(request: Request): Promise<Response> {
                 });
             });
 
+            logger.info("Generated commit content", {
+                owner,
+                repo,
+                sha,
+                generatedContentId: savedGeneratedContent.id,
+            });
+
             send({
                 type: "done",
                 data: {
@@ -291,7 +325,7 @@ export async function POST(request: Request): Promise<Response> {
 }
 
 function getErrorMessage(error: unknown) {
-    
+
     if (isGithubRequestError(error)) {
         return `GitHub API error: ${error.message}`;
     }

@@ -11,6 +11,17 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  openGraph: {
+    title: "GitHub PR Summary and Social Post Generator",
+    description:
+      "Use GitLoud to turn GitHub pull requests and commits into clear summaries, feature notes, changelog entries, portfolio bullets, and social posts.",
+    url: "/",
+  },
+  twitter: {
+    title: "GitHub PR Summary and Social Post Generator",
+    description:
+      "Use GitLoud to turn GitHub pull requests and commits into clear summaries, feature notes, changelog entries, portfolio bullets, and social posts.",
+  },
 };
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud.app";
