@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <main className="min-h-dvh flex flex-col overflow-hidden">
+    <main className="min-h-dvh flex flex-col overflow-x-hidden">
       <Header />
 
       <section className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 sm:py-16 lg:px-8">

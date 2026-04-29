@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { githubPullRequestUrlSchema } from "@repo/shared/github";
+import { githubPrOrCommitUrlSchema } from "@repo/shared/github";
 import axios from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -21,21 +21,44 @@ import {
 import { ExternalLink } from "lucide-react";
 
 const formSchema = z.object({
-  url: githubPullRequestUrlSchema,
+  url: githubPrOrCommitUrlSchema,
+  context: z.string().max(1000).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 type PullRequestGenerateResponse = {
   sourceType: "pull-request";
-  pullRequest: PullRequestResult;
   generatedContent: GeneratedContent;
+  metadata: {
+    owner: string;
+    repo: string;
+    number: number;
+    title: string;
+    author?: string;
+    url: string;
+    state: string;
+    additions: number;
+    deletions: number;
+    changedFiles: number;
+  };
 };
 
 type CommitGenerateResponse = {
   sourceType: "commit";
-  commit: CommitResult;
   generatedContent: GeneratedContent;
+  metadata: {
+    owner: string;
+    repo: string;
+    sha: string;
+    shortSha: string;
+    message: string;
+    author: string | null;
+    url: string;
+    additions: number;
+    deletions: number;
+    changedFiles: number;
+  };
 };
 
 type GenerateResponse = PullRequestGenerateResponse | CommitGenerateResponse;
@@ -52,11 +75,16 @@ export function PrForm() {
     resolver: zodResolver(formSchema as any),
     defaultValues: {
       url: "",
+      context: "",
     },
   });
 
   async function copyText(text: string) {
-    await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (error) {
+      //todo: implement error hanlder 
+    }
   }
 
   async function onSubmit(values: FormValues) {
@@ -68,6 +96,7 @@ export function PrForm() {
     try {
       const response = await axios.post<GenerateResponse>("/api/pr", {
         url: values.url,
+        context: values.context,
       });
 
       setResult(response.data);
@@ -92,13 +121,13 @@ export function PrForm() {
       <div className="rounded-2xl border bg-background p-4 shadow-sm sm:p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="pr-url">GitHub pull request URL</Label>
+            <Label htmlFor="pr-url">GitHub PR or commit URL</Label>
 
             <div className="flex flex-col gap-3 md:flex-row">
               <Input
                 id="pr-url"
                 type="url"
-                placeholder="https://github.com/owner/repo/pull/123"
+                placeholder="https://github.com/owner/repo/pull/123 or /commit/abc123"
                 disabled={isSubmitting}
                 className={
                   errors.url ? "border-destructive md:flex-1" : "md:flex-1"
@@ -119,6 +148,24 @@ export function PrForm() {
               <p className="text-sm text-destructive">{errors.url.message}</p>
             ) : null}
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="context">Extra context</Label>
+
+            <textarea
+              id="context"
+              placeholder="Example: I learned this today, explain it like a learning update..."
+              disabled={isSubmitting}
+              className="min-h-24 w-full resize-y rounded-md border bg-background p-3 text-sm leading-6 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              {...register("context")}
+            />
+
+            {errors.context ? (
+              <p className="text-sm text-destructive">
+                {errors.context.message}
+              </p>
+            ) : null}
+          </div>
         </form>
       </div>
 
@@ -134,42 +181,37 @@ export function PrForm() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <p className="break-all text-sm text-muted-foreground">
-                  Pull request: {result.pullRequest.owner}/
-                  {result.pullRequest.repo} #{result.pullRequest.number}
+                  Pull request: {result.metadata.owner}/{result.metadata.repo} #
+                  {result.metadata.number}
                 </p>
 
                 <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
-                  {result.pullRequest.title}
+                  {result.metadata.title}
                 </h2>
               </div>
 
               <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
                 <InfoCard
                   label="Author"
-                  value={result.pullRequest.author ?? "Unknown"}
+                  value={result.metadata.author ?? "Unknown"}
                 />
                 <InfoCard label="Type" value="Pull Request" />
                 <InfoCard
                   label="Files"
-                  value={String(result.pullRequest.changedFiles)}
+                  value={String(result.metadata.changedFiles)}
                 />
               </div>
 
               <div className="rounded-xl border p-3 text-sm">
                 <p className="text-muted-foreground">Changes</p>
                 <p className="font-medium">
-                  +{result.pullRequest.additions} -
-                  {result.pullRequest.deletions} across{" "}
-                  {result.pullRequest.changedFiles} files
+                  +{result.metadata.additions} -{result.metadata.deletions}{" "}
+                  across {result.metadata.changedFiles} files
                 </p>
               </div>
 
               <Button asChild variant="outline" className="w-full sm:w-auto">
-                <a
-                  href={result.pullRequest.url}
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a href={result.metadata.url} target="_blank" rel="noreferrer">
                   Open on GitHub
                 </a>
               </Button>
@@ -178,37 +220,37 @@ export function PrForm() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <p className="break-all text-sm text-muted-foreground">
-                  Commit: {result.commit.owner}/{result.commit.repo}{" "}
-                  {result.commit.shortSha}
+                  Commit: {result.metadata.owner}/{result.metadata.repo}{" "}
+                  {result.metadata.shortSha}
                 </p>
 
                 <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
-                  {result.commit.message.split("\n")[0]}
+                  {result.metadata.message.split("\n")[0]}
                 </h2>
               </div>
 
               <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
                 <InfoCard
                   label="Author"
-                  value={result.commit.author ?? "Unknown"}
+                  value={result.metadata.author ?? "Unknown"}
                 />
                 <InfoCard label="Type" value="Commit" />
                 <InfoCard
                   label="Files"
-                  value={String(result.commit.changedFiles)}
+                  value={String(result.metadata.changedFiles)}
                 />
               </div>
 
               <div className="rounded-xl border p-3 text-sm">
                 <p className="text-muted-foreground">Changes</p>
                 <p className="font-medium">
-                  +{result.commit.additions} -{result.commit.deletions} across{" "}
-                  {result.commit.changedFiles} files
+                  +{result.metadata.additions} -{result.metadata.deletions}{" "}
+                  across {result.metadata.changedFiles} files
                 </p>
               </div>
 
               <Button asChild variant="outline" className="w-full sm:w-auto">
-                <a href={result.commit.url} target="_blank" rel="noreferrer">
+                <a href={result.metadata.url} target="_blank" rel="noreferrer">
                   Open on GitHub
                 </a>
               </Button>
@@ -282,8 +324,80 @@ export function PrForm() {
               />
             </div>
           </div>
+
+          <ShareLinks result={result} />
         </section>
       ) : null}
     </div>
+  );
+}
+
+function createShareUrls(input: {
+  url: string;
+  title: string;
+  tweet: string;
+  linkedInPost: string;
+  redditPost: string;
+}) {
+  const encodedUrl = encodeURIComponent(input.url);
+  const encodedTitle = encodeURIComponent(input.title);
+
+  return {
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      input.tweet,
+    )}`,
+    linkedIn: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+    reddit: `https://www.reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
+  };
+}
+
+function getSourceUrl(result: GenerateResponse) {
+  return result.metadata.url;
+}
+
+function getSourceTitle(result: GenerateResponse) {
+  if (result.sourceType === "pull-request") {
+    return result.metadata.title;
+  }
+
+  return result.metadata.message.split("\n")[0] || result.metadata.shortSha;
+}
+
+function ShareLinks({ result }: { result: GenerateResponse }) {
+  const shareUrls = createShareUrls({
+    url: getSourceUrl(result),
+    title: getSourceTitle(result),
+    tweet: result.generatedContent.tweet,
+    linkedInPost: result.generatedContent.linkedInPost,
+    redditPost: result.generatedContent.redditPost,
+  });
+
+  return (
+    <section className="space-y-4 border-t pt-6">
+      <h3 className="text-lg font-semibold tracking-tight">Share</h3>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Button asChild variant="outline" className="w-full sm:w-auto">
+          <a href={shareUrls.twitter} target="_blank" rel="noreferrer">
+            Share on X/Twitter
+            <ExternalLink className="ml-2 size-4" />
+          </a>
+        </Button>
+
+        <Button asChild variant="outline" className="w-full sm:w-auto">
+          <a href={shareUrls.linkedIn} target="_blank" rel="noreferrer">
+            Share on LinkedIn
+            <ExternalLink className="ml-2 size-4" />
+          </a>
+        </Button>
+
+        <Button asChild variant="outline" className="w-full sm:w-auto">
+          <a href={shareUrls.reddit} target="_blank" rel="noreferrer">
+            Share on Reddit
+            <ExternalLink className="ml-2 size-4" />
+          </a>
+        </Button>
+      </div>
+    </section>
   );
 }

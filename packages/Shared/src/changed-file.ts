@@ -6,8 +6,8 @@ export const changedFileSchema = z.object({
     additions: z.number(),
     deletions: z.number(),
     patch: z.string().nullable(),
-    skipped: z.boolean(),
-    skipReason: z.string().nullable(),
+    skipped: z.boolean().default(false),
+    skipReason: z.string().nullable().default(null),
 });
 
 export type ChangedFile = z.infer<typeof changedFileSchema>;

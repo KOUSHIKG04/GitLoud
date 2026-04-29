@@ -20,7 +20,7 @@ export async function fetchPullRequest(input: FetchPullRequestInput) {
         pull_number: input.number,
     });
 
-    const filesResponse = await octokit.pulls.listFiles({
+    const filesResponse = await octokit.paginate(octokit.rest.pulls.listFiles, {
         owner: input.owner,
         repo: input.repo,
         pull_number: input.number,
@@ -30,7 +30,7 @@ export async function fetchPullRequest(input: FetchPullRequestInput) {
     const pr = prResponse.data;
 
     const cleanedFiles = cleanPullRequestFiles(
-        filesResponse.data.map((file) => ({
+        filesResponse.map((file) => ({
             filename: file.filename,
             status: file.status,
             additions: file.additions,

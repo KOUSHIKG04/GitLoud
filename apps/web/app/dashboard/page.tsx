@@ -9,7 +9,7 @@ export default function DashboardPage() {
       <div className="flex flex-1 items-center justify-center px-4 py-6 sm:px-8">
         <section className="w-full max-w-2xl space-y-8">
           <div className="space-y-2 text-center">
-            {/* <p className="text-sm text-muted-foreground">Dashboard</p> */}
+            <p className="text-sm text-muted-foreground">Dashboard</p>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
               Generate PR content
             </h1>
