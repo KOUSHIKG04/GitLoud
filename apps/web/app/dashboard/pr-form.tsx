@@ -82,8 +82,9 @@ export function PrForm() {
   async function copyText(text: string) {
     try {
       await navigator.clipboard.writeText(text);
+      toast.info("Copied Text");
     } catch (error) {
-      //todo: implement error hanlder 
+      toast.error("Couldn't copy to clipboard. Please copy manually.");
     }
   }
 
@@ -91,7 +92,7 @@ export function PrForm() {
     setSubmitError(null);
     setResult(null);
 
-    const toastId = toast.loading("Fetching pull request...");
+    const toastId = toast.loading("Fetching GitHub item...");
 
     try {
       const response = await axios.post<GenerateResponse>("/api/pr", {
@@ -100,12 +101,12 @@ export function PrForm() {
       });
 
       setResult(response.data);
-      toast.success("Pull request fetched successfully", {
+      toast.success("GitHub item fetched successfully", {
         id: toastId,
       });
     } catch (error) {
       const message = axios.isAxiosError(error)
-        ? (error.response?.data?.error ?? "Failed to fetch PR")
+        ? (error.response?.data?.error ?? "Failed to fetch GitHub item")
         : "Something went wrong";
 
       setSubmitError(message);
