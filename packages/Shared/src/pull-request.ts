@@ -12,10 +12,10 @@ export const pullRequestResultSchema = z.object({
     author: z.string().optional(),
     url: z.url(),
     state: z.string(),
+    headSha: z.string(),
     additions: z.number(),
     deletions: z.number(),
     changedFiles: z.number(),
-
     files: z.array(pullRequestFileSchema),
 });
 

@@ -107,6 +107,68 @@ function buildFilesContext(
 }
 
 const GEMINI_TIMEOUT_MS = 20_000;
+const MAX_GENERATION_ATTEMPTS = 3;
+const FALLBACK_MODELS = ["gemini-2.5-flash-lite", "gemini-2.0-flash"];
+
+function getModelFallbacks() {
+    const preferredModel = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+
+    return [preferredModel, ...FALLBACK_MODELS].filter(
+        (model, index, models) => models.indexOf(model) === index,
+    );
+}
+
+function wait(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getErrorStatus(error: unknown) {
+    if (typeof error !== "object" || error === null || !("status" in error)) {
+        return undefined;
+    }
+
+    return (error as { status?: unknown }).status;
+}
+
+function isRetryableGeminiError(error: unknown) {
+    const status = getErrorStatus(error);
+
+    return status === 429 || status === 500 || status === 503 || status === "UNAVAILABLE";
+}
+
+async function generateWithRetry(ai: GoogleGenAI, contents: string) {
+    let lastError: unknown;
+
+    for (const model of getModelFallbacks()) {
+        for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt += 1) {
+            try {
+                return await ai.models.generateContent({
+                    model,
+                    contents,
+                    config: {
+                        responseMimeType: "application/json",
+                        responseSchema: generatedContentResponseSchema,
+                        httpOptions: {
+                            timeout: GEMINI_TIMEOUT_MS,
+                        },
+                    },
+                });
+            } catch (error) {
+                lastError = error;
+
+                if (!isRetryableGeminiError(error)) {
+                    throw error;
+                }
+
+                if (attempt < MAX_GENERATION_ATTEMPTS) {
+                    await wait(750 * attempt);
+                }
+            }
+        }
+    }
+
+    throw lastError;
+}
 
 async function generateContent(input: string): Promise<GeneratedContent> {
     if (!process.env.GEMINI_API_KEY) {
@@ -117,24 +179,15 @@ async function generateContent(input: string): Promise<GeneratedContent> {
         apiKey: process.env.GEMINI_API_KEY,
     });
 
-    const response = await Promise.race([
-        ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [
-                "You create clear developer summaries and share-ready posts from GitHub code changes.",
-                "Return concise, accurate content only. Do not invent details that are not supported by the supplied PR or commit context.",
-                "Use the user's extra context when provided. If they mention learning, write the content as a learning or progress update.",
-                input,
-            ].join("\n\n"),
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: generatedContentResponseSchema,
-            },
-        }),
-        new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("Gemini request timed out")), GEMINI_TIMEOUT_MS),
-        ),
-    ]);
+    const response = await generateWithRetry(
+        ai,
+        [
+            "You create clear developer summaries and share-ready posts from GitHub code changes.",
+            "Return concise, accurate content only. Do not invent details that are not supported by the supplied PR or commit context.",
+            "Use the user's extra context when provided. If they mention learning, write the content as a learning or progress update.",
+            input,
+        ].join("\n\n"),
+    );
 
     if (!response.text) {
         throw new Error("Gemini returned an empty response");

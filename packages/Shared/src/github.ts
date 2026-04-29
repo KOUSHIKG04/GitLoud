@@ -125,7 +125,7 @@ export const githubPrOrCommitUrlSchema = z
             const isPullRequest =
                 parts.length === 4 &&
                 parts[2] === "pull" &&
-                Number.isInteger(Number(parts[3]));
+                /^\d+$/.test(parts[3] ?? "");
 
             const isCommit =
                 parts.length === 4 &&

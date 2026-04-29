@@ -15,6 +15,7 @@
     "@hookform/resolvers": "^5.2.2",
     "@octokit/rest": "^22.0.1",
     "@repo/ai": "*",
+    "@repo/db": "*",
     "@repo/github": "*",
     "@repo/shared": "*",
     "@repo/ui": "*",
