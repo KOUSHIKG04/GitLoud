@@ -1,3 +1,4 @@
+import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { PrForm } from "@/dashboard/pr-form";
 
@@ -15,7 +16,7 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          <div className="rounded-xl p-4 sm:p-6 bg-background shadow-sm">
+          <div>
             <PrForm />
           </div>
 
@@ -25,6 +26,8 @@ export default function DashboardPage() {
           </p>
         </section>
       </div>
+
+      <Footer />
     </main>
   );
 }
