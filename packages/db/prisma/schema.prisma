@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String   @id @default(cuid())
+  clerkUserId String?  @unique
+  email       String?
+  name        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  pullRequests     PullRequest[]
+  commits          Commit[]
+  generatedContent GeneratedContent[]
+}
+
+model PullRequest {
+  id           String   @id @default(cuid())
+  userId       String?
+  owner        String
+  repo         String
+  number       Int
+  title        String
+  body         String?
+  author       String?
+  url          String
+  state        String
+  headSha      String?
+  additions    Int
+  deletions    Int
+  changedFiles Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user             User?              @relation(fields: [userId], references: [id])
+  generatedContent GeneratedContent[]
+
+  @@index([userId])
+  @@index([owner, repo, number])
+  @@index([headSha])
+  @@index([createdAt])
+}
+
+model Commit {
+  id           String   @id @default(cuid())
+  userId       String?
+  owner        String
+  repo         String
+  sha          String
+  shortSha     String
+  message      String
+  author       String?
+  url          String
+  additions    Int
+  deletions    Int
+  changedFiles Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user             User?              @relation(fields: [userId], references: [id])
+  generatedContent GeneratedContent[]
+
+  @@index([userId])
+  @@index([owner, repo, sha])
+  @@index([shortSha])
+  @@index([createdAt])
+}
+
+model GeneratedContent {
+  id               String              @id @default(cuid())
+  userId           String?
+  sourceType       GeneratedSourceType
+  pullRequestId    String?
+  commitId         String?
+  shortSummary     String
+  technicalSummary String
+  features         String[]
+  techUsed         String[]
+  tweet            String
+  linkedInPost     String
+  redditPost       String
+  portfolioBullet  String
+  changelogEntry   String
+  beginnerSummary  String
+  status           String              @default("ready")
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  user        User?        @relation(fields: [userId], references: [id])
+  pullRequest PullRequest? @relation(fields: [pullRequestId], references: [id])
+  commit      Commit?      @relation(fields: [commitId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([sourceType])
+  @@index([pullRequestId])
+  @@index([commitId])
+}
+
+enum GeneratedSourceType {
+  PULL_REQUEST
+  COMMIT
+}

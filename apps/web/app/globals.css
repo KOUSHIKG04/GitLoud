@@ -134,3 +134,22 @@
     @apply font-mono;
   }
 }
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+scrollbar-color: color-mix(in srgb, var(--muted-foreground) 35%, transparent) transparent;  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+scrollbar-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent) transparent;}

@@ -48,6 +48,7 @@ export async function fetchPullRequest(input: FetchPullRequestInput) {
         author: pr.user?.login,
         url: pr.html_url,
         state: pr.state,
+        headSha: pr.head.sha,
         additions: pr.additions,
         deletions: pr.deletions,
         changedFiles: pr.changed_files,
