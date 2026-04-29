@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 
 export function DeleteGenerationButton({
   generationId,
@@ -40,7 +40,9 @@ export function DeleteGenerationButton({
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not delete generated content";
-      toast.error(message);
+      toast.error(message, {
+        duration: 7000,
+      });
     } finally {
       setIsDeleting(false);
     }
@@ -56,7 +58,11 @@ export function DeleteGenerationButton({
       aria-label="Delete generated content"
       title="Delete generated content"
     >
-      <Trash2 className="size-4" />
+      {isDeleting ? (
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+      ) : (
+        <Trash2 className="size-4" />
+      )}
     </Button>
   );
 }

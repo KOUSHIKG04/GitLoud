@@ -9,10 +9,61 @@ const geistMono = Geist_Mono({
   variable: "--font-mono",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud.app";
+const siteName = "GitLoud";
+const siteDescription =
+  "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts for X, LinkedIn, and Reddit.";
+
 export const metadata: Metadata = {
-  title: "GitLoud",
-  description:
-    "Generate summaries, feature notes, and share-ready posts from GitHub pull requests instantly.",
+  metadataBase: new URL(siteUrl),
+  applicationName: siteName,
+  title: {
+    default: "GitLoud - GitHub PR Summary and Social Post Generator",
+    template: `%s | ${siteName}`,
+  },
+  description: siteDescription,
+  keywords: [
+    "GitLoud",
+    "GitHub PR summary generator",
+    "pull request summary",
+    "commit summary generator",
+    "developer content assistant",
+    "changelog generator",
+    "portfolio bullet generator",
+    "LinkedIn post generator for developers",
+    "Twitter post generator for developers",
+    "Reddit post generator for developers",
+  ],
+  authors: [{ name: "GitLoud" }],
+  creator: "GitLoud",
+  publisher: "GitLoud",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName,
+    title: "GitLoud - Turn GitHub PRs Into Share-Ready Content",
+    description: siteDescription,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GitLoud - GitHub PR Summary and Social Post Generator",
+    description: siteDescription,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({

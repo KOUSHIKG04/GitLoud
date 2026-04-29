@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { GeneratedContent } from "@repo/shared/generated-content";
-import { Clipboard, Share2 } from "lucide-react";
+import { Clipboard, Loader2, Share2 } from "lucide-react";
 
 type GeneratedContentViewProps = {
   initialContent: GeneratedContent;
@@ -20,7 +20,9 @@ export function GeneratedContentView({
       await navigator.clipboard.writeText(value);
       toast.success("Copied");
     } catch {
-      toast.error("Could not copy text");
+      toast.error("Could not copy text", {
+        duration: 7000,
+      });
     }
   }
 
@@ -41,7 +43,9 @@ export function GeneratedContentView({
         return;
       }
 
-      toast.error("Could not open share sheet");
+      toast.error("Could not open share sheet", {
+        duration: 7000,
+      });
     }
   }
 
@@ -204,6 +208,29 @@ function ContentActions({
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   const shareUrls = createShareUrls({ title, text });
+  const [loadingAction, setLoadingAction] = useState<"copy" | "share" | null>(
+    null,
+  );
+
+  async function handleCopy() {
+    setLoadingAction("copy");
+
+    try {
+      await onCopy(text);
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  async function handleShare() {
+    setLoadingAction("share");
+
+    try {
+      await onShare(title, text);
+    } finally {
+      setLoadingAction(null);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -211,12 +238,17 @@ function ContentActions({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => onCopy(text)}
+        onClick={handleCopy}
+        disabled={loadingAction !== null}
         className="w-full sm:size-9 sm:p-0"
         aria-label="Copy content"
         title="Copy content"
       >
-        <Clipboard className="size-4" />
+        {loadingAction === "copy" ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <Clipboard className="size-4" />
+        )}
       </Button>
 
       <Button asChild variant="outline" size="sm" className="w-full sm:size-9 sm:p-0">
@@ -259,12 +291,17 @@ function ContentActions({
         type="button"
         variant="outline"
         size="sm"
-        onClick={() => onShare(title, text)}
+        onClick={handleShare}
+        disabled={loadingAction !== null}
         className="w-full sm:size-9 sm:p-0"
         aria-label="Share with another app"
         title="Share with another app"
       >
-        <Share2 className="size-4" />
+        {loadingAction === "share" ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        ) : (
+          <Share2 className="size-4" />
+        )}
       </Button>
     </div>
   );
