@@ -1,9 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { GeneratedContentView } from "./generated-content";
+import { GenerationDetailClient } from "./generation-detail-client";
 
 export default async function GenerationDetailPage({
   params,
@@ -51,20 +49,10 @@ export default async function GenerationDetailPage({
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button asChild variant="outline">
-            <a href={source.url} target="_blank" rel="noreferrer">
-              Open on GitHub
-            </a>
-          </Button>
-
-          <Button asChild variant="outline">
-            <Link href="/dashboard/history">History</Link>
-          </Button>
-        </div>
-
-        <GeneratedContentView
-          initialContent={{
+        <GenerationDetailClient
+          generationId={generation.id}
+          sourceUrl={source.url}
+          content={{
             shortSummary: generation.shortSummary,
             technicalSummary: generation.technicalSummary,
             features: generation.features,

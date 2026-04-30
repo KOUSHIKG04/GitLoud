@@ -3,49 +3,49 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { Clipboard, Loader2, Share2 } from "lucide-react";
 
 type GeneratedContentViewProps = {
-  initialContent: GeneratedContent;
+  content: GeneratedContent;
+  isRegenerating?: boolean;
 };
 
 export function GeneratedContentView({
-  initialContent,
+  content,
+  isRegenerating = false,
 }: GeneratedContentViewProps) {
-  const [content] = useState<GeneratedContent>(initialContent);
-
   async function copyText(value: string) {
     try {
       await navigator.clipboard.writeText(value);
       toast.success("Copied");
+      return true;
     } catch {
       toast.error("Could not copy text", {
         duration: 7000,
       });
+      return false;
     }
   }
 
   async function shareNative(title: string, value: string) {
     if (!navigator.share) {
-      await copyText(value);
-      toast.info("Copied text. Share it from any app.");
+      const copied = await copyText(value);
+      if (copied) {
+        toast.info("Copied text. Share it from any app.");
+      }
       return;
     }
 
     try {
-      await navigator.share({
-        title,
-        text: value,
-      });
+      await navigator.share({ title, text: value });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
       }
 
-      toast.error("Could not open share sheet", {
-        duration: 7000,
-      });
+      toast.error("Could not open share sheet", { duration: 7000 });
     }
   }
 
@@ -58,78 +58,102 @@ export function GeneratedContentView({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ContentBlock
-          title="Short summary"
-          value={content.shortSummary}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+        {isRegenerating ? (
+          <GeneratedContentSkeleton />
+        ) : (
+          <>
+            <ContentBlock
+              title="Short summary"
+              value={content.shortSummary}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentBlock
-          title="Technical summary"
-          value={content.technicalSummary}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentBlock
+              title="Technical summary"
+              value={content.technicalSummary}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentListBlock
-          title="Features"
-          values={content.features}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentListBlock
+              title="Features"
+              values={content.features}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentListBlock
-          title="Technologies used"
-          values={content.techUsed}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentListBlock
+              title="Technologies used"
+              values={content.techUsed}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentBlock
-          title="X/Twitter post"
-          value={content.tweet}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentBlock
+              title="X/Twitter post"
+              value={content.tweet}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentBlock
-          title="LinkedIn post"
-          value={content.linkedInPost}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentBlock
+              title="LinkedIn post"
+              value={content.linkedInPost}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentBlock
-          title="Reddit post"
-          value={content.redditPost}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentBlock
+              title="Reddit post"
+              value={content.redditPost}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentBlock
-          title="Portfolio bullet"
-          value={content.portfolioBullet}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentBlock
+              title="Portfolio bullet"
+              value={content.portfolioBullet}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentBlock
-          title="Changelog entry"
-          value={content.changelogEntry}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentBlock
+              title="Changelog entry"
+              value={content.changelogEntry}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
 
-        <ContentBlock
-          title="Beginner-friendly explanation"
-          value={content.beginnerSummary}
-          onCopy={copyText}
-          onShare={shareNative}
-        />
+            <ContentBlock
+              title="Beginner-friendly explanation"
+              value={content.beginnerSummary}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
+          </>
+        )}
       </div>
     </section>
   );
+}
+
+export function GeneratedContentSkeleton() {
+  return Array.from({ length: 6 }).map((_, index) => (
+    <section key={index} className="rounded-xl border bg-card p-4">
+      <Skeleton className="h-4 w-36" />
+      <div className="mt-4 space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-11/12" />
+        <Skeleton className="h-4 w-3/4" />
+      </div>
+      <div className="mt-4 flex gap-2">
+        <Skeleton className="h-8 w-full sm:size-9" />
+        <Skeleton className="h-8 w-full sm:size-9" />
+        <Skeleton className="h-8 w-full sm:size-9" />
+      </div>
+    </section>
+  ));
 }
 
 function ContentBlock({
@@ -140,7 +164,7 @@ function ContentBlock({
 }: {
   title: string;
   value: string;
-  onCopy: (value: string) => Promise<void>;
+  onCopy: (value: string) => Promise<boolean>;
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   return (
@@ -169,7 +193,7 @@ function ContentListBlock({
 }: {
   title: string;
   values: string[];
-  onCopy: (value: string) => Promise<void>;
+  onCopy: (value: string) => Promise<boolean>;
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   const text = values.map((value) => `- ${value}`).join("\n");
@@ -204,7 +228,7 @@ function ContentActions({
 }: {
   title: string;
   text: string;
-  onCopy: (value: string) => Promise<void>;
+  onCopy: (value: string) => Promise<boolean>;
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   const shareUrls = createShareUrls({ title, text });
@@ -251,7 +275,12 @@ function ContentActions({
         )}
       </Button>
 
-      <Button asChild variant="outline" size="sm" className="w-full sm:size-9 sm:p-0">
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        className="w-full sm:size-9 sm:p-0"
+      >
         <a
           href={shareUrls.twitter}
           target="_blank"
@@ -263,7 +292,12 @@ function ContentActions({
         </a>
       </Button>
 
-      <Button asChild variant="outline" size="sm" className="w-full sm:size-9 sm:p-0">
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        className="w-full sm:size-9 sm:p-0"
+      >
         <a
           href={shareUrls.linkedIn}
           target="_blank"
@@ -275,7 +309,12 @@ function ContentActions({
         </a>
       </Button>
 
-      <Button asChild variant="outline" size="sm" className="w-full sm:size-9 sm:p-0">
+      <Button
+        asChild
+        variant="outline"
+        size="sm"
+        className="w-full sm:size-9 sm:p-0"
+      >
         <a
           href={shareUrls.reddit}
           target="_blank"
