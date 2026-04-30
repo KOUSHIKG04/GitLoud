@@ -36,9 +36,7 @@ export default async function HistoryPage({
   const legacyDate = parseHistoryDate(legacyDateParam);
   const rangeStart = parseHistoryDate(fromParam) ?? legacyDate;
   const rangeEnd = parseHistoryDate(toParam) ?? legacyDate ?? rangeStart;
-  const exclusiveRangeEnd = rangeEnd
-    ? addDays(rangeEnd, 1)
-    : undefined;
+  const exclusiveRangeEnd = rangeEnd ? addDays(rangeEnd, 1) : undefined;
   const createdAtFilter =
     rangeStart && exclusiveRangeEnd
       ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
@@ -48,10 +46,7 @@ export default async function HistoryPage({
     where: {
       AND: [
         {
-          OR: [
-            { pullRequestId: { not: null } },
-            { commitId: { not: null } },
-          ],
+          OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
         },
         ...(createdAtFilter ? [createdAtFilter] : []),
       ],
@@ -71,10 +66,10 @@ export default async function HistoryPage({
     <main className="min-h-screen">
       <Header />
 
-      <section className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8">
+      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-6 px-4 py-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Dashboard</p>
+            <p className="text-sm font-semibold">Dashboard</p>
             <h1 className="text-2xl font-bold tracking-tight">History</h1>
           </div>
 
@@ -90,12 +85,14 @@ export default async function HistoryPage({
           </div>
         </div>
 
-        {visibleGenerations.length === 0 ? (
-          <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-            {page === 1 ? "No generations yet." : "No generations on this page."}
-          </div>
-        ) : (
-          <>
+        <div className="flex-1">
+          {visibleGenerations.length === 0 ? (
+            <div className="rounded-xl border p-6 text-sm text-muted-foreground">
+              {page === 1
+                ? "No generations yet."
+                : "No generations on this page."}
+            </div>
+          ) : (
             <div className="space-y-3">
               {visibleGenerations.map((generation) => {
                 const source = generation.pullRequest ?? generation.commit;
@@ -115,7 +112,7 @@ export default async function HistoryPage({
                     key={generation.id}
                     className="rounded-xl border bg-card p-4 text-card-foreground"
                   >
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="grid gap-4 md:grid-cols-[5fr_1fr] md:items-start">
                       <div className="min-w-0 space-y-1">
                         <p className="text-xs text-muted-foreground">
                           {generation.sourceType === "PULL_REQUEST"
@@ -133,9 +130,11 @@ export default async function HistoryPage({
                         </p>
                       </div>
 
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 md:justify-end">
                         <Button asChild variant="outline" size="sm">
-                          <Link href={`/dashboard/generations/${generation.id}`}>
+                          <Link
+                            href={`/dashboard/generations/${generation.id}`}
+                          >
                             <ExternalLink className="size-4" />
                             Open
                           </Link>
@@ -166,15 +165,17 @@ export default async function HistoryPage({
                 );
               })}
             </div>
+          )}
+        </div>
 
-            <HistoryPagination
-              page={page}
-              hasNextPage={hasNextPage}
-              from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
-              to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
-            />
-          </>
-        )}
+        <div className="pt-4">
+          <HistoryPagination
+            page={page}
+            hasNextPage={hasNextPage}
+            from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
+            to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
+          />
+        </div>
       </section>
     </main>
   );
@@ -196,14 +197,13 @@ function HistoryPagination({
       <PaginationContent>
         <PaginationItem>
           {page > 1 ? (
-            <PaginationPrevious
-              href={getHistoryPageHref(page - 1, from, to)}
-            />
+            <PaginationPrevious href={getHistoryPageHref(page - 1, from, to)} />
           ) : (
             <PaginationPrevious
               href="#"
               aria-disabled="true"
               className="pointer-events-none opacity-50"
+              tabIndex={-1}
             />
           )}
         </PaginationItem>
@@ -222,6 +222,7 @@ function HistoryPagination({
               href="#"
               aria-disabled="true"
               className="pointer-events-none opacity-50"
+              tabIndex={-1}
             />
           )}
         </PaginationItem>

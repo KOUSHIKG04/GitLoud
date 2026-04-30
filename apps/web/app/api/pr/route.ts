@@ -17,6 +17,7 @@ import { z } from "zod";
 import { getRequestIp } from "@/lib/ip";
 import { rateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { saveDiscordPost } from "@/lib/discord-post";
 
 const requestBodySchema = z.object({
     url: githubPrOrCommitUrlSchema,
@@ -173,41 +174,42 @@ export async function POST(request: Request): Promise<Response> {
 
             send({ type: "progress", message: "Saving generated content..." });
 
-            const savedGeneratedContent = await db.$transaction(async (tx) => {
-                const savedPullRequest = await tx.pullRequest.create({
-                    data: {
-                        owner: pullRequest.owner,
-                        repo: pullRequest.repo,
-                        number: pullRequest.number,
-                        title: pullRequest.title,
-                        body: pullRequest.body,
-                        author: pullRequest.author,
-                        url: pullRequest.url,
-                        state: pullRequest.state,
-                        headSha: pullRequest.headSha,
-                        additions: pullRequest.additions,
-                        deletions: pullRequest.deletions,
-                        changedFiles: pullRequest.changedFiles,
+            const savedGeneratedContent = await db.generatedContent.create({
+                data: {
+                    sourceType: "PULL_REQUEST",
+                    pullRequest: {
+                        create: {
+                            owner: pullRequest.owner,
+                            repo: pullRequest.repo,
+                            number: pullRequest.number,
+                            title: pullRequest.title,
+                            body: pullRequest.body,
+                            author: pullRequest.author,
+                            url: pullRequest.url,
+                            state: pullRequest.state,
+                            headSha: pullRequest.headSha,
+                            additions: pullRequest.additions,
+                            deletions: pullRequest.deletions,
+                            changedFiles: pullRequest.changedFiles,
+                        },
                     },
-                });
-
-                return tx.generatedContent.create({
-                    data: {
-                        sourceType: "PULL_REQUEST",
-                        pullRequestId: savedPullRequest.id,
-                        shortSummary: generatedContent.shortSummary,
-                        technicalSummary: generatedContent.technicalSummary,
-                        features: generatedContent.features,
-                        techUsed: generatedContent.techUsed,
-                        tweet: generatedContent.tweet,
-                        linkedInPost: generatedContent.linkedInPost,
-                        redditPost: generatedContent.redditPost,
-                        portfolioBullet: generatedContent.portfolioBullet,
-                        changelogEntry: generatedContent.changelogEntry,
-                        beginnerSummary: generatedContent.beginnerSummary,
-                    },
-                });
+                    shortSummary: generatedContent.shortSummary,
+                    technicalSummary: generatedContent.technicalSummary,
+                    features: generatedContent.features,
+                    techUsed: generatedContent.techUsed,
+                    tweet: generatedContent.tweet,
+                    linkedInPost: generatedContent.linkedInPost,
+                    redditPost: generatedContent.redditPost,
+                    portfolioBullet: generatedContent.portfolioBullet,
+                    changelogEntry: generatedContent.changelogEntry,
+                    beginnerSummary: generatedContent.beginnerSummary,
+                },
+                select: { id: true },
             });
+            await saveDiscordPost(
+                savedGeneratedContent.id,
+                generatedContent.discordPost,
+            );
 
             logger.info("Generated pull request content", {
                 owner,
@@ -265,39 +267,40 @@ export async function POST(request: Request): Promise<Response> {
 
             send({ type: "progress", message: "Saving generated content..." });
 
-            const savedGeneratedContent = await db.$transaction(async (tx) => {
-                const savedCommit = await tx.commit.create({
-                    data: {
-                        owner: commit.owner,
-                        repo: commit.repo,
-                        sha: commit.sha,
-                        shortSha: commit.shortSha,
-                        message: commit.message,
-                        author: commit.author,
-                        url: commit.url,
-                        additions: commit.additions,
-                        deletions: commit.deletions,
-                        changedFiles: commit.changedFiles,
+            const savedGeneratedContent = await db.generatedContent.create({
+                data: {
+                    sourceType: "COMMIT",
+                    commit: {
+                        create: {
+                            owner: commit.owner,
+                            repo: commit.repo,
+                            sha: commit.sha,
+                            shortSha: commit.shortSha,
+                            message: commit.message,
+                            author: commit.author,
+                            url: commit.url,
+                            additions: commit.additions,
+                            deletions: commit.deletions,
+                            changedFiles: commit.changedFiles,
+                        },
                     },
-                });
-
-                return tx.generatedContent.create({
-                    data: {
-                        sourceType: "COMMIT",
-                        commitId: savedCommit.id,
-                        shortSummary: generatedContent.shortSummary,
-                        technicalSummary: generatedContent.technicalSummary,
-                        features: generatedContent.features,
-                        techUsed: generatedContent.techUsed,
-                        tweet: generatedContent.tweet,
-                        linkedInPost: generatedContent.linkedInPost,
-                        redditPost: generatedContent.redditPost,
-                        portfolioBullet: generatedContent.portfolioBullet,
-                        changelogEntry: generatedContent.changelogEntry,
-                        beginnerSummary: generatedContent.beginnerSummary,
-                    },
-                });
+                    shortSummary: generatedContent.shortSummary,
+                    technicalSummary: generatedContent.technicalSummary,
+                    features: generatedContent.features,
+                    techUsed: generatedContent.techUsed,
+                    tweet: generatedContent.tweet,
+                    linkedInPost: generatedContent.linkedInPost,
+                    redditPost: generatedContent.redditPost,
+                    portfolioBullet: generatedContent.portfolioBullet,
+                    changelogEntry: generatedContent.changelogEntry,
+                    beginnerSummary: generatedContent.beginnerSummary,
+                },
+                select: { id: true },
             });
+            await saveDiscordPost(
+                savedGeneratedContent.id,
+                generatedContent.discordPost,
+            );
 
             logger.info("Generated commit content", {
                 owner,
@@ -326,12 +329,12 @@ export async function POST(request: Request): Promise<Response> {
 
 function getErrorMessage(error: unknown) {
 
-    if (isGithubRequestError(error)) {
-        return `GitHub API error: ${error.message}`;
-    }
-
     if (isAiProviderError(error)) {
         return "The AI provider is temporarily unavailable. Please try again in a minute.";
+    }
+
+    if (isGithubRequestError(error)) {
+        return `GitHub API error: ${error.message}`;
     }
 
     if (error instanceof Error) {
@@ -354,11 +357,39 @@ function isGithubRequestError(
 }
 
 function isAiProviderError(error: unknown) {
-    if (typeof error !== "object" || error === null || !("status" in error)) {
+    if (typeof error !== "object" || error === null) {
         return false;
     }
 
-    const status = (error as { status?: unknown }).status;
+    const apiError = error as {
+        message?: unknown;
+        status?: unknown;
+        code?: unknown;
+        error?: { status?: unknown; code?: unknown };
+    };
 
-    return status === "UNAVAILABLE" || status === 429 || status === 500 || status === 503;
+    const statuses = [
+        apiError.status,
+        apiError.code,
+        apiError.error?.status,
+        apiError.error?.code,
+        typeof apiError.message === "string" &&
+            apiError.message.includes("DEADLINE_EXCEEDED")
+            ? "DEADLINE_EXCEEDED"
+            : undefined,
+        typeof apiError.message === "string" && apiError.message.includes("504")
+            ? 504
+            : undefined,
+    ];
+
+    return statuses.some(
+        (status) =>
+            status === "UNAVAILABLE" ||
+            status === "DEADLINE_EXCEEDED" ||
+            status === "RESOURCE_EXHAUSTED" ||
+            status === 429 ||
+            status === 500 ||
+            status === 503 ||
+            status === 504,
+    );
 }

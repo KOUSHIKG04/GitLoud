@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
+import { getDiscordPost } from "@/lib/discord-post";
 import { GenerationDetailClient } from "./generation-detail-client";
 
 export default async function GenerationDetailPage({
@@ -21,6 +22,8 @@ export default async function GenerationDetailPage({
   if (!generation) {
     notFound();
   }
+
+  const discordPost = await getDiscordPost(id);
 
   const source = generation.pullRequest ?? generation.commit;
 
@@ -60,6 +63,7 @@ export default async function GenerationDetailPage({
             tweet: generation.tweet,
             linkedInPost: generation.linkedInPost,
             redditPost: generation.redditPost,
+            discordPost,
             portfolioBullet: generation.portfolioBullet,
             changelogEntry: generation.changelogEntry,
             beginnerSummary: generation.beginnerSummary,

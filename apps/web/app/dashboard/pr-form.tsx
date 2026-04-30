@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { GeneratedContent } from "@repo/shared/generated-content";
-import { Loader2 } from "lucide-react";
+import { ChevronRight, Info, Loader2 } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
 import { useRouter } from "next/navigation";
 
@@ -118,6 +118,10 @@ async function readProgressStream(
   throw new Error("Generation finished without a result");
 }
 
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export function PrForm({
   className,
   ...props
@@ -138,6 +142,7 @@ export function PrForm({
 
   async function generate(values: FormValues) {
     const toastId = toast.loading("Fetching GitHub item...");
+    const minimumLoaderTime = wait(2500);
 
     try {
       const response = await fetch("/api/pr", {
@@ -154,6 +159,8 @@ export function PrForm({
       const data = await readProgressStream(response, (message) => {
         toast.loading(message, { id: toastId });
       });
+
+      await minimumLoaderTime;
 
       toast.success("Content generated successfully", {
         id: toastId,
@@ -197,54 +204,76 @@ export function PrForm({
       {...props}
       className={["w-full space-y-6", className].filter(Boolean).join(" ")}
     >
-      <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
+      <div className="border bg-card text-card-foreground shadow-sm">
         <form
           onSubmit={handleSubmit(onSubmit, onInvalid)}
           className="flex flex-col"
         >
-          <div className="space-y-5 p-4 sm:p-6">
+          <div className="space-y-6 p-4 sm:p-6">
             <div className="space-y-2">
-              <div className="space-y-1">
-                <Label htmlFor="pr-url">GitHub PR or commit URL</Label>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Paste a public pull request or commit link.
+              <div className="flex-col items-start gap-1 sm:flex-row sm:items-center">
+                <p className="my-1 gap-1 text-md leading-5 text-foreground flex items-center">
+                  <ChevronRight size={10} className="hidden sm:block" /> Paste a
+                  Github pull request or commit link.
                 </p>
               </div>
 
-              <Input
-                id="pr-url"
-                type="url"
-                placeholder="https://github.com/owner/repo/pull/123 or /commit/abc123"
-                disabled={isSubmitting}
-                className={errors.url ? "border-destructive" : undefined}
-                {...register("url")}
-              />
+              <div className="relative">
+                <Input
+                  id="pr-url"
+                  type="url"
+                  placeholder=""
+                  disabled={isSubmitting}
+                  className={
+                    errors.url
+                      ? "border-destructive rounded-none pr-9 placeholder:text-xs focus-visible:ring-1"
+                      : "rounded-none bg-background pr-9 placeholder:text-xs focus-visible:ring-1"
+                  }
+                  {...register("url")}
+                />
+                <span
+                  title="Supported links: https://github.com/owner/repo/pull/123 or https://github.com/owner/repo/commit/abc123"
+                  aria-label="Supported link types"
+                  className="absolute right-3 top-1/2 flex -translate-y-1/2 animate-pulse text-black drop-shadow-[0_0_8px_rgba(0,0,0,0.45)] dark:text-white dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.75)]"
+                >
+                  <Info className="size-4" aria-hidden="true" />
+                </span>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <div className="space-y-1">
-                <Label htmlFor="context">Extra context</Label>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Add tone, audience, or what you learned.
+              <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
+                <p className="gap-1 text-[13px] leading-5 text-muted-foreground flex items-center">
+                  Extra context: Add tone, audience, or what you learned.
                 </p>
               </div>
 
-              <textarea
-                id="context"
-                placeholder="Example: I learned this today, explain it like a learning update..."
-                disabled={isSubmitting}
-                className="custom-scrollbar min-h-36 w-full resize-y rounded-md border bg-background p-3 text-sm leading-6 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                {...register("context")}
-              />
+              <div className="relative">
+                <ChevronRight
+                  className="absolute left-3 top-3 text-muted-foreground"
+                  size={14}
+                />
+                <textarea
+                  id="context"
+                  placeholder='Add tone, audience, or what you learned (e.g., "I learned this today explain it as a learning update")'
+                  disabled={isSubmitting}
+                  className="custom-scrollbar min-h-36 w-full resize-y rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm leading-6 text-foreground placeholder:text-muted-foreground placeholder:text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  {...register("context")}
+                />
+              </div>
             </div>
           </div>
 
           <div className="flex items-center justify-end border-t bg-muted/20 px-4 py-3 sm:px-6">
-            <Button type="submit" disabled={isSubmitting} className="min-w-32">
-              {isSubmitting ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              ) : null}
-              Generate
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="min-w-32 flex items-center justify-center gap-2"
+            >
+              {isSubmitting && (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              )}
+              GENERATE
             </Button>
           </div>
         </form>
