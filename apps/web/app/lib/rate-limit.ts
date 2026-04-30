@@ -61,3 +61,48 @@ export function rateLimit({ key, limit, windowMs }: RateLimitOptions): RateLimit
         resetAt: new Date(existing.resetAt),
     };
 }
+
+export async function persistentRateLimit({
+    key,
+    limit,
+    windowMs,
+}: RateLimitOptions): Promise<RateLimitResult> {
+    try {
+        const { db } = await import("@repo/db/client");
+        const now = new Date();
+        const resetAt = new Date(now.getTime() + windowMs);
+
+        const rows = await db.$queryRaw<
+            Array<{ count: number; resetAt: Date }>
+        >`
+            INSERT INTO "RateLimitBucket" ("key", "count", "resetAt", "updatedAt")
+            VALUES (${key}, 1, ${resetAt}, ${now})
+            ON CONFLICT ("key")
+            DO UPDATE SET
+                "count" = CASE
+                    WHEN "RateLimitBucket"."resetAt" <= ${now} THEN 1
+                    ELSE "RateLimitBucket"."count" + 1
+                END,
+                "resetAt" = CASE
+                    WHEN "RateLimitBucket"."resetAt" <= ${now} THEN ${resetAt}
+                    ELSE "RateLimitBucket"."resetAt"
+                END,
+                "updatedAt" = ${now}
+            RETURNING "count", "resetAt"
+        `;
+
+        const bucket = rows[0];
+
+        if (!bucket) {
+            return rateLimit({ key, limit, windowMs });
+        }
+
+        return {
+            success: bucket.count <= limit,
+            remaining: Math.max(limit - bucket.count, 0),
+            resetAt: bucket.resetAt,
+        };
+    } catch {
+        return rateLimit({ key, limit, windowMs });
+    }
+}

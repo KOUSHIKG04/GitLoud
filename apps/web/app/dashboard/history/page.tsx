@@ -13,6 +13,7 @@ import Link from "next/link";
 import { ExternalLink, Plus } from "lucide-react";
 import { DeleteGenerationButton } from "./delete-generation-button";
 import { HistoryDatePicker } from "./history-date-picker";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function HistoryPage({
   searchParams,
@@ -42,23 +43,38 @@ export default async function HistoryPage({
       ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
       : undefined;
 
-  const generations = await db.generatedContent.findMany({
-    where: {
-      AND: [
-        {
-          OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
+  const { userId: clerkUserId } = await auth();
+
+  const user = clerkUserId
+    ? await db.user.findUnique({
+        where: { clerkUserId },
+        select: { id: true },
+      })
+    : null;
+
+  const generations = user
+    ? await db.generatedContent.findMany({
+        where: {
+          userId: user.id,
+          AND: [
+            {
+              OR: [
+                { pullRequestId: { not: null } },
+                { commitId: { not: null } },
+              ],
+            },
+            ...(createdAtFilter ? [createdAtFilter] : []),
+          ],
         },
-        ...(createdAtFilter ? [createdAtFilter] : []),
-      ],
-    },
-    orderBy: { createdAt: "desc" },
-    include: {
-      pullRequest: true,
-      commit: true,
-    },
-    skip,
-    take: pageSize + 1,
-  });
+        orderBy: { createdAt: "desc" },
+        include: {
+          pullRequest: true,
+          commit: true,
+        },
+        skip,
+        take: pageSize + 1,
+      })
+    : [];
   const hasNextPage = generations.length > pageSize;
   const visibleGenerations = generations.slice(0, pageSize);
 

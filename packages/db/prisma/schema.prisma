@@ -27,7 +27,7 @@ model User {
 
 model PullRequest {
   id           String   @id @default(cuid())
-  userId       String?
+  userId       String
   owner        String
   repo         String
   number       Int
@@ -36,25 +36,26 @@ model PullRequest {
   author       String?
   url          String
   state        String
-  headSha      String?
+  headSha      String
   additions    Int
   deletions    Int
   changedFiles Int
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user             User?              @relation(fields: [userId], references: [id])
+  user             User               @relation(fields: [userId], references: [id])
   generatedContent GeneratedContent[]
 
   @@index([userId])
   @@index([owner, repo, number])
   @@index([headSha])
   @@index([createdAt])
+  @@unique([userId, owner, repo, number, headSha])
 }
 
 model Commit {
   id           String   @id @default(cuid())
-  userId       String?
+  userId       String
   owner        String
   repo         String
   sha          String
@@ -68,18 +69,19 @@ model Commit {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user             User?              @relation(fields: [userId], references: [id])
+  user             User               @relation(fields: [userId], references: [id])
   generatedContent GeneratedContent[]
 
   @@index([userId])
   @@index([owner, repo, sha])
   @@index([shortSha])
   @@index([createdAt])
+  @@unique([userId, owner, repo, sha])
 }
 
 model GeneratedContent {
   id               String              @id @default(cuid())
-  userId           String?
+  userId           String
   sourceType       GeneratedSourceType
   pullRequestId    String?
   commitId         String?
@@ -98,7 +100,7 @@ model GeneratedContent {
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
-  user        User?        @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
   pullRequest PullRequest? @relation(fields: [pullRequestId], references: [id])
   commit      Commit?      @relation(fields: [commitId], references: [id])
 
@@ -106,6 +108,13 @@ model GeneratedContent {
   @@index([sourceType])
   @@index([pullRequestId])
   @@index([commitId])
+}
+
+model RateLimitBucket {
+  key      String   @id
+  count    Int
+  resetAt  DateTime
+  updatedAt DateTime @updatedAt
 }
 
 enum GeneratedSourceType {

@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { ChevronRight, Info, Loader2 } from "lucide-react";
 import type { ComponentPropsWithoutRef } from "react";
@@ -211,7 +210,7 @@ export function PrForm({
         >
           <div className="space-y-6 p-4 sm:p-6">
             <div className="space-y-2">
-              <div className="flex-col items-start gap-1 sm:flex-row sm:items-center">
+              <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
                 <p className="my-1 gap-1 text-md leading-5 text-foreground flex items-center">
                   <ChevronRight size={10} className="hidden sm:block" /> Paste a
                   Github pull request or commit link.

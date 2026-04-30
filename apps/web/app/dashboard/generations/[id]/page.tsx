@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
-import { getDiscordPost } from "@/lib/discord-post";
+import { auth } from "@clerk/nextjs/server";
 import { GenerationDetailClient } from "./generation-detail-client";
+import { ChevronRight } from "lucide-react";
 
 export default async function GenerationDetailPage({
   params,
@@ -10,9 +11,23 @@ export default async function GenerationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { userId: clerkUserId } = await auth();
 
-  const generation = await db.generatedContent.findUnique({
-    where: { id },
+  if (!clerkUserId) {
+    notFound();
+  }
+
+  const user = await db.user.findUnique({
+    where: { clerkUserId },
+    select: { id: true },
+  });
+
+  if (!user) {
+    notFound();
+  }
+
+  const generation = await db.generatedContent.findFirst({
+    where: { id, userId: user.id },
     include: {
       pullRequest: true,
       commit: true,
@@ -22,8 +37,6 @@ export default async function GenerationDetailPage({
   if (!generation) {
     notFound();
   }
-
-  const discordPost = await getDiscordPost(id);
 
   const source = generation.pullRequest ?? generation.commit;
 
@@ -45,7 +58,9 @@ export default async function GenerationDetailPage({
 
       <section className="mx-auto w-full max-w-5xl space-y-6 px-4 py-8">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">{sourceLabel}</p>
+          <p className="text-md font-semibold text-muted-foreground flex gap-2">
+            {sourceLabel.toUpperCase()} <span className="flex items-center"><ChevronRight size={16} /></span> 
+          </p>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="break-all text-sm text-muted-foreground">
             {source.owner}/{source.repo}
@@ -63,7 +78,7 @@ export default async function GenerationDetailPage({
             tweet: generation.tweet,
             linkedInPost: generation.linkedInPost,
             redditPost: generation.redditPost,
-            discordPost,
+            discordPost: generation.discordPost,
             portfolioBullet: generation.portfolioBullet,
             changelogEntry: generation.changelogEntry,
             beginnerSummary: generation.beginnerSummary,

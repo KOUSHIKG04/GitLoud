@@ -194,7 +194,12 @@ function isRetryableGeminiError(error: unknown) {
 }
 
 function stripEmojis(value: string) {
-    return value.replace(EMOJI_PATTERN, "").replace(/\s{2,}/g, " ").trim();
+    return value.replace(EMOJI_PATTERN, "")
+        .split("\n")
+        .map((line) => line.replace(/[ \t]{2,}/g, " ").trimEnd())
+        .join("\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim()
 }
 
 function sanitizeGeneratedContent(content: GeneratedContent): GeneratedContent {
@@ -226,6 +231,10 @@ async function generateWithRetry(ai: GoogleGenAI, contentVariants: string[]) {
 
             const contents =
                 contentVariants[Math.min(retryCount, contentVariants.length - 1)];
+
+            if (!contents) {
+                throw new Error("No content variants available for generation");
+            }
 
             try {
                 return await ai.models.generateContent({

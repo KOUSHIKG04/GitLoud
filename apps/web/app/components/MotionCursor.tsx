@@ -14,7 +14,13 @@ export function MotionCursor() {
     const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
 
     function updateEnabled() {
-      setEnabled(canHover.matches);
+      const matches = canHover.matches;
+      setEnabled(matches);
+      if (matches) {
+        window.addEventListener("pointermove", updatePosition);
+      } else {
+        window.removeEventListener("pointermove", updatePosition);
+      }
     }
 
     function updatePosition(event: PointerEvent) {

@@ -7,9 +7,9 @@ import type { GeneratedContent } from "@repo/shared/generated-content";
 import { fetchCommit } from "@repo/github/fetch-commit";
 import { fetchPullRequest } from "@repo/github/fetch-pr";
 import { getRequestIp } from "@/lib/ip";
-import { saveDiscordPost } from "@/lib/discord-post";
 import { logger } from "@/lib/logger";
-import { rateLimit } from "@/lib/rate-limit";
+import { persistentRateLimit } from "@/lib/rate-limit";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const generatedContentSelect = {
@@ -44,8 +44,26 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
+  const { userId: clerkUserId } = await auth();
+
+  if (!clerkUserId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await db.user.findUnique({
+    where: { clerkUserId },
+    select: { id: true },
+  });
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "Generated content was not found" },
+      { status: 404 },
+    );
+  }
+
   const ip = getRequestIp(request);
-  const limit = rateLimit({
+  const limit = await persistentRateLimit({
     key: `regenerate:${ip}`,
     limit: 5,
     windowMs: 10 * 60 * 1000,
@@ -68,8 +86,8 @@ export async function POST(
   const { id } = await params;
 
   try {
-    const generation = await db.generatedContent.findUnique({
-      where: { id },
+    const generation = await db.generatedContent.findFirst({
+      where: { id, userId: user.id },
       include: {
         pullRequest: true,
         commit: true,
@@ -102,11 +120,13 @@ export async function POST(
         await generateContentFromPullRequest(pullRequest);
 
       const updated = await db.generatedContent.update({
-        where: { id },
-        select: generatedContentSelect,
-        data: buildGeneratedContentUpdate(generatedContent),
+        where: { id: generation.id },
+        select: { ...generatedContentSelect, discordPost: true },
+        data: {
+          ...buildGeneratedContentUpdate(generatedContent),
+          discordPost: generatedContent.discordPost,
+        },
       });
-      await saveDiscordPost(id, generatedContent.discordPost);
 
       logger.info("Regenerated pull request content", {
         generationId: id,
@@ -141,11 +161,13 @@ export async function POST(
       const generatedContent = await generateContentFromCommit(commit);
 
       const updated = await db.generatedContent.update({
-        where: { id },
-        select: generatedContentSelect,
-        data: buildGeneratedContentUpdate(generatedContent),
+        where: { id: generation.id },
+        select: { ...generatedContentSelect, discordPost: true },
+        data: {
+          ...buildGeneratedContentUpdate(generatedContent),
+          discordPost: generatedContent.discordPost,
+        },
       });
-      await saveDiscordPost(id, generatedContent.discordPost);
 
       logger.info("Regenerated commit content", {
         generationId: id,
