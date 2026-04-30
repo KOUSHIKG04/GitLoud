@@ -1,10 +1,15 @@
 export function getRequestIp(request: Request) {
     const forwardedFor = request.headers.get("x-forwarded-for");
-    const realIp = request.headers.get("x-real-ip");
+    const realIp = request.headers.get("x-real-ip")?.trim();
 
-    if (forwardedFor) {
-        return forwardedFor.split(",")[0]?.trim() ?? "unknown";
+    if (realIp) {
+        return realIp;
     }
 
-    return realIp ?? "unknown";
+    if (forwardedFor) {
+        const parts = forwardedFor.split(",").map((part) => part.trim()).filter(Boolean);
+        return parts[parts.length - 1] ?? "unknown";
+    }
+
+    return "unknown";
 }

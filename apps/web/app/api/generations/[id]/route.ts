@@ -63,28 +63,27 @@ export async function DELETE(
       });
 
       if (generation.pullRequestId) {
-        const remainingPullRequestReferences =
-          await tx.generatedContent.count({
-            where: { pullRequestId: generation.pullRequestId },
-          });
-
-        if (remainingPullRequestReferences === 0) {
-          await tx.pullRequest.delete({
-            where: { id: generation.pullRequestId },
-          });
-        }
+        await tx.$executeRaw`
+          DELETE FROM "PullRequest"
+          WHERE "id" = ${generation.pullRequestId}
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "GeneratedContent"
+              WHERE "pullRequestId" = ${generation.pullRequestId}
+            )
+        `;
       }
 
       if (generation.commitId) {
-        const remainingCommitReferences = await tx.generatedContent.count({
-          where: { commitId: generation.commitId },
-        });
-
-        if (remainingCommitReferences === 0) {
-          await tx.commit.delete({
-            where: { id: generation.commitId },
-          });
-        }
+        await tx.$executeRaw`
+          DELETE FROM "Commit"
+          WHERE "id" = ${generation.commitId}
+            AND NOT EXISTS (
+              SELECT 1
+              FROM "GeneratedContent"
+              WHERE "commitId" = ${generation.commitId}
+            )
+        `;
       }
 
       logger.info("Deleted generated content", {

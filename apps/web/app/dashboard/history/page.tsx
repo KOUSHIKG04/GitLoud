@@ -1,15 +1,59 @@
 import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import Link from "next/link";
+import { ExternalLink, Plus } from "lucide-react";
 import { DeleteGenerationButton } from "./delete-generation-button";
+import { HistoryDatePicker } from "./history-date-picker";
 
-export default async function HistoryPage() {
+export default async function HistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    date?: string;
+    from?: string;
+    page?: string;
+    to?: string;
+  }>;
+}) {
+  const {
+    date: legacyDateParam,
+    from: fromParam,
+    page: pageParam,
+    to: toParam,
+  } = await searchParams;
+  const page = Math.max(Number.parseInt(pageParam ?? "1", 10) || 1, 1);
+  const pageSize = 10;
+  const skip = (page - 1) * pageSize;
+  const legacyDate = parseHistoryDate(legacyDateParam);
+  const rangeStart = parseHistoryDate(fromParam) ?? legacyDate;
+  const rangeEnd = parseHistoryDate(toParam) ?? legacyDate ?? rangeStart;
+  const exclusiveRangeEnd = rangeEnd
+    ? addDays(rangeEnd, 1)
+    : undefined;
+  const createdAtFilter =
+    rangeStart && exclusiveRangeEnd
+      ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
+      : undefined;
+
   const generations = await db.generatedContent.findMany({
     where: {
-      OR: [
-        { pullRequestId: { not: null } },
-        { commitId: { not: null } },
+      AND: [
+        {
+          OR: [
+            { pullRequestId: { not: null } },
+            { commitId: { not: null } },
+          ],
+        },
+        ...(createdAtFilter ? [createdAtFilter] : []),
       ],
     },
     orderBy: { createdAt: "desc" },
@@ -17,8 +61,11 @@ export default async function HistoryPage() {
       pullRequest: true,
       commit: true,
     },
-    take: 50,
+    skip,
+    take: pageSize + 1,
   });
+  const hasNextPage = generations.length > pageSize;
+  const visibleGenerations = generations.slice(0, pageSize);
 
   return (
     <main className="min-h-screen">
@@ -31,89 +78,207 @@ export default async function HistoryPage() {
             <h1 className="text-2xl font-bold tracking-tight">History</h1>
           </div>
 
-          <Button asChild>
-            <Link href="/dashboard">New generation</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <HistoryDatePicker />
+
+            <Button asChild>
+              <Link href="/dashboard">
+                <Plus className="size-4" />
+                New generation
+              </Link>
+            </Button>
+          </div>
         </div>
 
-        {generations.length === 0 ? (
+        {visibleGenerations.length === 0 ? (
           <div className="rounded-xl border p-6 text-sm text-muted-foreground">
-            No generations yet.
+            {page === 1 ? "No generations yet." : "No generations on this page."}
           </div>
         ) : (
-          <div className="space-y-3">
-            {generations.map((generation) => {
-              const source = generation.pullRequest ?? generation.commit;
+          <>
+            <div className="space-y-3">
+              {visibleGenerations.map((generation) => {
+                const source = generation.pullRequest ?? generation.commit;
 
-              if (!source) {
-                return null;
-              }
+                if (!source) {
+                  return null;
+                }
 
-              const title =
-                generation.sourceType === "PULL_REQUEST" &&
-                generation.pullRequest
-                  ? generation.pullRequest.title
-                  : generation.commit?.message.split("\n")[0];
+                const title =
+                  generation.sourceType === "PULL_REQUEST" &&
+                  generation.pullRequest
+                    ? generation.pullRequest.title
+                    : generation.commit?.message.split("\n")[0];
 
-              return (
-                <article
-                  key={generation.id}
-                  className="rounded-xl border bg-card p-4 text-card-foreground"
-                >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0 space-y-1">
-                      <p className="text-xs text-muted-foreground">
-                        {generation.sourceType === "PULL_REQUEST"
-                          ? "Pull Request"
-                          : "Commit"}{" "}
-                        - {source.owner}/{source.repo}
-                      </p>
+                return (
+                  <article
+                    key={generation.id}
+                    className="rounded-xl border bg-card p-4 text-card-foreground"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          {generation.sourceType === "PULL_REQUEST"
+                            ? "Pull Request"
+                            : "Commit"}{" "}
+                          - {source.owner}/{source.repo}
+                        </p>
 
-                      <h2 className="break-words text-base font-semibold">
-                        {title}
-                      </h2>
+                        <h2 className="break-words text-base font-semibold">
+                          {title}
+                        </h2>
 
-                      <p className="text-xs text-muted-foreground">
-                        {generation.createdAt.toLocaleString()}
-                      </p>
-                    </div>
+                        <p className="text-xs text-muted-foreground">
+                          {generation.createdAt.toLocaleString()}
+                        </p>
+                      </div>
 
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <Button asChild variant="outline" size="sm">
-                        <Link href={`/dashboard/generations/${generation.id}`}>
-                          Open
-                        </Link>
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button asChild variant="outline" size="sm">
+                          <Link href={`/dashboard/generations/${generation.id}`}>
+                            <ExternalLink className="size-4" />
+                            Open
+                          </Link>
+                        </Button>
 
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="icon-sm"
-                        aria-label="Open on GitHub"
-                        title="Open on GitHub"
-                      >
-                        <a
-                          href={source.url}
-                          target="_blank"
-                          rel="noreferrer"
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon-sm"
                           aria-label="Open on GitHub"
                           title="Open on GitHub"
                         >
-                          <GitHubIcon />
-                        </a>
-                      </Button>
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="Open on GitHub"
+                            title="Open on GitHub"
+                          >
+                            <GitHubIcon />
+                          </a>
+                        </Button>
 
-                      <DeleteGenerationButton generationId={generation.id} />
+                        <DeleteGenerationButton generationId={generation.id} />
+                      </div>
                     </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
+                  </article>
+                );
+              })}
+            </div>
+
+            <HistoryPagination
+              page={page}
+              hasNextPage={hasNextPage}
+              from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
+              to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
+            />
+          </>
         )}
       </section>
     </main>
   );
+}
+
+function HistoryPagination({
+  from,
+  page,
+  hasNextPage,
+  to,
+}: {
+  from?: string;
+  page: number;
+  hasNextPage: boolean;
+  to?: string;
+}) {
+  return (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          {page > 1 ? (
+            <PaginationPrevious
+              href={getHistoryPageHref(page - 1, from, to)}
+            />
+          ) : (
+            <PaginationPrevious
+              href="#"
+              aria-disabled="true"
+              className="pointer-events-none opacity-50"
+            />
+          )}
+        </PaginationItem>
+
+        <PaginationItem>
+          <PaginationLink href={getHistoryPageHref(page, from, to)} isActive>
+            {page}
+          </PaginationLink>
+        </PaginationItem>
+
+        <PaginationItem>
+          {hasNextPage ? (
+            <PaginationNext href={getHistoryPageHref(page + 1, from, to)} />
+          ) : (
+            <PaginationNext
+              href="#"
+              aria-disabled="true"
+              className="pointer-events-none opacity-50"
+            />
+          )}
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
+function parseHistoryDate(value: string | undefined) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return undefined;
+  }
+
+  const year = Number(value.slice(0, 4));
+  const month = Number(value.slice(5, 7));
+  const day = Number(value.slice(8, 10));
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return undefined;
+  }
+
+  return date;
+}
+
+function addDays(date: Date, days: number) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function formatHistoryDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getHistoryPageHref(
+  page: number,
+  from: string | undefined,
+  to: string | undefined,
+) {
+  const params = new URLSearchParams({ page: page.toString() });
+
+  if (from) {
+    params.set("from", from);
+  }
+
+  if (to) {
+    params.set("to", to);
+  }
+
+  return `/dashboard/history?${params.toString()}`;
 }
 
 function GitHubIcon() {
