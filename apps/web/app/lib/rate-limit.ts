@@ -14,6 +14,12 @@ const buckets = new Map<string, { count: number; resetAt: number; }>();
 
 export function rateLimit({ key, limit, windowMs }: RateLimitOptions): RateLimitResult {
     const now = Date.now();
+
+    for (const [bucketKey, bucket] of buckets) {
+        if (bucket.resetAt <= now) {
+            buckets.delete(bucketKey);
+        }
+    }
     const existing = buckets.get(key);
 
     if (!existing || existing.resetAt <= now) {

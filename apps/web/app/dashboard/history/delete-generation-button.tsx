@@ -4,6 +4,16 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Loader2, Trash2 } from "lucide-react";
 
 export function DeleteGenerationButton({
@@ -13,16 +23,9 @@ export function DeleteGenerationButton({
 }) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [open, setOpen] = useState(false);
 
   async function deleteGeneration() {
-    const confirmed = window.confirm(
-      "Delete this generated content? This cannot be undone.",
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     setIsDeleting(true);
 
     try {
@@ -36,6 +39,7 @@ export function DeleteGenerationButton({
       }
 
       toast.success("Deleted");
+      setOpen(false);
       router.refresh();
     } catch (error) {
       const message =
@@ -49,20 +53,53 @@ export function DeleteGenerationButton({
   }
 
   return (
-    <Button
-      type="button"
-      variant="destructive"
-      size="icon-sm"
-      onClick={deleteGeneration}
-      disabled={isDeleting}
-      aria-label="Delete generated content"
-      title="Delete generated content"
-    >
-      {isDeleting ? (
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-      ) : (
-        <Trash2 className="size-4" />
-      )}
-    </Button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon-sm"
+          disabled={isDeleting}
+          aria-label="Delete generated content"
+          title="Delete generated content"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-xl">
+            Delete generated content?
+          </DialogTitle>
+          <DialogDescription className="mt-2">
+            This will permanently remove this generated content and cannot be
+            undone.
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" disabled={isDeleting}>
+              Cancel
+            </Button>
+          </DialogClose>
+
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={deleteGeneration}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <Trash2 className="size-4" />
+            )}
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

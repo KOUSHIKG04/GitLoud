@@ -3,12 +3,41 @@ import {
   generateContentFromPullRequest,
 } from "@repo/ai/generate-content";
 import { db } from "@repo/db/client";
+import type { GeneratedContent } from "@repo/shared/generated-content";
 import { fetchCommit } from "@repo/github/fetch-commit";
 import { fetchPullRequest } from "@repo/github/fetch-pr";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
+
+const generatedContentSelect = {
+  shortSummary: true,
+  technicalSummary: true,
+  features: true,
+  techUsed: true,
+  tweet: true,
+  linkedInPost: true,
+  redditPost: true,
+  portfolioBullet: true,
+  changelogEntry: true,
+  beginnerSummary: true,
+} as const;
+
+function buildGeneratedContentUpdate(generatedContent: GeneratedContent) {
+  return {
+    shortSummary: generatedContent.shortSummary,
+    technicalSummary: generatedContent.technicalSummary,
+    features: generatedContent.features,
+    techUsed: generatedContent.techUsed,
+    tweet: generatedContent.tweet,
+    linkedInPost: generatedContent.linkedInPost,
+    redditPost: generatedContent.redditPost,
+    portfolioBullet: generatedContent.portfolioBullet,
+    changelogEntry: generatedContent.changelogEntry,
+    beginnerSummary: generatedContent.beginnerSummary,
+  };
+}
 
 export async function POST(
   request: Request,
@@ -73,18 +102,8 @@ export async function POST(
 
       const updated = await db.generatedContent.update({
         where: { id },
-        data: {
-          shortSummary: generatedContent.shortSummary,
-          technicalSummary: generatedContent.technicalSummary,
-          features: generatedContent.features,
-          techUsed: generatedContent.techUsed,
-          tweet: generatedContent.tweet,
-          linkedInPost: generatedContent.linkedInPost,
-          redditPost: generatedContent.redditPost,
-          portfolioBullet: generatedContent.portfolioBullet,
-          changelogEntry: generatedContent.changelogEntry,
-          beginnerSummary: generatedContent.beginnerSummary,
-        },
+        select: generatedContentSelect,
+        data: buildGeneratedContentUpdate(generatedContent),
       });
 
       logger.info("Regenerated pull request content", {
@@ -116,18 +135,8 @@ export async function POST(
 
       const updated = await db.generatedContent.update({
         where: { id },
-        data: {
-          shortSummary: generatedContent.shortSummary,
-          technicalSummary: generatedContent.technicalSummary,
-          features: generatedContent.features,
-          techUsed: generatedContent.techUsed,
-          tweet: generatedContent.tweet,
-          linkedInPost: generatedContent.linkedInPost,
-          redditPost: generatedContent.redditPost,
-          portfolioBullet: generatedContent.portfolioBullet,
-          changelogEntry: generatedContent.changelogEntry,
-          beginnerSummary: generatedContent.beginnerSummary,
-        },
+        select: generatedContentSelect,
+        data: buildGeneratedContentUpdate(generatedContent),
       });
 
       logger.info("Regenerated commit content", {

@@ -78,13 +78,16 @@ export function RegenerateButton({
       variant="outline"
       onClick={regenerate}
       disabled={isRegenerating}
+      className="size-9 p-0 sm:h-9 sm:w-auto sm:px-2.5"
+      aria-label="Regenerate"
+      title="Regenerate"
     >
       {isRegenerating ? (
         <Loader2 className="size-4 animate-spin" aria-hidden="true" />
       ) : (
         <RefreshCw className="size-4" />
       )}
-      Regenerate
+      <span className="hidden sm:inline">Regenerate</span>
     </Button>
   );
 }

@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { GeneratedContent } from "@repo/shared/generated-content";
@@ -57,12 +63,42 @@ export function GeneratedContentView({
         </h2>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        {isRegenerating ? (
+      {isRegenerating ? (
+        <div className="grid gap-4 lg:grid-cols-2">
           <GeneratedContentSkeleton />
-        ) : (
-          <>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-3">
+            <SocialPostCard
+              title="X/Twitter post"
+              value={content.tweet}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
+
+            <SocialPostCard
+              title="LinkedIn post"
+              value={content.linkedInPost}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
+
+            <SocialPostCard
+              title="Reddit post"
+              value={content.redditPost}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
+          </div>
+
+          <Accordion
+            type="multiple"
+            defaultValue={["short-summary"]}
+            className="grid gap-4 md:grid-cols-2"
+          >
             <ContentBlock
+              valueKey="short-summary"
               title="Short summary"
               value={content.shortSummary}
               onCopy={copyText}
@@ -70,48 +106,23 @@ export function GeneratedContentView({
             />
 
             <ContentBlock
+              valueKey="beginner-friendly-explanation"
+              title="Beginner-friendly explanation"
+              value={content.beginnerSummary}
+              onCopy={copyText}
+              onShare={shareNative}
+            />
+
+            <ContentBlock
+              valueKey="technical-summary"
               title="Technical summary"
               value={content.technicalSummary}
               onCopy={copyText}
               onShare={shareNative}
             />
 
-            <ContentListBlock
-              title="Features"
-              values={content.features}
-              onCopy={copyText}
-              onShare={shareNative}
-            />
-
-            <ContentListBlock
-              title="Technologies used"
-              values={content.techUsed}
-              onCopy={copyText}
-              onShare={shareNative}
-            />
-
             <ContentBlock
-              title="X/Twitter post"
-              value={content.tweet}
-              onCopy={copyText}
-              onShare={shareNative}
-            />
-
-            <ContentBlock
-              title="LinkedIn post"
-              value={content.linkedInPost}
-              onCopy={copyText}
-              onShare={shareNative}
-            />
-
-            <ContentBlock
-              title="Reddit post"
-              value={content.redditPost}
-              onCopy={copyText}
-              onShare={shareNative}
-            />
-
-            <ContentBlock
+              valueKey="portfolio-bullet"
               title="Portfolio bullet"
               value={content.portfolioBullet}
               onCopy={copyText}
@@ -119,21 +130,22 @@ export function GeneratedContentView({
             />
 
             <ContentBlock
+              valueKey="changelog-entry"
               title="Changelog entry"
               value={content.changelogEntry}
               onCopy={copyText}
               onShare={shareNative}
             />
 
-            <ContentBlock
-              title="Beginner-friendly explanation"
-              value={content.beginnerSummary}
+            <ImplementationBlock
+              features={content.features}
+              techUsed={content.techUsed}
               onCopy={copyText}
               onShare={shareNative}
             />
-          </>
-        )}
-      </div>
+          </Accordion>
+        </div>
+      )}
     </section>
   );
 }
@@ -156,7 +168,7 @@ export function GeneratedContentSkeleton() {
   ));
 }
 
-function ContentBlock({
+function SocialPostCard({
   title,
   value,
   onCopy,
@@ -168,55 +180,110 @@ function ContentBlock({
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   return (
-    <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 text-card-foreground">
+    <section className="flex h-full flex-col gap-4 rounded-xl border bg-card p-4 text-card-foreground">
       <h3 className="text-sm font-semibold">{title}</h3>
 
       <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
         {value}
       </p>
 
-      <ContentActions
-        title={title}
-        text={value}
-        onCopy={onCopy}
-        onShare={onShare}
-      />
+      <div className="mt-auto">
+        <ContentActions
+          title={title}
+          text={value}
+          onCopy={onCopy}
+          onShare={onShare}
+        />
+      </div>
     </section>
   );
 }
 
-function ContentListBlock({
+function ContentBlock({
+  valueKey,
   title,
-  values,
+  value,
   onCopy,
   onShare,
 }: {
+  valueKey: string;
   title: string;
-  values: string[];
+  value: string;
   onCopy: (value: string) => Promise<boolean>;
   onShare: (title: string, value: string) => Promise<void>;
 }) {
-  const text = values.map((value) => `- ${value}`).join("\n");
+  return (
+    <AccordionItem value={valueKey} className="border-0">
+      <AccordionTrigger>{title}</AccordionTrigger>
+      <AccordionContent>
+        <div className="space-y-4">
+          <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+            {value}
+          </p>
+
+          <ContentActions
+            title={title}
+            text={value}
+            onCopy={onCopy}
+            onShare={onShare}
+          />
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  );
+}
+
+function ImplementationBlock({
+  features,
+  techUsed,
+  onCopy,
+  onShare,
+}: {
+  features: string[];
+  techUsed: string[];
+  onCopy: (value: string) => Promise<boolean>;
+  onShare: (title: string, value: string) => Promise<void>;
+}) {
+  const techText = techUsed.join(", ");
+  const featuresText = features.map((value) => `- ${value}`).join("\n");
+  const text = ["Tech used", techText, "", "Features", featuresText].join("\n");
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border bg-card p-4 text-card-foreground">
-      <h3 className="text-sm font-semibold">{title}</h3>
+    <AccordionItem value="tech-used-and-features" className="border-0">
+      <AccordionTrigger>Tech used and features</AccordionTrigger>
+      <AccordionContent>
+        <div className="space-y-4">
+          <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium text-card-foreground">
+                Tech used
+              </h4>
+              <p className="break-words">{techText}</p>
+            </div>
 
-      <ul className="list-disc space-y-1 pl-5 text-sm leading-6 text-muted-foreground">
-        {values.map((value) => (
-          <li key={value} className="break-words">
-            {value}
-          </li>
-        ))}
-      </ul>
+            <div className="space-y-1">
+              <h4 className="text-sm font-medium text-card-foreground">
+                Features
+              </h4>
+              <ul className="list-disc space-y-1 pl-5">
+                {features.map((value) => (
+                  <li key={value} className="break-words">
+                    {value}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
 
-      <ContentActions
-        title={title}
-        text={text}
-        onCopy={onCopy}
-        onShare={onShare}
-      />
-    </section>
+          <ContentActions
+            title="Tech used and features"
+            text={text}
+            onCopy={onCopy}
+            onShare={onShare}
+          />
+        </div>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
 
@@ -257,14 +324,14 @@ function ContentActions({
   }
 
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+    <div className="flex flex-wrap gap-2">
       <Button
         type="button"
         variant="outline"
         size="sm"
         onClick={handleCopy}
         disabled={loadingAction !== null}
-        className="w-full sm:size-9 sm:p-0"
+        className="size-9 p-0"
         aria-label="Copy content"
         title="Copy content"
       >
@@ -279,7 +346,7 @@ function ContentActions({
         asChild
         variant="outline"
         size="sm"
-        className="w-full sm:size-9 sm:p-0"
+        className="size-9 p-0"
       >
         <a
           href={shareUrls.twitter}
@@ -296,7 +363,7 @@ function ContentActions({
         asChild
         variant="outline"
         size="sm"
-        className="w-full sm:size-9 sm:p-0"
+        className="size-9 p-0"
       >
         <a
           href={shareUrls.linkedIn}
@@ -313,7 +380,7 @@ function ContentActions({
         asChild
         variant="outline"
         size="sm"
-        className="w-full sm:size-9 sm:p-0"
+        className="size-9 p-0"
       >
         <a
           href={shareUrls.reddit}
@@ -332,7 +399,7 @@ function ContentActions({
         size="sm"
         onClick={handleShare}
         disabled={loadingAction !== null}
-        className="w-full sm:size-9 sm:p-0"
+        className="size-9 p-0"
         aria-label="Share with another app"
         title="Share with another app"
       >
