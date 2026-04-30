@@ -90,6 +90,7 @@ model GeneratedContent {
   tweet            String
   linkedInPost     String
   redditPost       String
+  discordPost      String              @default("")
   portfolioBullet  String
   changelogEntry   String
   beginnerSummary  String

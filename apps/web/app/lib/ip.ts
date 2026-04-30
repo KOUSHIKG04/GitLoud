@@ -8,7 +8,7 @@ export function getRequestIp(request: Request) {
 
     if (forwardedFor) {
         const parts = forwardedFor.split(",").map((part) => part.trim()).filter(Boolean);
-        return parts[parts.length - 1] ?? "unknown";
+        return parts[0] ?? "unknown";
     }
 
     return "unknown";

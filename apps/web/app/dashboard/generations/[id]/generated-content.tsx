@@ -69,10 +69,11 @@ export function GeneratedContentView({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <SocialPostCard
               title="X/Twitter post"
               value={content.tweet}
+              platform="twitter"
               onCopy={copyText}
               onShare={shareNative}
             />
@@ -80,6 +81,7 @@ export function GeneratedContentView({
             <SocialPostCard
               title="LinkedIn post"
               value={content.linkedInPost}
+              platform="linkedIn"
               onCopy={copyText}
               onShare={shareNative}
             />
@@ -87,6 +89,15 @@ export function GeneratedContentView({
             <SocialPostCard
               title="Reddit post"
               value={content.redditPost}
+              platform="reddit"
+              onCopy={copyText}
+              onShare={shareNative}
+            />
+
+            <SocialPostCard
+              title="Discord post"
+              value={content.discordPost}
+              platform="discord"
               onCopy={copyText}
               onShare={shareNative}
             />
@@ -94,8 +105,7 @@ export function GeneratedContentView({
 
           <Accordion
             type="multiple"
-            defaultValue={["short-summary"]}
-            className="grid gap-4 md:grid-cols-2"
+            className="grid items-start gap-4 md:grid-cols-2"
           >
             <ContentBlock
               valueKey="short-summary"
@@ -152,7 +162,7 @@ export function GeneratedContentView({
 
 export function GeneratedContentSkeleton() {
   return Array.from({ length: 6 }).map((_, index) => (
-    <section key={index} className="rounded-xl border bg-card p-4">
+    <section key={index} className="border bg-card p-4 shadow-sm">
       <Skeleton className="h-4 w-36" />
       <div className="mt-4 space-y-2">
         <Skeleton className="h-4 w-full" />
@@ -171,16 +181,18 @@ export function GeneratedContentSkeleton() {
 function SocialPostCard({
   title,
   value,
+  platform,
   onCopy,
   onShare,
 }: {
   title: string;
   value: string;
+  platform: SharePlatform;
   onCopy: (value: string) => Promise<boolean>;
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   return (
-    <section className="flex h-full flex-col gap-4 rounded-xl border bg-card p-4 text-card-foreground">
+    <section className="flex h-full flex-col gap-4 border bg-card p-4 text-card-foreground shadow-sm">
       <h3 className="text-sm font-semibold">{title}</h3>
 
       <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
@@ -191,6 +203,7 @@ function SocialPostCard({
         <ContentActions
           title={title}
           text={value}
+          platform={platform}
           onCopy={onCopy}
           onShare={onShare}
         />
@@ -213,7 +226,10 @@ function ContentBlock({
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   return (
-    <AccordionItem value={valueKey} className="border-0">
+    <AccordionItem
+      value={valueKey}
+      className="border border-border/50 bg-card px-4 text-card-foreground shadow-sm"
+    >
       <AccordionTrigger>{title}</AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4">
@@ -249,7 +265,10 @@ function ImplementationBlock({
   const text = ["Tech used", techText, "", "Features", featuresText].join("\n");
 
   return (
-    <AccordionItem value="tech-used-and-features" className="border-0">
+    <AccordionItem
+      value="tech-used-and-features"
+      className="border border-border/50 bg-card px-4 text-card-foreground shadow-sm"
+    >
       <AccordionTrigger>Tech used and features</AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4">
@@ -266,8 +285,8 @@ function ImplementationBlock({
                 Features
               </h4>
               <ul className="list-disc space-y-1 pl-5">
-                {features.map((value) => (
-                  <li key={value} className="break-words">
+                {features.map((value, index) => (
+                  <li key={index} className="break-words">
                     {value}
                   </li>
                 ))}
@@ -290,15 +309,19 @@ function ImplementationBlock({
 function ContentActions({
   title,
   text,
+  platform,
   onCopy,
   onShare,
 }: {
   title: string;
   text: string;
+  platform?: SharePlatform;
   onCopy: (value: string) => Promise<boolean>;
   onShare: (title: string, value: string) => Promise<void>;
 }) {
   const shareUrls = createShareUrls({ title, text });
+  const iconButtonClass =
+    "size-9 border-0 bg-transparent p-0 shadow-sm hover:bg-muted rounded-[3px]";
   const [loadingAction, setLoadingAction] = useState<"copy" | "share" | null>(
     null,
   );
@@ -323,6 +346,10 @@ function ContentActions({
     }
   }
 
+  const platforms: SharePlatform[] = platform
+    ? [platform]
+    : ["twitter", "linkedIn", "reddit", "discord"];
+
   return (
     <div className="flex flex-wrap gap-2">
       <Button
@@ -331,7 +358,7 @@ function ContentActions({
         size="sm"
         onClick={handleCopy}
         disabled={loadingAction !== null}
-        className="size-9 p-0"
+        className={iconButtonClass}
         aria-label="Copy content"
         title="Copy content"
       >
@@ -342,56 +369,14 @@ function ContentActions({
         )}
       </Button>
 
-      <Button
-        asChild
-        variant="outline"
-        size="sm"
-        className="size-9 p-0"
-      >
-        <a
-          href={shareUrls.twitter}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Share on X"
-          title="Share on X"
-        >
-          <span className="text-sm font-bold leading-none">X</span>
-        </a>
-      </Button>
-
-      <Button
-        asChild
-        variant="outline"
-        size="sm"
-        className="size-9 p-0"
-      >
-        <a
-          href={shareUrls.linkedIn}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Share on LinkedIn"
-          title="Share on LinkedIn"
-        >
-          <LinkedInIcon />
-        </a>
-      </Button>
-
-      <Button
-        asChild
-        variant="outline"
-        size="sm"
-        className="size-9 p-0"
-      >
-        <a
-          href={shareUrls.reddit}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Share on Reddit"
-          title="Share on Reddit"
-        >
-          <RedditIcon />
-        </a>
-      </Button>
+      {platforms.map((platformName) => (
+        <PlatformShareButton
+          key={platformName}
+          platform={platformName}
+          shareUrls={shareUrls}
+          className={iconButtonClass}
+        />
+      ))}
 
       <Button
         type="button"
@@ -399,7 +384,7 @@ function ContentActions({
         size="sm"
         onClick={handleShare}
         disabled={loadingAction !== null}
-        className="size-9 p-0"
+        className={iconButtonClass}
         aria-label="Share with another app"
         title="Share with another app"
       >
@@ -413,11 +398,86 @@ function ContentActions({
   );
 }
 
+type SharePlatform = "twitter" | "linkedIn" | "reddit" | "discord";
+
+function PlatformShareButton({
+  platform,
+  shareUrls,
+  className,
+}: {
+  platform: SharePlatform;
+  shareUrls: ReturnType<typeof createShareUrls>;
+  className: string;
+}) {
+  const config = {
+    twitter: {
+      href: shareUrls.twitter,
+      label: "Share on X",
+      icon: <XIcon />,
+    },
+    linkedIn: {
+      href: shareUrls.linkedIn,
+      label: "Share on LinkedIn",
+      icon: <LinkedInIcon />,
+    },
+    reddit: {
+      href: shareUrls.reddit,
+      label: "Share on Reddit",
+      icon: <RedditIcon />,
+    },
+    discord: {
+      href: shareUrls.discord,
+      label: "Open Discord",
+      icon: <DiscordIcon />,
+    },
+  }[platform];
+
+  return (
+    <Button asChild variant="outline" size="sm" className={className}>
+      <a
+        href={config.href}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={config.label}
+        title={config.label}
+      >
+        {config.icon}
+      </a>
+    </Button>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 text-black dark:text-white"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M18.9 2h3.1l-6.8 7.8 8 10.2h-6.3l-4.9-6.3L6.4 20H3.3l7.3-8.4L3 2h6.5l4.4 5.7L18.9 2Zm-1.1 16.2h1.7L8.6 3.7H6.8l11 14.5Z" />
+    </svg>
+  );
+}
+
+function DiscordIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="size-4 text-[#5865F2]"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M19.54 5.34A16.2 16.2 0 0 0 15.6 4.1l-.19.38a14.8 14.8 0 0 1 3.47 1.74 11.3 11.3 0 0 0-4.21-1.32 12 12 0 0 0-5.35 0 11.4 11.4 0 0 0-4.22 1.32A14.8 14.8 0 0 1 8.58 4.5l-.18-.4a16.2 16.2 0 0 0-3.95 1.24C1.95 9.1 1.27 12.75 1.6 16.35a16 16 0 0 0 4.85 2.46l.97-1.58a10.4 10.4 0 0 1-1.53-.73l.36-.28c2.95 1.38 6.13 1.38 9.04 0l.36.28c-.49.29-1 .53-1.53.73l.97 1.58a16 16 0 0 0 4.86-2.46c.4-4.18-.68-7.8-2.4-11.01ZM8.25 14.13c-.94 0-1.7-.86-1.7-1.92s.74-1.92 1.7-1.92c.95 0 1.72.87 1.7 1.92 0 1.06-.75 1.92-1.7 1.92Zm7.5 0c-.94 0-1.7-.86-1.7-1.92s.75-1.92 1.7-1.92c.96 0 1.72.87 1.7 1.92 0 1.06-.74 1.92-1.7 1.92Z" />
+    </svg>
+  );
+}
+
 function RedditIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-4"
+      className="size-4 text-[#FF4500]"
       viewBox="0 0 24 24"
       fill="currentColor"
     >
@@ -430,7 +490,7 @@ function LinkedInIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-4"
+      className="size-4 text-[#0A66C2]"
       viewBox="0 0 24 24"
       fill="currentColor"
     >
@@ -447,5 +507,6 @@ function createShareUrls({ title, text }: { title: string; text: string }) {
     twitter: `https://twitter.com/intent/tweet?text=${encodedText}`,
     linkedIn: `https://www.linkedin.com/feed/?shareActive=true&text=${encodedText}`,
     reddit: `https://www.reddit.com/submit?title=${encodedTitle}&text=${encodedText}`,
+    discord: "https://discord.com/app",
   };
 }

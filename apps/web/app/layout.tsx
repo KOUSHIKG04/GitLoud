@@ -1,5 +1,6 @@
 import "@/globals.css";
 import type { Metadata } from "next";
+// import { InitialLoader } from "@/components/InitialLoader";
 import { Providers } from "@/provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Geist_Mono } from "next/font/google";
@@ -72,9 +73,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={` ${geistMono.variable}`}>
         <Providers>
+          {/* <InitialLoader /> */}
           {children}
           <Toaster />
         </Providers>

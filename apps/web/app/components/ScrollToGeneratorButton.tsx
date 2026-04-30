@@ -14,10 +14,10 @@ export function ScrollToGeneratorButton() {
     <Button
       type="button"
       size="lg"
-      className="w-full sm:w-auto"
+      className="w-full sm:w-auto font-semibold rounded-[18px] px-5 rounded-none"
       onClick={scrollToGenerator}
     >
-      Get started
+      GET STARTED
     </Button>
   );
 }

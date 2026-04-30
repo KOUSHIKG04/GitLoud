@@ -8,6 +8,7 @@ export const generatedContentSchema = z.object({
     tweet: z.string(),
     linkedInPost: z.string(),
     redditPost: z.string(),
+    discordPost: z.string(),
     portfolioBullet: z.string(),
     changelogEntry: z.string(),
     beginnerSummary: z.string(),

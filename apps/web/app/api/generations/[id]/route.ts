@@ -1,5 +1,6 @@
 import { db } from "@repo/db/client";
 import { generatedContentSchema } from "@repo/shared/generated-content";
+import { saveDiscordPost } from "@/lib/discord-post";
 import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 
@@ -28,12 +29,20 @@ export async function PATCH(
     );
   }
 
+  const { discordPost, ...generatedContent } = parsed.data;
+
   const updated = await db.generatedContent.update({
     where: { id },
-    data: parsed.data,
+    data: generatedContent,
   });
+  await saveDiscordPost(id, discordPost);
 
-  return NextResponse.json({ generatedContent: updated });
+  return NextResponse.json({
+    generatedContent: {
+      ...updated,
+      discordPost,
+    },
+  });
 }
 
 export async function DELETE(

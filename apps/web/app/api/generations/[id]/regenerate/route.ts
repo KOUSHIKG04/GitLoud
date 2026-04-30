@@ -7,6 +7,7 @@ import type { GeneratedContent } from "@repo/shared/generated-content";
 import { fetchCommit } from "@repo/github/fetch-commit";
 import { fetchPullRequest } from "@repo/github/fetch-pr";
 import { getRequestIp } from "@/lib/ip";
+import { saveDiscordPost } from "@/lib/discord-post";
 import { logger } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { NextResponse } from "next/server";
@@ -105,6 +106,7 @@ export async function POST(
         select: generatedContentSelect,
         data: buildGeneratedContentUpdate(generatedContent),
       });
+      await saveDiscordPost(id, generatedContent.discordPost);
 
       logger.info("Regenerated pull request content", {
         generationId: id,
@@ -113,7 +115,12 @@ export async function POST(
         number: generation.pullRequest.number,
       });
 
-      return NextResponse.json({ generatedContent: updated });
+      return NextResponse.json({
+        generatedContent: {
+          ...updated,
+          discordPost: generatedContent.discordPost,
+        },
+      });
     }
 
     if (generation.sourceType === "COMMIT") {
@@ -138,6 +145,7 @@ export async function POST(
         select: generatedContentSelect,
         data: buildGeneratedContentUpdate(generatedContent),
       });
+      await saveDiscordPost(id, generatedContent.discordPost);
 
       logger.info("Regenerated commit content", {
         generationId: id,
@@ -146,7 +154,12 @@ export async function POST(
         sha: generation.commit.sha,
       });
 
-      return NextResponse.json({ generatedContent: updated });
+      return NextResponse.json({
+        generatedContent: {
+          ...updated,
+          discordPost: generatedContent.discordPost,
+        },
+      });
     }
 
     return NextResponse.json(

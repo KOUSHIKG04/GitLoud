@@ -12,8 +12,13 @@ export function Header() {
   const showBackButton = pathname !== "/";
 
   function navigateBack() {
+    if (window.history.length > 1) {
+      router.back();
+      return;
+    }
+
     if (pathname.startsWith("/dashboard/generations/")) {
-      router.push("/dashboard/history");
+      router.push("/dashboard");
       return;
     }
 
@@ -38,6 +43,7 @@ export function Header() {
             type="button"
             variant="ghost"
             size="icon-sm"
+            className="rounded-[min(var(--radius-md),10px)]"
             onClick={navigateBack}
             aria-label="Go back"
             title="Go back"
