@@ -1,434 +1,356 @@
-﻿# X-PR Project Plan
+# GitLoud
 
-X-PR is a developer tool that turns GitHub pull requests into clear summaries and share-ready content. The product will be built in two phases. Phase 1 is a manual PR-link website. Phase 2 adds automatic GitHub PR detection, notifications, and a React Native mobile app.
+GitLoud is a developer content assistant that turns public GitHub pull requests and commits into clear summaries, technical notes, changelog entries, portfolio bullets, and share-ready posts.
 
-## Product Goal
+It helps developers explain what they built, document their work, and publish consistent updates without manually rewriting the same GitHub context for every platform.
 
-A user pastes a GitHub PR link. The app reads the PR title, description, commits, changed files, additions, deletions, and code diff. It then generates a clean summary, feature list, technologies used, and platform-ready posts for X/Twitter, LinkedIn, Reddit, portfolio updates, and changelogs.
+## Features
 
-Later, the app will automatically detect new PRs through GitHub webhooks or a GitHub App, generate content in the background, and notify the user when the content is ready.
+- Email/password sign in and account management with Better Auth.
+- Dashboard for authenticated users.
+- Generate content from a public GitHub pull request URL and commit URL.
+- GitHub URL validation and source-type detection.
+- Public repository access checks.
+- GitHub metadata and diff fetching.
+- AI-generated summaries and platform posts.
+- Streaming progress updates while generation runs.
+- Saved generation history.
+- Generation detail pages.
+- Regeneration support.
+- Delete generated history items.
+- User-scoped persistent rate limiting.
+- Database-backed generation storage.
+- Responsive web interface.
+- Light and dark theme support.
 
-## Phase 1: Manual PR-Link MVP
+## Generated Output
 
-### Goal
+GitLoud currently generates:
 
-Build and publish a website where a user can paste a GitHub PR link, generate content, save history, edit the result, and copy or share it manually.
-
-### Phase 1 Core Features
-
-- Landing page with simple animated product explanation.
-- Authentication with Clerk.
-- Dashboard for logged-in users.
-- Manual GitHub PR link input.
-- PR URL validation and parsing.
-- GitHub API integration.
-- AI-generated content.
-- Generated content result page.
-- Editable generated output.
-- Copy buttons for every generated format.
-- Share links for X/Twitter, LinkedIn, and Reddit.
-- History page for old PR generations.
-- Regenerate content option.
-- Delete or archive history item.
-- Loading, error, empty, and retry states.
-- Fully responsive web UI.
-
-### Phase 1 Generated Content
-
-- Short summary.
-- Technical summary.
-- Features added or changed.
-- Technologies, libraries, or concepts used.
-- X/Twitter post.
+- X post.
 - LinkedIn post.
 - Reddit post.
+- Discord post.
+- Technical summary.
+- Short summary.
 - Portfolio bullet.
 - Changelog entry.
+- Feature list.
+- Technologies and concepts used.
 - Beginner-friendly explanation.
 
-### Phase 1 Website Tools
+## Tech Stack
 
-- Next.js App Router for the web app.
-- TypeScript for safer development.
-- Tailwind CSS for styling.
-- shadcn/ui for accessible UI components.
-- Framer Motion for animations.
-- Zustand for small client-side UI state.
-- TanStack Query for client-side server state, caching, retries, and refetching.
-- Clerk for authentication.
-- Prisma for database access.
-- PostgreSQL for persistent storage.
-- Octokit for GitHub API calls.
-- OpenAI API or another LLM provider for content generation.
-- Zod for validation.
-- React Hook Form for forms.
-- Sonner or shadcn toast for notifications.
-- Vercel for deployment.
-- Neon, Supabase, or Railway for PostgreSQL hosting.
+- Turborepo
+- Next.js App Router
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn-style UI components
+- Better Auth
+- Prisma
+- PostgreSQL
+- Octokit
+- Zod
+- React Hook Form
+- Sonner
 
-### Is Auth Necessary?
-
-For a very small demo, auth is not required. For the real product, auth is necessary because users need saved history, private dashboard data, future GitHub connection, notification preferences, and mobile sync.
-
-Use Clerk instead of building auth manually. Clerk has a free Hobby plan that is enough for an MVP. It saves time and avoids security mistakes around sessions, passwords, OAuth, and account management.
-
-### Phase 1 Monorepo Structure
+## Monorepo Structure
 
 ```txt
-x-pr/
-  apps/
-    web/                  Next.js website
-  packages/
-    db/                   Prisma schema and database client
-    shared/               Shared types, constants, validators
-    github/               PR parser and GitHub API logic
-    ai/                   Prompt templates and generation logic
-    ui/                   Shared UI components if needed
+apps/
+  web/                  Next.js web application
+  mobile/               Mobile app workspace
+
+packages/
+  ai/                   AI generation logic
+  db/                   Prisma schema, migrations, and database client
+  github/               GitHub API helpers
+  shared/               Shared schemas, validators, and utilities
+  ui/                   Shared UI package
+  eslint-config/        Shared ESLint config
+  typescript-config/    Shared TypeScript config
 ```
 
-### Phase 1 Data Flow
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18 or newer
+- npm
+- PostgreSQL database
+- Better Auth secret
+- Resend account for email verification
+- GitHub token
+- GitHub OAuth application
+- AI provider credentials used by `packages/ai`
+
+### Install Dependencies
+
+Run from the repository root:
+
+```bash
+npm install
+```
+
+### Environment Variables
+
+Create the required environment files for your local setup. This project loads database configuration through `packages/db/prisma.config.ts`.
+
+Common variables:
+
+```bash
+DATABASE_URL="postgresql://..."
+
+BETTER_AUTH_SECRET="replace-with-a-long-random-secret"
+BETTER_AUTH_URL="http://localhost:3000"
+
+RESEND_API_KEY="..."
+EMAIL_FROM="GitLoud <onboarding@resend.dev>"
+
+GITHUB_CLIENT_ID="..."
+GITHUB_CLIENT_SECRET="..."
+GITHUB_TOKEN="..."
+
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+```
+
+For GitHub login, create a GitHub OAuth app and set the callback URL to:
 
 ```txt
-User pastes PR URL
-  -> Validate and parse URL
-  -> Fetch PR metadata from GitHub
-  -> Fetch commits and changed files
-  -> Trim and normalize diff content
-  -> Send structured context to AI
-  -> Generate summary and share posts
-  -> Save result to database
-  -> Show editable result to user
-  -> User copies or shares content
+http://localhost:3000/api/auth/callback/github
 ```
 
-### Phase 1 Database Models
+Email/password signups require email verification. GitLoud uses Resend for
+transactional verification emails and includes a themed verification email
+template at `apps/web/app/components/email/VerificationEmail.ts`.
+
+Resend's free tier is suitable for MVP production traffic and testing real
+verification flows. For a public launch, verify your own sending domain and use
+a branded sender:
+
+```bash
+EMAIL_FROM="GitLoud <auth@yourdomain.com>"
+```
+
+Upgrade the Resend plan when signup volume approaches the free daily/monthly
+sending limits or when you need more production deliverability margin.
+
+Add the AI provider variables required by your local `packages/ai` implementation.
+
+### Database Setup
+
+Run migrations:
+
+```bash
+npx prisma migrate dev --config packages/db/prisma.config.ts
+```
+
+Generate the Prisma client:
+
+```bash
+npm --workspace @repo/db run db:generate
+```
+
+Open Prisma Studio when needed:
+
+```bash
+npm --workspace @repo/db run db:studio
+```
+
+### Run The Web App
+
+```bash
+npm run web
+```
+
+The web app runs on:
 
 ```txt
-User
-- id
-- clerkUserId
-- email
-- name
-- createdAt
-- updatedAt
-
-PullRequest
-- id
-- userId
-- owner
-- repo
-- number
-- title
-- body
-- author
-- url
-- state
-- headSha
-- additions
-- deletions
-- changedFiles
-- source
-- createdAt
-- updatedAt
-
-GeneratedContent
-- id
-- userId
-- pullRequestId
-- shortSummary
-- technicalSummary
-- features
-- techUsed
-- tweet
-- linkedInPost
-- redditPost
-- portfolioBullet
-- changelogEntry
-- beginnerSummary
-- status
-- createdAt
-- updatedAt
-
-GenerationJob
-- id
-- userId
-- pullRequestId
-- idempotencyKey
-- status
-- errorMessage
-- startedAt
-- completedAt
-- createdAt
+http://localhost:3000
 ```
 
-### Phase 1 Edge Cases
+## Useful Commands
 
-- Invalid GitHub URL.
-- URL is not a pull request.
-- Public PR does not exist.
-- Private PR without permission.
-- GitHub API rate limit reached.
-- PR has no description.
-- PR has too many files.
-- PR has a huge diff.
-- PR includes binary files or images.
-- PR has generated files such as lockfiles.
-- AI provider times out.
-- AI output is too long.
-- User submits same PR multiple times.
-- User refreshes during generation.
-- Network fails after generation but before UI update.
-- User logs out during generation.
-- Mobile browser layout breaks.
-- Share URL exceeds platform limits.
+Run all type checks:
 
-### Phase 1 Optimization Plan
+```bash
+npm run check-types
+```
 
-- Validate PR URL before making API calls.
-- Use Zod schemas for request validation.
-- Cache GitHub PR metadata for repeated submissions.
-- Store PR head SHA to know whether content is stale.
-- Skip binary files and very large files.
-- Ignore common generated files like package-lock.json, yarn.lock, pnpm-lock.yaml, dist files, and build outputs.
-- Limit diff text sent to AI.
-- Summarize large PRs file-by-file before creating final summary.
-- Use background jobs for longer generations if needed.
-- Add request timeout and retry for GitHub and AI calls.
-- Use idempotency keys to prevent duplicate generations.
-- Paginate history page.
-- Add database indexes on userId, pullRequestId, createdAt, owner, repo, and number.
-- Use optimistic UI only for safe actions like archive/delete.
-- Use server-side rendering for dashboard shell and client fetching for dynamic history.
-- Use streaming UI for generation status later if needed.
+Run web type checks only:
 
-### Phase 1 Build Order
+```bash
+npm --workspace web run check-types
+```
 
-1. Create Turborepo project.
-2. Create Next.js web app.
-3. Add TypeScript, ESLint, Prettier, and basic scripts.
-4. Add Tailwind CSS and shadcn/ui.
-5. Add Framer Motion landing page animation.
-6. Add Clerk authentication.
-7. Build dashboard layout.
-8. Build PR input form.
-9. Add PR URL parser.
-10. Add Zod validation.
-11. Add Octokit GitHub fetch logic.
-12. Set up PostgreSQL and Prisma.
-13. Add PullRequest and GeneratedContent models.
-14. Save fetched PR metadata.
-15. Add AI prompt and generation logic.
-16. Save generated content.
-17. Build generated result page.
-18. Add edit and copy actions.
-19. Add platform share links.
-20. Build history page.
-21. Add regenerate action.
-22. Add loading, error, retry, and empty states.
-23. Add rate limiting.
-24. Add logging and basic error tracking.
-25. Deploy on Vercel.
-26. Test with multiple public PRs.
+Run web lint only:
 
-### Phase 1 Output
+```bash
+npm --workspace web run lint
+```
 
-A live website where users can paste a GitHub PR link and receive generated summaries, feature explanations, technologies used, and share-ready posts.
+Run the full build:
 
-## Phase 2: Automation And Mobile App
+```bash
+npm run build
+```
 
-### Goal
+Generate the Prisma client:
 
-Add automatic GitHub PR detection, background generation, notifications, and a React Native mobile app.
+```bash
+npm --workspace @repo/db run db:generate
+```
 
-### Phase 2 Core Features
+Apply database migrations:
 
-- GitHub account connection.
+```bash
+npx prisma migrate dev --config packages/db/prisma.config.ts
+```
+
+Reset the local development database:
+
+```bash
+npx prisma migrate reset --config packages/db/prisma.config.ts
+```
+
+`migrate reset` drops data. Use it only for local or disposable development databases.
+
+## How It Works
+
+```txt
+User signs in
+  -> User submits a GitHub PR or commit URL
+  -> API validates the URL and source type
+  -> API checks that the repository is public
+  -> GitHub metadata and diff are fetched
+  -> AI generates platform-ready content
+  -> Result is stored in PostgreSQL
+  -> User views, regenerates, copies, or deletes the saved output
+```
+
+## Current Phase: Phase 1
+
+Phase 1 is the manual generation MVP.
+
+Current Phase 1 scope:
+
+- Manual URL submission.
+- PR and commit support.
+- Authenticated dashboard.
+- Saved history.
+- Regeneration.
+- Delete history items.
+- Persistent rate limiting.
+- Responsive UI.
+- Production-oriented database constraints and indexes.
+
+## Phase 2: Upcoming Updates
+
+Phase 2 will turn GitLoud from a generation tool into a complete content workflow.
+
+### First Priority: Private Repository Support
+
+- Add GitHub App installation.
+- Let users grant access to selected private repositories.
+- Store installation access securely.
+- Fetch private PR and commit data only for approved repositories.
+- Keep tenant checks enforced so users can only generate from repositories they connected.
+- Show clear UI for connected repositories and access status.
+
+### Editing And Saving
+
+- Edit generated content in the dashboard.
+- Save edited versions.
+- Preserve original AI output separately from user edits.
+- Autosave drafts.
+- Manual save and discard actions.
+- Version history for edits and regenerations.
+- Draft, edited, ready, archived, and shared statuses.
+- Custom instructions per generation.
+
+### History And Organization
+
+- Search generations.
+- Filter by repository, source type, date, and status.
+- Pin or favorite important generations.
+- Archive and restore generations.
+- Repository-level grouping.
+- Improved pagination and loading states.
+
+### Integrations
+
+- GitHub App connection.
 - Repository selection.
-- GitHub webhook or GitHub App setup.
-- Automatic PR detection.
-- Background generation jobs.
-- In-app notifications.
+- Private repository access through explicit GitHub App permissions.
+- GitHub webhook ingestion.
+- Automatic PR and commit detection.
+- Optional GitHub PR comments.
+- Slack or Discord notifications.
 - Email notifications.
-- Optional GitHub PR comment when content is ready.
-- React Native mobile app.
-- Mobile login.
+- Markdown, JSON, and plain text export.
+
+### Background Jobs
+
+- Background generation queue.
+- Idempotent job processing.
+- Retry and backoff for GitHub and AI failures.
+- Dead-letter handling.
+- Job status tracking.
+- Automatic generation when watched PRs change.
+
+### Monitoring And Reliability
+
+- Sentry integration for frontend and backend error tracking.
+- Production source maps.
+- Error boundaries for dashboard pages.
+- Request IDs and structured logs.
+- Monitoring for webhook failures, AI failures, and rate-limit fallback.
+- Performance tracking for slow external calls.
+
+### Security
+
+- Webhook signature verification.
+- Stronger tenant isolation checks.
+- Safe private repository support with user-approved repository access.
+- More granular per-user and per-source rate limits.
+- Audit-friendly logs for destructive actions.
+
+### Mobile
+
+- Expo mobile app.
+- Mobile authentication.
 - Mobile history screen.
-- Mobile generated content screen.
+- Mobile generation detail screen.
 - Native share sheet.
 - Push notifications.
+- Cross-device sync.
 
-### Phase 2 Automation Flow
+## Deployment Notes
 
-```txt
-User opens or updates a PR on GitHub
-  -> GitHub sends webhook to backend
-  -> Backend verifies webhook signature
-  -> Backend stores webhook event
-  -> Backend creates idempotent generation job
-  -> Worker fetches PR data
-  -> Worker generates content
-  -> Worker saves result
-  -> User receives notification
-  -> User opens web or mobile app
-  -> User reviews and shares content
+Recommended production services:
+
+- Vercel for the Next.js web app.
+- Neon, Supabase, Railway, or another managed PostgreSQL provider.
+- Better Auth for authentication.
+- Resend for email verification.
+- A GitHub token or GitHub App credentials.
+- Sentry once Phase 2 observability work starts.
+
+Before deployment:
+
+```bash
+npm run check-types
+npm run lint
+npm run build
 ```
 
-### Phase 2 Tools
+Apply production migrations through your deployment workflow:
 
-- GitHub App or GitHub Webhooks for automatic PR events.
-- Inngest, Trigger.dev, Upstash QStash, or BullMQ for background jobs.
-- Redis if using BullMQ or custom queues.
-- Resend, SendGrid, or Postmark for email notifications.
-- Expo for React Native mobile development.
-- NativeWind or Tamagui for mobile styling.
-- Clerk Expo SDK or token-based auth for mobile login.
-- Expo Notifications for push notifications.
-- Sentry for error tracking.
-- OpenTelemetry or structured logs for production debugging.
-
-### Phase 2 Additional Database Models
-
-```txt
-Repository
-- id
-- userId
-- owner
-- name
-- githubRepoId
-- private
-- webhookEnabled
-- createdAt
-- updatedAt
-
-GitHubInstallation
-- id
-- userId
-- githubInstallationId
-- accountLogin
-- permissions
-- createdAt
-- updatedAt
-
-WebhookEvent
-- id
-- eventType
-- deliveryId
-- payload
-- processedAt
-- createdAt
-
-Notification
-- id
-- userId
-- type
-- title
-- message
-- readAt
-- targetUrl
-- createdAt
-
-DeviceToken
-- id
-- userId
-- platform
-- token
-- active
-- createdAt
-- updatedAt
+```bash
+npx prisma migrate deploy --config packages/db/prisma.config.ts
 ```
 
-### Phase 2 Race Condition Strategy
+## License
 
-Use an idempotency key for every generation:
-
-```txt
-github:{owner}:{repo}:pull:{number}:sha:{headSha}
-```
-
-If the same webhook arrives twice, the app should not create duplicate generated content. If the PR changes and the head SHA changes, the app can create a new generation version.
-
-Use job statuses:
-
-```txt
-queued -> processing -> ready
-queued -> processing -> failed
-```
-
-Only one active job should run for the same PR and head SHA.
-
-### Phase 2 Edge Cases
-
-- Duplicate webhook events.
-- GitHub retries failed webhook delivery.
-- PR updated while generation is running.
-- PR manually submitted and webhook received at the same time.
-- User removes GitHub permissions.
-- GitHub token expires.
-- Repository is renamed.
-- Repository is deleted.
-- User leaves an organization.
-- Notification fails.
-- Push token expires.
-- Queue job fails and retries.
-- AI output changes after regeneration.
-- User edits content while a newer version is generated.
-- Multiple devices receive the same notification.
-
-### Phase 2 Optimization Plan
-
-- Verify webhook signatures before processing.
-- Store delivery ID to prevent duplicate webhook processing.
-- Return fast response to GitHub webhooks and process work in background.
-- Use queue retries with backoff.
-- Add dead-letter handling for failed jobs.
-- Chunk large diffs before AI generation.
-- Store generated versions instead of overwriting user-edited content.
-- Keep notification writes idempotent.
-- Use pagination and filtering for mobile history.
-- Use TanStack Query cache on mobile and web.
-- Add offline-friendly mobile UI for previously loaded content.
-- Use push notifications only after user permission.
-- Add monitoring around webhook failures, job failures, and AI cost.
-
-### Phase 2 Build Order
-
-1. Add GitHub OAuth or GitHub App connection.
-2. Store connected repositories.
-3. Add repository settings page.
-4. Add webhook endpoint.
-5. Verify webhook signatures.
-6. Store webhook delivery events.
-7. Add background job system.
-8. Create idempotent generation jobs.
-9. Generate content from webhook events.
-10. Add in-app notifications.
-11. Add email notifications.
-12. Create Expo React Native app.
-13. Add mobile authentication.
-14. Add mobile history screen.
-15. Add mobile content detail screen.
-16. Add native share sheet.
-17. Add push notifications.
-18. Add monitoring, logging, and alerting.
-19. Test webhook retries and duplicate events.
-20. Publish mobile app build.
-
-### Phase 2 Output
-
-A web and mobile product that automatically detects PRs, generates content in the background, notifies the user, and lets them share content from any device.
-
-## Final Recommended Product Path
-
-Build Phase 1 first because it proves the core value quickly:
-
-```txt
-Paste PR link -> Generate content -> Save history -> Copy or share
-```
-
-Then build Phase 2:
-
-```txt
-Open PR on GitHub -> App detects PR -> Content generated -> User notified -> Share from web or mobile
-```
-
-This project is useful for students and developers because it helps them explain their work better, create public updates consistently, and build a visible record of daily progress.
+This project is licensed under the MIT License. See [LICENSE](./LICENSE).

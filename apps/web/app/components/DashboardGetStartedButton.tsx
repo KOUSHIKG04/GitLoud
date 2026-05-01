@@ -8,22 +8,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function DashboardGetStartedButton() {
   const router = useRouter();
-  const { isLoaded, isSignedIn } = useUser();
+  const { data: session, isPending } = useSession();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
 
   function openDashboard() {
-    if (!isLoaded) {
+    if (isPending) {
       return;
     }
 
-    if (!isSignedIn) {
+    if (!session?.user) {
       setLoginDialogOpen(true);
       return;
     }
@@ -36,7 +36,7 @@ export function DashboardGetStartedButton() {
       <button
         type="button"
         onClick={openDashboard}
-        disabled={!isLoaded}
+        disabled={isPending}
         className="px-6 py-2.5 gap-4 group isolation-auto relative z-10 mt-2 flex items-center justify-center overflow-hidden border bg-gray-50 text-md text-gray-900 shadow-xs backdrop-blur-md before:absolute before:-left-full before:-z-10 before:aspect-square before:w-full before:bg-primary before:transition-all before:duration-700 hover:text-gray-900 before:hover:left-0 before:hover:w-full before:hover:scale-150 before:hover:duration-700 dark:border-border dark:bg-card dark:text-white dark:hover:text-white lg:font-semibold"
       >
         <span className="relative after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-gray-900/40 after:transition-all after:duration-300 group-hover:after:w-full dark:after:bg-white/40">

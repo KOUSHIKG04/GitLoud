@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 type RateLimitOptions = {
     key: string;
     limit: number;
@@ -91,6 +93,11 @@ export async function persistentRateLimit({
             RETURNING "count", "resetAt"
         `;
 
+        await db.$executeRaw`
+            DELETE FROM "RateLimitBucket"
+            WHERE "resetAt" <= ${now}
+        `;
+
         const bucket = rows[0];
 
         if (!bucket) {
@@ -102,7 +109,11 @@ export async function persistentRateLimit({
             remaining: Math.max(limit - bucket.count, 0),
             resetAt: bucket.resetAt,
         };
-    } catch {
+    } catch (error) {
+        logger.warn("Persistent rate limiter failed, falling back to memory", {
+            error,
+        });
+
         return rateLimit({ key, limit, windowMs });
     }
 }

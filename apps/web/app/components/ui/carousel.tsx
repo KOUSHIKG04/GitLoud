@@ -78,9 +78,10 @@ function Carousel({
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       
-      const target = event.target as HTMLElement | null;
-
-      if (target?.closest("input, textarea, select, [contenteditable='true']")) {
+      const target = event.target;
+      if (target instanceof Element && (target.closest("input, textarea, select, [contenteditable]") ||
+          (target as HTMLElement).isContentEditable)
+      ) {
         return;
       }
 

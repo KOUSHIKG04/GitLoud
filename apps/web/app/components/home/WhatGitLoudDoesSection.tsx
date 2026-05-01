@@ -1,15 +1,12 @@
-import {
-  MotionItem,
-  MotionViewportStagger,
-} from "@/components/LandingMotion";
+import { MotionItem, MotionViewportStagger } from "@/components/LandingMotion";
 
 export function WhatGitLoudDoesSection() {
   return (
-    <section className="px-4 py-12 sm:px-6 lg:px-16">
+    <section className="px-4 py-16 sm:px-6 lg:px-16">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <MotionViewportStagger className="space-y-3">
           <MotionItem>
-            <p className="text-sm font-semibold">What GitLoud does</p>
+            <p className="text-sm font-semibold">WHAT GITLOUD DOES</p>
           </MotionItem>
 
           <MotionItem>

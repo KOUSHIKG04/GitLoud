@@ -1,24 +1,9 @@
 import { db } from "@repo/db/client";
 import { logger } from "@/lib/logger";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserId } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 class NotFoundError extends Error { }
-
-async function getCurrentUserId() {
-  const { userId: clerkUserId } = await auth();
-
-  if (!clerkUserId) {
-    return null;
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId },
-    select: { id: true },
-  });
-
-  return user?.id ?? null;
-}
 
 export async function DELETE(
   _request: Request,

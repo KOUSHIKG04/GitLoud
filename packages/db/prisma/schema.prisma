@@ -13,16 +13,64 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(cuid())
-  clerkUserId String?  @unique
-  email       String?
-  name        String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  name          String?
+  email         String?  @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   pullRequests     PullRequest[]
   commits          Commit[]
   generatedContent GeneratedContent[]
+  sessions         Session[]
+  accounts         Account[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
 }
 
 model PullRequest {
@@ -50,6 +98,7 @@ model PullRequest {
   @@index([owner, repo, number])
   @@index([headSha])
   @@index([createdAt])
+  @@unique([id, userId])
   @@unique([userId, owner, repo, number, headSha])
 }
 
@@ -76,6 +125,7 @@ model Commit {
   @@index([owner, repo, sha])
   @@index([shortSha])
   @@index([createdAt])
+  @@unique([id, userId])
   @@unique([userId, owner, repo, sha])
 }
 
@@ -85,6 +135,7 @@ model GeneratedContent {
   sourceType       GeneratedSourceType
   pullRequestId    String?
   commitId         String?
+  contextHash      String?
   shortSummary     String
   technicalSummary String
   features         String[]
@@ -101,13 +152,16 @@ model GeneratedContent {
   updatedAt        DateTime            @updatedAt
 
   user        User         @relation(fields: [userId], references: [id])
-  pullRequest PullRequest? @relation(fields: [pullRequestId], references: [id])
-  commit      Commit?      @relation(fields: [commitId], references: [id])
+  pullRequest PullRequest? @relation(fields: [pullRequestId, userId], references: [id, userId], onDelete: Restrict)
+  commit      Commit?      @relation(fields: [commitId, userId], references: [id, userId], onDelete: Restrict)
 
   @@index([userId, createdAt])
   @@index([sourceType])
+  @@index([userId, sourceType, contextHash])
   @@index([pullRequestId])
   @@index([commitId])
+  @@index([pullRequestId, userId])
+  @@index([commitId, userId])
 }
 
 model RateLimitBucket {
@@ -115,6 +169,8 @@ model RateLimitBucket {
   count    Int
   resetAt  DateTime
   updatedAt DateTime @updatedAt
+
+  @@index([resetAt])
 }
 
 enum GeneratedSourceType {

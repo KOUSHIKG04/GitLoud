@@ -26,7 +26,7 @@
     "packages/*"
   ],
   "dependencies": {
-    "@clerk/nextjs": "^7.2.8",
+    "resend": "^6.12.2",
     "zod": "4.3.6"
   }
 }

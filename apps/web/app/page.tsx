@@ -6,6 +6,7 @@ import { AuthToast } from "@/components/auth/AuthToast";
 import { GeneratorSection } from "@/components/home/GeneratorSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
+import { PhaseTwoUpdatesSection } from "@/components/home/PhaseTwoUpdatesSection";
 import { WhatGitLoudDoesSection } from "@/components/home/WhatGitLoudDoesSection";
 import { Suspense } from "react";
 
@@ -64,6 +65,7 @@ export default function Home() {
       <GeneratorSection />
       <WhatGitLoudDoesSection />
       <HowItWorksSection />
+      <PhaseTwoUpdatesSection />
       <Footer />
     </main>
   );

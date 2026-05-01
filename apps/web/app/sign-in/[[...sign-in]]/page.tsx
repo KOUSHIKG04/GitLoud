@@ -1,32 +1,29 @@
 import type { Metadata } from "next";
-import { SignIn } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { authAppearance } from "@/components/auth/clerkAppearance";
+import { AuthForm } from "@/components/auth/AuthForm";
+import { getCurrentSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Sign In",
   description: "Sign in to GitLoud to generate and save GitHub content.",
 };
 
-export default async function SignInPage() {
-  const { userId } = await auth();
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const { callbackUrl } = await searchParams;
+  const session = await getCurrentSession();
 
-  if (userId) {
+  if (session?.user) {
     redirect("/");
   }
 
   return (
     <AuthShell eyebrow="Welcome back" title="Sign in to GitLoud">
-      <SignIn
-        appearance={authAppearance}
-        fallbackRedirectUrl="/?auth=sign-in"
-        forceRedirectUrl="/?auth=sign-in"
-        path="/sign-in"
-        routing="path"
-        signUpUrl="/sign-up"
-      />
+      <AuthForm mode="sign-in" callbackUrl={callbackUrl} />
     </AuthShell>
   );
 }
