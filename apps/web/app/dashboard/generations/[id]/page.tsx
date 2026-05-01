@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserId } from "@/lib/session";
 import { GenerationDetailClient } from "./generation-detail-client";
 import { ChevronRight } from "lucide-react";
 
@@ -11,23 +11,14 @@ export default async function GenerationDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { userId: clerkUserId } = await auth();
+  const userId = await getCurrentUserId();
 
-  if (!clerkUserId) {
-    notFound();
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId },
-    select: { id: true },
-  });
-
-  if (!user) {
+  if (!userId) {
     notFound();
   }
 
   const generation = await db.generatedContent.findFirst({
-    where: { id, userId: user.id },
+    where: { id, userId },
     include: {
       pullRequest: true,
       commit: true,

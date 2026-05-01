@@ -9,7 +9,7 @@ import { fetchPullRequest } from "@repo/github/fetch-pr";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { persistentRateLimit } from "@/lib/rate-limit";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserId } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 const generatedContentSelect = {
@@ -44,27 +44,15 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const { userId: clerkUserId } = await auth();
+  const userId = await getCurrentUserId();
 
-  if (!clerkUserId) {
+  if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const user = await db.user.findUnique({
-    where: { clerkUserId },
-    select: { id: true },
-  });
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "Generated content was not found" },
-      { status: 404 },
-    );
   }
 
   const ip = getRequestIp(request);
   const limit = await persistentRateLimit({
-    key: `regenerate:${ip}`,
+    key: `regenerate:${userId}:${ip}`,
     limit: 5,
     windowMs: 10 * 60 * 1000,
   });
@@ -87,7 +75,7 @@ export async function POST(
 
   try {
     const generation = await db.generatedContent.findFirst({
-      where: { id, userId: user.id },
+      where: { id, userId },
       include: {
         pullRequest: true,
         commit: true,

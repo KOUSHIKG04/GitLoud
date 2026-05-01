@@ -30,11 +30,9 @@ export function MotionCursor() {
 
     updateEnabled();
     canHover.addEventListener("change", updateEnabled);
-    window.addEventListener("pointermove", updatePosition);
 
     return () => {
       canHover.removeEventListener("change", updateEnabled);
-      window.removeEventListener("pointermove", updatePosition);
     };
   }, [cursorX, cursorY]);
 

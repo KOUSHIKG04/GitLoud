@@ -12,12 +12,13 @@ import {
     parseGithubPullRequestUrl,
 } from "@repo/shared/github";
 import { Octokit } from "@octokit/rest";
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getRequestIp } from "@/lib/ip";
 import { persistentRateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserId } from "@/lib/session";
 
 const requestBodySchema = z.object({
     url: githubPrOrCommitUrlSchema,
@@ -30,6 +31,16 @@ type ProgressEvent =
     | { type: "error"; message: string };
 
 type SendProgress = (event: ProgressEvent) => void;
+
+function getContextHash(userContext: string | undefined) {
+    if (!userContext) {
+        return null;
+    }
+
+    const normalizedContext = userContext.replace(/\r\n?/g, "\n").trim();
+
+    return createHash("sha256").update(normalizedContext).digest("hex");
+}
 
 async function isRepoPublic(owner: string, repo: string): Promise<boolean> {
     const octokit = new Octokit({
@@ -79,23 +90,15 @@ function createProgressStream(
 
 export async function POST(request: Request): Promise<Response> {
 
-    const { userId: clerkUserId } = await auth();
+    const appUserId = await getCurrentUserId();
 
-    if (!clerkUserId) {
+    if (!appUserId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await db.user.upsert({
-        where: { clerkUserId },
-        update: {},
-        create: { clerkUserId },
-        select: { id: true },
-    });
-    const appUserId = user.id;
-
     const ip = getRequestIp(request);
     const limit = await persistentRateLimit({
-        key: `generate:${ip}`,
+        key: `generate:${appUserId}:${ip}`,
         limit: 5,
         windowMs: 10 * 60 * 1000,
     });
@@ -141,6 +144,7 @@ export async function POST(request: Request): Promise<Response> {
 
     const url = parsedBody.data.url;
     const urlType = getGithubUrlType(url);
+    const contextHash = getContextHash(userContext);
 
     return createProgressStream(async (send) => {
         send({ type: "progress", message: "Validating GitHub URL..." });
@@ -159,7 +163,7 @@ export async function POST(request: Request): Promise<Response> {
             if (!isPublic) {
                 send({
                     type: "error",
-                    message: "Only public repositories are supported",
+                    message: "Only public repositories are supported right now. Private repository access is planned for Phase 2 after GitHub App permissions are added.",
                 });
                 return;
             }
@@ -176,19 +180,21 @@ export async function POST(request: Request): Promise<Response> {
                 githubToken: process.env.GITHUB_TOKEN,
             });
 
-            const existingGeneration = await db.generatedContent.findFirst({
-                where: {
-                    userId: appUserId,
-                    sourceType: "PULL_REQUEST",
-                    pullRequest: {
-                        owner: pullRequest.owner,
-                        repo: pullRequest.repo,
-                        number: pullRequest.number,
-                        headSha: pullRequest.headSha,
-                    },
-                },
-                select: { id: true },
-            });
+            const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
+                SELECT gc."id"
+                FROM "GeneratedContent" gc
+                INNER JOIN "PullRequest" pr ON pr."id" = gc."pullRequestId"
+                WHERE gc."userId" = ${appUserId}
+                    AND gc."sourceType" = 'PULL_REQUEST'::"GeneratedSourceType"
+                    AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+                    AND pr."owner" = ${pullRequest.owner}
+                    AND pr."repo" = ${pullRequest.repo}
+                    AND pr."number" = ${pullRequest.number}
+                    AND pr."headSha" = ${pullRequest.headSha}
+                ORDER BY gc."createdAt" DESC
+                LIMIT 1
+            `;
+            const existingGeneration = existingGenerations[0];
 
             if (existingGeneration) {
                 logger.info("Reused existing pull request generation", {
@@ -228,20 +234,31 @@ export async function POST(request: Request): Promise<Response> {
                     user: { connect: { id: appUserId } },
                     sourceType: "PULL_REQUEST",
                     pullRequest: {
-                        create: {
-                            userId: appUserId,
-                            owner: pullRequest.owner,
-                            repo: pullRequest.repo,
-                            number: pullRequest.number,
-                            title: pullRequest.title,
-                            body: pullRequest.body,
-                            author: pullRequest.author,
-                            url: pullRequest.url,
-                            state: pullRequest.state,
-                            headSha: pullRequest.headSha,
-                            additions: pullRequest.additions,
-                            deletions: pullRequest.deletions,
-                            changedFiles: pullRequest.changedFiles,
+                        connectOrCreate: {
+                            where: {
+                                userId_owner_repo_number_headSha: {
+                                    userId: appUserId,
+                                    owner: pullRequest.owner,
+                                    repo: pullRequest.repo,
+                                    number: pullRequest.number,
+                                    headSha: pullRequest.headSha,
+                                },
+                            },
+                            create: {
+                                userId: appUserId,
+                                owner: pullRequest.owner,
+                                repo: pullRequest.repo,
+                                number: pullRequest.number,
+                                title: pullRequest.title,
+                                body: pullRequest.body,
+                                author: pullRequest.author,
+                                url: pullRequest.url,
+                                state: pullRequest.state,
+                                headSha: pullRequest.headSha,
+                                additions: pullRequest.additions,
+                                deletions: pullRequest.deletions,
+                                changedFiles: pullRequest.changedFiles,
+                            },
                         },
                     },
                     shortSummary: generatedContent.shortSummary,
@@ -258,6 +275,12 @@ export async function POST(request: Request): Promise<Response> {
                 },
                 select: { id: true },
             });
+
+            await db.$executeRaw`
+                UPDATE "GeneratedContent"
+                SET "contextHash" = ${contextHash}
+                WHERE "id" = ${savedGeneratedContent.id}
+            `;
 
 
             logger.info("Generated pull request content", {
@@ -287,7 +310,7 @@ export async function POST(request: Request): Promise<Response> {
             if (!isPublic) {
                 send({
                     type: "error",
-                    message: "Only public repositories are supported",
+                    message: "Only public repositories are supported right now. Private repository access is planned for Phase 2 after GitHub App permissions are added.",
                 });
                 return;
             }
@@ -304,18 +327,20 @@ export async function POST(request: Request): Promise<Response> {
                 githubToken: process.env.GITHUB_TOKEN,
             });
 
-            const existingGeneration = await db.generatedContent.findFirst({
-                where: {
-                    userId: appUserId,
-                    sourceType: "COMMIT",
-                    commit: {
-                        owner: commit.owner,
-                        repo: commit.repo,
-                        sha: commit.sha,
-                    },
-                },
-                select: { id: true },
-            });
+            const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
+                SELECT gc."id"
+                FROM "GeneratedContent" gc
+                INNER JOIN "Commit" c ON c."id" = gc."commitId"
+                WHERE gc."userId" = ${appUserId}
+                    AND gc."sourceType" = 'COMMIT'::"GeneratedSourceType"
+                    AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+                    AND c."owner" = ${commit.owner}
+                    AND c."repo" = ${commit.repo}
+                    AND c."sha" = ${commit.sha}
+                ORDER BY gc."createdAt" DESC
+                LIMIT 1
+            `;
+            const existingGeneration = existingGenerations[0];
 
             if (existingGeneration) {
                 logger.info("Reused existing commit generation", {
@@ -354,18 +379,28 @@ export async function POST(request: Request): Promise<Response> {
                     user: { connect: { id: appUserId } },
                     sourceType: "COMMIT",
                     commit: {
-                        create: {
-                            userId: appUserId,
-                            owner: commit.owner,
-                            repo: commit.repo,
-                            sha: commit.sha,
-                            shortSha: commit.shortSha,
-                            message: commit.message,
-                            author: commit.author,
-                            url: commit.url,
-                            additions: commit.additions,
-                            deletions: commit.deletions,
-                            changedFiles: commit.changedFiles,
+                        connectOrCreate: {
+                            where: {
+                                userId_owner_repo_sha: {
+                                    userId: appUserId,
+                                    owner: commit.owner,
+                                    repo: commit.repo,
+                                    sha: commit.sha,
+                                },
+                            },
+                            create: {
+                                userId: appUserId,
+                                owner: commit.owner,
+                                repo: commit.repo,
+                                sha: commit.sha,
+                                shortSha: commit.shortSha,
+                                message: commit.message,
+                                author: commit.author,
+                                url: commit.url,
+                                additions: commit.additions,
+                                deletions: commit.deletions,
+                                changedFiles: commit.changedFiles,
+                            },
                         },
                     },
                     shortSummary: generatedContent.shortSummary,
@@ -382,6 +417,12 @@ export async function POST(request: Request): Promise<Response> {
                 },
                 select: { id: true },
             });
+
+            await db.$executeRaw`
+                UPDATE "GeneratedContent"
+                SET "contextHash" = ${contextHash}
+                WHERE "id" = ${savedGeneratedContent.id}
+            `;
 
             logger.info("Generated commit content", {
                 owner,

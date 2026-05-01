@@ -155,8 +155,3 @@ scrollbar-color: color-mix(in srgb, var(--muted-foreground) 35%, transparent) tr
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
 scrollbar-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent) transparent;}
-
-.auth-shell [class*="developmentMode"],
-.auth-shell [class*="DevelopmentMode"] {
-  display: none !important;
-}

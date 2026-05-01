@@ -5,12 +5,12 @@ import {
 
 export function HowItWorksSection() {
   return (
-    <section className="px-4 py-14 sm:px-6 lg:px-16 border-t">
+    <section className="px-4 py-16 sm:px-6 lg:px-16 border-y">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <MotionViewportStagger className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
           <div className="space-y-3">
             <MotionItem>
-              <p className="text-sm font-semibold">How it works</p>
+              <p className="text-sm font-semibold">HOW IT WORKS</p>
             </MotionItem>
 
             <MotionItem>

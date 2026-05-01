@@ -24,8 +24,8 @@ export function HeroSection() {
 
           <MotionItem>
             <p className="mt-4 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-lg">
-              Drop a GitHub PR or commit link. Generate summaries, changelogs,
-              and dev-ready posts instantly.
+              Drop a public GitHub PR or commit link. Generate summaries,
+              changelogs, and dev-ready posts instantly.
             </p>
           </MotionItem>
 

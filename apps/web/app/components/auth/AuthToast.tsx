@@ -9,6 +9,7 @@ export function AuthToast() {
   const searchParams = useSearchParams();
   const auth = searchParams.get("auth");
   const authError = searchParams.get("auth_error");
+  const verified = searchParams.get("verified");
 
   useEffect(() => {
     if (auth === "sign-in") {
@@ -23,10 +24,16 @@ export function AuthToast() {
       toast.error(authError, { duration: 7000 });
     }
 
-    if (auth || authError) {
+    if (verified === "1") {
+      toast.success("Email verified!! You are signed in.", {
+        duration: 7000,
+      });
+    }
+
+    if (auth || authError || verified) {
       router.replace("/");
     }
-  }, [auth, authError, router]);
+  }, [auth, authError, router, verified]);
 
   return null;
 }

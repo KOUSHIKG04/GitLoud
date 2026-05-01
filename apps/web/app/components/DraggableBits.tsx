@@ -2,7 +2,15 @@
 
 import { motion } from "framer-motion";
 
-const bits = [
+type DraggableBit = {
+  label: string;
+  className: string;
+  icon?: "git" | "github";
+  social?: "discord" | "x" | "linkedin" | "reddit";
+  move: [number, number];
+};
+
+const bits: DraggableBit[] = [
   { label: "git", className: "left-[20%] top-[20%]", icon: "git", move: [8, -14] },
   {
     label: "GitHub",

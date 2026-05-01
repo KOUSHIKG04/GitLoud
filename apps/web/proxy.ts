@@ -1,16 +1,38 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/api/pr(.*)",
-  "/api/generations(.*)",
-]);
+const protectedRoutePatterns = [
+  /^\/dashboard(?:\/.*)?$/,
+  /^\/api\/pr(?:\/.*)?$/,
+  /^\/api\/generations(?:\/.*)?$/,
+];
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
+function isProtectedRoute(pathname: string) {
+  return protectedRoutePatterns.some((pattern) => pattern.test(pathname));
+}
+
+export default async function proxy(request: NextRequest) {
+  if (!isProtectedRoute(request.nextUrl.pathname)) {
+    return NextResponse.next();
   }
-});
+
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
+
+  if (session?.user) {
+    return NextResponse.next();
+  }
+
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const signInUrl = new URL("/sign-in", request.url);
+  signInUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
+
+  return NextResponse.redirect(signInUrl);
+}
 
 export const config = {
   matcher: [

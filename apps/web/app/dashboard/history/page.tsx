@@ -13,7 +13,7 @@ import Link from "next/link";
 import { ExternalLink, Plus } from "lucide-react";
 import { DeleteGenerationButton } from "./delete-generation-button";
 import { HistoryDatePicker } from "./history-date-picker";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUserId } from "@/lib/session";
 
 export default async function HistoryPage({
   searchParams,
@@ -43,19 +43,12 @@ export default async function HistoryPage({
       ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
       : undefined;
 
-  const { userId: clerkUserId } = await auth();
+  const userId = await getCurrentUserId();
 
-  const user = clerkUserId
-    ? await db.user.findUnique({
-        where: { clerkUserId },
-        select: { id: true },
-      })
-    : null;
-
-  const generations = user
+  const generations = userId
     ? await db.generatedContent.findMany({
         where: {
-          userId: user.id,
+          userId,
           AND: [
             {
               OR: [
@@ -67,9 +60,26 @@ export default async function HistoryPage({
           ],
         },
         orderBy: { createdAt: "desc" },
-        include: {
-          pullRequest: true,
-          commit: true,
+        select: {
+          id: true,
+          sourceType: true,
+          createdAt: true,
+          pullRequest: {
+            select: {
+              title: true,
+              owner: true,
+              repo: true,
+              url: true,
+            },
+          },
+          commit: {
+            select: {
+              message: true,
+              owner: true,
+              repo: true,
+              url: true,
+            },
+          },
         },
         skip,
         take: pageSize + 1,
