@@ -1,48 +1,23 @@
 import { db } from "@repo/db/client";
-import { generatedContentSchema } from "@repo/shared/generated-content";
-import { saveDiscordPost } from "@/lib/discord-post";
 import { logger } from "@/lib/logger";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
-class NotFoundError extends Error {}
+class NotFoundError extends Error { }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-): Promise<Response> {
-  const { id } = await params;
+async function getCurrentUserId() {
+  const { userId: clerkUserId } = await auth();
 
-  let body: unknown;
-
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  if (!clerkUserId) {
+    return null;
   }
 
-  const parsed = generatedContentSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Invalid generated content" },
-      { status: 400 },
-    );
-  }
-
-  const { discordPost, ...generatedContent } = parsed.data;
-
-  const updated = await db.generatedContent.update({
-    where: { id },
-    data: generatedContent,
+  const user = await db.user.findUnique({
+    where: { clerkUserId },
+    select: { id: true },
   });
-  await saveDiscordPost(id, discordPost);
 
-  return NextResponse.json({
-    generatedContent: {
-      ...updated,
-      discordPost,
-    },
-  });
+  return user?.id ?? null;
 }
 
 export async function DELETE(
@@ -50,11 +25,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   const { id } = await params;
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   try {
     await db.$transaction(async (tx) => {
-      const generation = await tx.generatedContent.findUnique({
-        where: { id },
+      const generation = await tx.generatedContent.findFirst({
+        where: { id, userId },
         select: {
           id: true,
           sourceType: true,
@@ -68,13 +48,14 @@ export async function DELETE(
       }
 
       await tx.generatedContent.delete({
-        where: { id },
+        where: { id: generation.id },
       });
 
       if (generation.pullRequestId) {
         await tx.$executeRaw`
           DELETE FROM "PullRequest"
           WHERE "id" = ${generation.pullRequestId}
+            AND "userId" = ${userId}
             AND NOT EXISTS (
               SELECT 1
               FROM "GeneratedContent"
@@ -87,6 +68,7 @@ export async function DELETE(
         await tx.$executeRaw`
           DELETE FROM "Commit"
           WHERE "id" = ${generation.commitId}
+            AND "userId" = ${userId}
             AND NOT EXISTS (
               SELECT 1
               FROM "GeneratedContent"

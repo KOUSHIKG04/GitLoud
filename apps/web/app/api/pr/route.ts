@@ -15,9 +15,9 @@ import { Octokit } from "@octokit/rest";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getRequestIp } from "@/lib/ip";
-import { rateLimit } from "@/lib/rate-limit";
+import { persistentRateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
-import { saveDiscordPost } from "@/lib/discord-post";
+import { auth } from "@clerk/nextjs/server";
 
 const requestBodySchema = z.object({
     url: githubPrOrCommitUrlSchema,
@@ -79,8 +79,22 @@ function createProgressStream(
 
 export async function POST(request: Request): Promise<Response> {
 
+    const { userId: clerkUserId } = await auth();
+
+    if (!clerkUserId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await db.user.upsert({
+        where: { clerkUserId },
+        update: {},
+        create: { clerkUserId },
+        select: { id: true },
+    });
+    const appUserId = user.id;
+
     const ip = getRequestIp(request);
-    const limit = rateLimit({
+    const limit = await persistentRateLimit({
         key: `generate:${ip}`,
         limit: 5,
         windowMs: 10 * 60 * 1000,
@@ -88,7 +102,7 @@ export async function POST(request: Request): Promise<Response> {
 
     if (!limit.success) {
         return NextResponse.json(
-            { error: "Too many generation requests. Please try again later.", },
+            { error: "Too many generation requests. Please try again later." },
             {
                 status: 429,
                 headers: {
@@ -162,6 +176,40 @@ export async function POST(request: Request): Promise<Response> {
                 githubToken: process.env.GITHUB_TOKEN,
             });
 
+            const existingGeneration = await db.generatedContent.findFirst({
+                where: {
+                    userId: appUserId,
+                    sourceType: "PULL_REQUEST",
+                    pullRequest: {
+                        owner: pullRequest.owner,
+                        repo: pullRequest.repo,
+                        number: pullRequest.number,
+                        headSha: pullRequest.headSha,
+                    },
+                },
+                select: { id: true },
+            });
+
+            if (existingGeneration) {
+                logger.info("Reused existing pull request generation", {
+                    owner,
+                    repo,
+                    number,
+                    generatedContentId: existingGeneration.id,
+                });
+
+                send({
+                    type: "done",
+                    data: {
+                        sourceType: "pull-request",
+                        generatedContentId: existingGeneration.id,
+                        reused: true,
+                    },
+                });
+
+                return;
+            }
+
             send({
                 type: "progress",
                 message: "Generating summaries and share-ready content with AI...",
@@ -174,11 +222,14 @@ export async function POST(request: Request): Promise<Response> {
 
             send({ type: "progress", message: "Saving generated content..." });
 
+
             const savedGeneratedContent = await db.generatedContent.create({
                 data: {
+                    user: { connect: { id: appUserId } },
                     sourceType: "PULL_REQUEST",
                     pullRequest: {
                         create: {
+                            userId: appUserId,
                             owner: pullRequest.owner,
                             repo: pullRequest.repo,
                             number: pullRequest.number,
@@ -200,16 +251,14 @@ export async function POST(request: Request): Promise<Response> {
                     tweet: generatedContent.tweet,
                     linkedInPost: generatedContent.linkedInPost,
                     redditPost: generatedContent.redditPost,
+                    discordPost: generatedContent.discordPost,
                     portfolioBullet: generatedContent.portfolioBullet,
                     changelogEntry: generatedContent.changelogEntry,
                     beginnerSummary: generatedContent.beginnerSummary,
                 },
                 select: { id: true },
             });
-            await saveDiscordPost(
-                savedGeneratedContent.id,
-                generatedContent.discordPost,
-            );
+
 
             logger.info("Generated pull request content", {
                 owner,
@@ -255,6 +304,39 @@ export async function POST(request: Request): Promise<Response> {
                 githubToken: process.env.GITHUB_TOKEN,
             });
 
+            const existingGeneration = await db.generatedContent.findFirst({
+                where: {
+                    userId: appUserId,
+                    sourceType: "COMMIT",
+                    commit: {
+                        owner: commit.owner,
+                        repo: commit.repo,
+                        sha: commit.sha,
+                    },
+                },
+                select: { id: true },
+            });
+
+            if (existingGeneration) {
+                logger.info("Reused existing commit generation", {
+                    owner,
+                    repo,
+                    sha,
+                    generatedContentId: existingGeneration.id,
+                });
+
+                send({
+                    type: "done",
+                    data: {
+                        sourceType: "commit",
+                        generatedContentId: existingGeneration.id,
+                        reused: true,
+                    },
+                });
+
+                return;
+            }
+
             send({
                 type: "progress",
                 message: "Generating summaries and share-ready content with AI...",
@@ -269,9 +351,11 @@ export async function POST(request: Request): Promise<Response> {
 
             const savedGeneratedContent = await db.generatedContent.create({
                 data: {
+                    user: { connect: { id: appUserId } },
                     sourceType: "COMMIT",
                     commit: {
                         create: {
+                            userId: appUserId,
                             owner: commit.owner,
                             repo: commit.repo,
                             sha: commit.sha,
@@ -291,16 +375,13 @@ export async function POST(request: Request): Promise<Response> {
                     tweet: generatedContent.tweet,
                     linkedInPost: generatedContent.linkedInPost,
                     redditPost: generatedContent.redditPost,
+                    discordPost: generatedContent.discordPost,
                     portfolioBullet: generatedContent.portfolioBullet,
                     changelogEntry: generatedContent.changelogEntry,
                     beginnerSummary: generatedContent.beginnerSummary,
                 },
                 select: { id: true },
             });
-            await saveDiscordPost(
-                savedGeneratedContent.id,
-                generatedContent.discordPost,
-            );
 
             logger.info("Generated commit content", {
                 owner,
@@ -329,12 +410,13 @@ export async function POST(request: Request): Promise<Response> {
 
 function getErrorMessage(error: unknown) {
 
-    if (isAiProviderError(error)) {
-        return "The AI provider is temporarily unavailable. Please try again in a minute.";
-    }
 
     if (isGithubRequestError(error)) {
         return `GitHub API error: ${error.message}`;
+    }
+
+    if (isAiProviderError(error)) {
+        return "The AI provider is temporarily unavailable. Please try again in a minute.";
     }
 
     if (error instanceof Error) {

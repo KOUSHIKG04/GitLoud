@@ -67,7 +67,7 @@ export function DeleteGenerationButton({
         </Button>
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="rounded-none">
         <DialogHeader>
           <DialogTitle className="text-xl">
             Delete generated content?

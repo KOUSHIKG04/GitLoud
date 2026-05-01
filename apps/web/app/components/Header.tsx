@@ -2,9 +2,11 @@
 
 import { ThemeToggle } from "@/components/ToggleThemeBtn";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft } from "lucide-react";
+import { UserProfileMenu } from "@/components/UserProfileMenu";
+import { ChevronLeft, Home } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Show } from "@clerk/nextjs";
 
 export function Header() {
   const pathname = usePathname();
@@ -12,11 +14,6 @@ export function Header() {
   const showBackButton = pathname !== "/";
 
   function navigateBack() {
-    if (window.history.length > 1) {
-      router.back();
-      return;
-    }
-
     if (pathname.startsWith("/dashboard/generations/")) {
       router.push("/dashboard");
       return;
@@ -29,6 +26,11 @@ export function Header() {
 
     if (pathname === "/dashboard") {
       router.push("/");
+      return;
+    }
+
+    if (window.history.length > 1) {
+      router.back();
       return;
     }
 
@@ -56,8 +58,36 @@ export function Header() {
           GitLoud
         </Link>
       </div>
+      <div className="flex items-center gap-2">
+        <Show when="signed-out">
+          <Button asChild variant="outline" size="sm">
+            <Link href="/sign-in">SIGN IN</Link>
+          </Button>
 
-      <ThemeToggle />
+          <Button asChild size="sm">
+            <Link href="/sign-up">SIGN UP</Link>
+          </Button>
+        </Show>
+
+        <Show when="signed-in">
+          <Button
+            asChild
+            variant="outline"
+            size="icon-sm"
+            className="size-8 rounded-none p-0"
+            aria-label="Go to home"
+            title="Go to home"
+          >
+            <Link href="/">
+              <Home className="size-4" />
+            </Link>
+          </Button>
+
+          <UserProfileMenu />
+        </Show>
+
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

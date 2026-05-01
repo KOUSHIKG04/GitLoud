@@ -80,7 +80,7 @@ export function HistoryDatePicker() {
           {selectedRange.from ? (
             selectedRange.to ? (
               <>
-                {format(selectedRange.from, "MMM d, yyyy")} -{" "}
+                {format(selectedRange.from, "MMM d, yyyy")} - {" "}
                 {format(selectedRange.to, "MMM d, yyyy")}
               </>
             ) : (
@@ -92,17 +92,31 @@ export function HistoryDatePicker() {
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent align="end" className="w-auto p-0">
+      <PopoverContent align="end" className="w-auto gap-0 p-0 rounded-none">
         <Calendar
           mode="range"
           defaultMonth={selectedRange.from}
           selected={selectedRange}
           onSelect={updateRange}
-          numberOfMonths={2}
+          numberOfMonths={1}
+          className="p-3 [--cell-size:--spacing(8)] rounded-none"
+          classNames={{
+            day: "focus-within:outline-none focus-within:ring-0",
+            day_button:
+              "rounded-none data-[range-start=true]:rounded-none data-[range-end=true]:rounded-none data-[range-middle=true]:rounded-none data-[selected-single=true]:rounded-none focus-visible:border-transparent focus-visible:ring-0 group-data-[focused=true]/day:border-transparent group-data-[focused=true]/day:ring-0",
+            range_start: "rounded-none after:hidden",
+            range_middle: "rounded-none",
+            range_end: "rounded-none after:hidden",
+            today: "rounded-none data-[selected=true]:rounded-none",
+            month: "gap-2",
+            month_caption: "h-(--cell-size) mt-1 text-center",
+            week: "mt-1 flex w-full gap-1",
+            weekday: "text-[0.72rem] w-full mt-2",
+          }}
         />
 
         {hasSelectedRange ? (
-          <div className="border-t p-3">
+          <div className="border-t p-2">
             <Button
               type="button"
               variant="outline"

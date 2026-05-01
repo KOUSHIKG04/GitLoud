@@ -22,11 +22,12 @@ export function ThemeToggle() {
   return (
     <Button
       type="button"
+      size="icon-sm"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label="Toggle theme"
-      className="rounded-[50%]"
+      className="size-8 rounded-none p-0"
     >
-      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
     </Button>
   );
 }
