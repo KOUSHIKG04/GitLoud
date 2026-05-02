@@ -6,38 +6,25 @@ It helps developers explain what they built, document their work, and publish co
 
 ## Features
 
-- Email/password sign-in and account management with Better Auth.
-- Dashboard for authenticated users.
-- Generate content from a public GitHub pull request URL and commit URL.
-- GitHub URL validation and source-type detection.
-- Public repository access checks.
-- GitHub metadata and diff fetching.
-- AI-generated summaries and platform posts.
-- Streaming progress updates while generation runs.
-- Saved generation history.
-- Generation detail pages.
-- Regeneration support.
-- Delete generated history items.
-- User-scoped persistent rate limiting.
-- Database-backed generation storage.
-- Responsive web interface.
-- Light and dark theme support.
+GitLoud provides a Clerk-authenticated dashboard where developers can submit a
+public GitHub pull request or commit URL and generate reusable content from it.
+The app validates GitHub URLs, detects whether the source is a PR or commit,
+checks that the repository is public, fetches GitHub metadata and diffs, and
+streams progress while the AI generation workflow runs.
+
+Generated content is stored in PostgreSQL so authenticated users can revisit
+their history, open generation detail pages, regenerate output, and delete saved
+items when they no longer need them. The application also includes user-scoped
+persistent rate limiting, production-oriented database indexes and constraints,
+a responsive interface, and light/dark theme support.
 
 ## Generated Output
 
-GitLoud currently generates:
-
-- X post.
-- LinkedIn post.
-- Reddit post.
-- Discord post.
-- Technical summary.
-- Short summary.
-- Portfolio bullet.
-- Changelog entry.
-- Feature list.
-- Technologies and concepts used.
-- Beginner-friendly explanation.
+For each supported public GitHub source, GitLoud generates a complete content
+set designed for both technical documentation and public sharing. The output
+includes a short summary, technical summary, beginner-friendly explanation,
+feature list, technologies and concepts used, changelog entry, portfolio bullet,
+and ready-to-use posts for X, LinkedIn, Reddit, and Discord.
 
 ## Tech Stack
 
@@ -47,7 +34,7 @@ GitLoud currently generates:
 - TypeScript
 - Tailwind CSS
 - shadcn-style UI components
-- Better Auth
+- Clerk
 - Prisma
 - PostgreSQL
 - Octokit
@@ -76,13 +63,11 @@ packages/
 
 ### Prerequisites
 
-- Node.js 18 or newer
+- Node.js 20.9 or newer
 - npm
 - PostgreSQL database
-- Better Auth secret
-- Resend account for email verification
+- Clerk application keys
 - GitHub token
-- GitHub OAuth application
 - AI provider credentials used by `packages/ai`
 
 ### Install Dependencies
@@ -100,41 +85,24 @@ Create the required environment files for your local setup. This project loads d
 Common variables:
 
 ```bash
-DATABASE_URL="postgresql://..."
+DATABASE_URL="postgresql://...?sslmode=verify-full"
 
-BETTER_AUTH_SECRET="replace-with-a-long-random-secret"
-BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="..."
+CLERK_SECRET_KEY="..."
 
-RESEND_API_KEY="..."
-EMAIL_FROM="GitLoud <onboarding@resend.dev>"
-
-GITHUB_CLIENT_ID="..."
-GITHUB_CLIENT_SECRET="..."
 GITHUB_TOKEN="..."
 
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 ```
 
-For GitHub login, create a GitHub OAuth app and set the callback URL to:
+For managed PostgreSQL providers such as Neon, use `sslmode=verify-full` in
+`DATABASE_URL`. This keeps the stricter TLS behavior expected by the current
+PostgreSQL driver and avoids SSL mode warnings during local builds and
+deployment.
 
-```txt
-http://localhost:3000/api/auth/callback/github
-```
-
-Email/password signups require email verification. GitLoud uses Resend for
-transactional verification emails and includes a themed verification email
-template at `apps/web/app/components/email/VerificationEmail.ts`.
-
-Resend's free tier is suitable for MVP production traffic and testing real
-verification flows. For a public launch, verify your own sending domain and use
-a branded sender:
-
-```bash
-EMAIL_FROM="GitLoud <auth@yourdomain.com>"
-```
-
-Upgrade the Resend plan when signup volume approaches the free daily/monthly
-sending limits or when you need more production deliverability margin.
+Authentication is handled by Clerk. Configure the enabled sign-in methods and
+email verification behavior from the Clerk dashboard. If you want GitHub login,
+enable the GitHub social connection in Clerk and add the OAuth credentials there.
 
 Add the AI provider variables required by your local `packages/ai` implementation.
 
@@ -332,8 +300,7 @@ Recommended production services:
 
 - Vercel for the Next.js web app.
 - Neon, Supabase, Railway, or another managed PostgreSQL provider.
-- Better Auth for authentication.
-- Resend for email verification.
+- Clerk for authentication.
 - A GitHub token or GitHub App credentials.
 - Sentry once Phase 2 observability work starts.
 

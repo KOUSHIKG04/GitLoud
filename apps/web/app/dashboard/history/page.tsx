@@ -10,10 +10,10 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
-import { ExternalLink, Plus } from "lucide-react";
+import { ChevronRight, ExternalLink, Plus } from "lucide-react";
 import { DeleteGenerationButton } from "./delete-generation-button";
 import { HistoryDatePicker } from "./history-date-picker";
-import { getCurrentUserId } from "@/lib/session";
+import { getAuthenticatedUserId } from "@/lib/session";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -52,7 +52,7 @@ export default async function HistoryPage({
       ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
       : undefined;
 
-  const userId = await getCurrentUserId();
+  const userId = await getAuthenticatedUserId();
 
   const generations = userId
     ? await db.generatedContent.findMany({
@@ -101,11 +101,13 @@ export default async function HistoryPage({
     <main className="min-h-screen">
       <Header />
 
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-6 px-4 py-8">
+      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-6 px-4 pt-12 pb-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold">Dashboard</p>
-            <h1 className="text-2xl font-bold tracking-tight">History</h1>
+            <p className="text-sm font-semibold flex items-center gap-2">
+              Dashboard <ChevronRight />
+              <span className="text-2xl font-bold tracking-tight">History</span>
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -122,10 +124,10 @@ export default async function HistoryPage({
 
         <div className="flex-1">
           {visibleGenerations.length === 0 ? (
-            <div className="rounded-xl border p-6 text-sm text-muted-foreground">
+            <div className="border p-6 text-sm text-muted-foreground">
               {page === 1
-                ? "No generations yet."
-                : "No generations on this page."}
+                ? " NO GENERATIONS YET."
+                : "NO GENERATIONS YET ON THIS PAGE."}
             </div>
           ) : (
             <div className="space-y-3">

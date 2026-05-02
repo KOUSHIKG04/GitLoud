@@ -9,7 +9,7 @@ import { fetchPullRequest } from "@repo/github/fetch-pr";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { persistentRateLimit } from "@/lib/rate-limit";
-import { getCurrentUserId } from "@/lib/session";
+import { getAuthenticatedUserId } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 const generatedContentSelect = {
@@ -44,7 +44,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  const userId = await getCurrentUserId();
+  const userId = await getAuthenticatedUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

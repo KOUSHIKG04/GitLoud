@@ -4,16 +4,34 @@ import { ThemeToggle } from "@/components/ToggleThemeBtn";
 import { Button } from "@/components/ui/button";
 import { UserProfileMenu } from "@/components/UserProfileMenu";
 import { ChevronLeft, History, Home } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
+import { useEffect, useState } from "react";
 
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const showBackButton = pathname !== "/";
-  const { data: session, isPending } = useSession();
-  const isSignedIn = Boolean(session?.user);
+  const { isLoaded, isSignedIn } = useUser();
+  const isHomePage = pathname === "/";
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    if (!isHomePage) {
+      setHasScrolled(true);
+      return;
+    }
+
+    function handleScroll() {
+      setHasScrolled(window.scrollY > 16);
+    }
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHomePage]);
 
   function navigateBack() {
     if (pathname.startsWith("/dashboard/generations/")) {
@@ -40,6 +58,14 @@ export function Header() {
   }
 
   return (
+    // <header
+    //   className={[
+    //     "fixed left-1/2 z-50 flex items-center justify-between px-5 py-3 will-change-[top,width,background-color,box-shadow,border-color] transition-[top,width,background-color,box-shadow,border-color,backdrop-filter] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
+    //     hasScrolled
+    //       ? "top-5.5 w-[80%] -translate-x-1/2 border border-border/70 bg-background/65 shadow-[0_18px_50px_rgba(0,0,0,0.12)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/45 dark:border-white/10 dark:bg-background/35 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)]"
+    //       : "top-0 w-full -translate-x-1/2 border border-transparent bg-transparent shadow-[0_0_0_rgba(0,0,0,0)] backdrop-blur-0",
+    //   ].join(" ")}
+    // >
     <header className="fixed rounded-xs left-1/2 top-5.5 z-50 flex w-[80%] -translate-x-1/2 items-center justify-between border border-border/70 bg-background/65 px-5 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.12)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/45 dark:border-white/10 dark:bg-background/35 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
       <div className="flex items-center gap-2">
         {showBackButton ? (
@@ -61,7 +87,7 @@ export function Header() {
         </Link>
       </div>
       <div className="flex items-center gap-3">
-        {!isPending && !isSignedIn ? (
+        {isLoaded && !isSignedIn ? (
           <>
             <Button asChild variant="outline" size="sm">
               <Link href="/sign-in">SIGN IN</Link>

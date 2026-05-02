@@ -5,9 +5,9 @@ import {
 
 export function HowItWorksSection() {
   return (
-    <section className="px-4 pb-14 pt-10 sm:px-6 lg:px-16 border-y">
-      <div className="mx-auto w-full max-w-6xl space-y-8">
-        <MotionViewportStagger className="mx-auto max-w-3xl space-y-3 text-center">
+    <section className="bg-background px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
+      <div className="mx-auto w-full max-w-6xl space-y-7">
+        <MotionViewportStagger className="max-w-3xl space-y-3">
           <MotionItem>
             <p className="text-sm font-semibold">HOW IT WORKS</p>
           </MotionItem>
@@ -19,10 +19,10 @@ export function HowItWorksSection() {
           </MotionItem>
 
           <MotionItem>
-            <p className="mx-auto max-w-2xl text-xs leading-6 text-muted-foreground sm:text-sm">
+            <p className="max-w-2xl text-xs leading-6 text-muted-foreground sm:text-sm">
               Paste a public GitHub link once. GitLoud reads changed files,
-              stats, commit messages, and PR descriptions when available, then turns that
-              context into every format you need.
+              stats, commit messages, and PR descriptions when available, then
+              turns that context into every format you need.
             </p>
           </MotionItem>
         </MotionViewportStagger>

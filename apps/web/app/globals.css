@@ -139,7 +139,8 @@
 
 .custom-scrollbar {
   scrollbar-width: thin;
-scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;}
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) transparent;
+}
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
@@ -150,8 +151,22 @@ scrollbar-color: color-mix(in srgb, var(--muted-foreground) 45%, transparent) tr
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-scrollbar-color: color-mix(in srgb, var(--muted-foreground) 35%, transparent) transparent;  border-radius: 999px;
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 35%, transparent) transparent;
+  border-radius: 999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-scrollbar-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent) transparent;}
+  scrollbar-color: color-mix(in srgb, var(--muted-foreground) 55%, transparent) transparent;
+}
+
+.auth-shell .cl-internal-1dauvpw,
+.auth-shell .cl-internal-13zhnx0,
+.auth-shell .cl-footer,
+.auth-shell .cl-footerPages,
+.auth-shell .cl-footerAction+div,
+.auth-shell [data-localization-key="badge__developmentMode"],
+.auth-shell [data-localization-key="footerPageLink__help"],
+.auth-shell [data-localization-key="footerPageLink__privacy"],
+.auth-shell [data-localization-key="footerPageLink__terms"] {
+  display: none !important;
+}

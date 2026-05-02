@@ -57,7 +57,7 @@ function FeatureBlock({
   description: string;
 }) {
   return (
-    <article className="h-full border bg-card p-5 text-card-foreground shadow-sm">
+    <article className="h-full bg-card p-5 text-card-foreground shadow-sm">
       <h3 className="text-base font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {description}
