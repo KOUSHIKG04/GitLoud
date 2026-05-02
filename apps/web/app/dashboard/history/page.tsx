@@ -107,7 +107,7 @@ export default async function HistoryPage({
       <Header />
 
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-6 px-4 pt-12 pb-6 ">
-        <div className="cursor-pointer flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold flex items-center gap-2">
               Dashboard <ChevronRight />

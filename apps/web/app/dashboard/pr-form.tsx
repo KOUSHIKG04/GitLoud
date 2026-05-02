@@ -159,6 +159,7 @@ export function PrForm({
 }: ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaAttachmentIdRef = useRef<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
 
   const {
@@ -181,9 +182,14 @@ export function PrForm({
       let mediaAttachmentId: string | undefined;
 
       if (selectedMedia) {
-        toast.loading("Uploading media attachment...", { id: toastId });
-        const mediaAttachment = await uploadMedia(selectedMedia);
-        mediaAttachmentId = mediaAttachment.id;
+        if (mediaAttachmentIdRef.current) {
+          mediaAttachmentId = mediaAttachmentIdRef.current;
+        } else {
+          toast.loading("Uploading media attachment...", { id: toastId });
+          const mediaAttachment = await uploadMedia(selectedMedia);
+          mediaAttachmentId = mediaAttachment.id;
+          mediaAttachmentIdRef.current = mediaAttachmentId;
+        }
       }
 
       const response = await fetch("/api/pr", {
@@ -231,10 +237,21 @@ export function PrForm({
 
     if (!file) {
       setSelectedMedia(null);
+      mediaAttachmentIdRef.current = null;
       return;
     }
 
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
+    ];
+
+    if (!allowedMimeTypes.includes(file.type)) {
       toast.error("Upload an image or video file", { duration: 7000 });
       event.target.value = "";
       return;
@@ -251,6 +268,7 @@ export function PrForm({
 
   function clearSelectedMedia() {
     setSelectedMedia(null);
+    mediaAttachmentIdRef.current = null;
 
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -342,7 +360,7 @@ export function PrForm({
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*,video/mp4,video/webm,video/quicktime"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
                 className="hidden"
                 disabled={isSubmitting}
                 onChange={onMediaChange}

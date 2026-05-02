@@ -29,12 +29,14 @@ export function withMediaLinks(
 
 export async function getShareableFiles(attachments: ShareMediaAttachment[]) {
   const files: File[] = [];
+  const failed: ShareMediaAttachment[] = [];
 
   for (const attachment of attachments) {
     try {
       const response = await fetch(attachment.secureUrl);
 
       if (!response.ok) {
+        failed.push(attachment);
         continue;
       }
 
@@ -45,11 +47,11 @@ export async function getShareableFiles(attachments: ShareMediaAttachment[]) {
         }),
       );
     } catch {
-      continue;
+      failed.push(attachment);
     }
   }
 
-  return files;
+  return { files, failed };
 }
 
 export function formatBytes(bytes: number) {

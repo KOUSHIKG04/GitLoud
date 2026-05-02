@@ -71,9 +71,12 @@ function InputOTPSlot({
   const { disabled, maxLength, onChange, value } = context;
 
   function updateValue(nextCharacter: string) {
-    const nextValue = value.split("");
-    nextValue[index] = nextCharacter;
-    onChange(nextValue.join("").slice(0, maxLength));
+    const buffer = Array(maxLength).fill("");
+    for (let i = 0; i < value.length && i < maxLength; i++) {
+      buffer[i] = value[i];
+    }
+    buffer[index] = nextCharacter;
+    onChange(buffer.join("").slice(0, maxLength));
   }
 
   return (
@@ -110,11 +113,17 @@ function InputOTPSlot({
       }}
       onPaste={(event) => {
         event.preventDefault();
-        const pastedValue = event.clipboardData
+        const pastedText = event.clipboardData
           .getData("text")
-          .replace(/\D/g, "")
-          .slice(0, maxLength);
-        onChange(pastedValue);
+          .replace(/\D/g, "");
+        const buffer = Array(maxLength).fill("");
+        for (let i = 0; i < value.length && i < maxLength; i++) {
+          buffer[i] = value[i];
+        }
+        for (let i = 0; i < pastedText.length && index + i < maxLength; i++) {
+          buffer[index + i] = pastedText[i];
+        }
+        onChange(buffer.join("").slice(0, maxLength));
       }}
       value={value[index] ?? ""}
     />

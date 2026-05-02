@@ -51,7 +51,14 @@ export function GeneratedContentView({
     }
 
     try {
-      const files = await getShareableFiles(attachments);
+      const { files, failed } = await getShareableFiles(attachments);
+
+      if (failed.length > 0) {
+        toast.warning(
+          `${failed.length} media ${failed.length === 1 ? "file" : "files"} could not be loaded`,
+          { duration: 5000 },
+        );
+      }
 
       if (
         files.length > 0 &&

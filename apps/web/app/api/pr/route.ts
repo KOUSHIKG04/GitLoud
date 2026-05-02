@@ -626,6 +626,7 @@ async function attachMediaToGeneration({
         },
         data: {
             generatedContentId,
+            generatedContentUserId: userId,
         },
     });
 }

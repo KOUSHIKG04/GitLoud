@@ -19,40 +19,59 @@ export async function getCurrentUserId() {
   }
 
   const user = await currentUser();
-  let email = `${userId}@clerk.local`;
+
+  if (!user) {
+    return userId;
+  }
+
+  let email: string | null = null;
   let emailVerified = false;
 
-  if (user?.primaryEmailAddress) {
+  if (
+    user.primaryEmailAddress &&
+    user.primaryEmailAddress.verification?.status === "verified"
+  ) {
     email = user.primaryEmailAddress.emailAddress;
-    emailVerified = user.primaryEmailAddress.verification?.status === "verified";
-  } else if (user?.emailAddresses?.[0]) {
-    email = user.emailAddresses[0].emailAddress;
-    emailVerified = user.emailAddresses[0].verification?.status === "verified";
+    emailVerified = true;
   }
+
   const name =
-    user?.fullName ??
-    user?.username ??
-    user?.primaryEmailAddress?.emailAddress ??
+    user.fullName ??
+    user.username ??
+    user.primaryEmailAddress?.emailAddress ??
     null;
 
   const existingById = await db.user.findUnique({
     where: { id: userId },
-    select: { id: true },
+    select: { id: true, email: true },
   });
 
   if (existingById) {
     const localUser = await db.user.update({
       where: { id: existingById.id },
       data: {
-        email,
+        ...(email ? { email, emailVerified } : {}),
         name,
-        image: user?.imageUrl ?? null,
-        emailVerified,
+        image: user.imageUrl ?? null,
       },
       select: { id: true },
     });
 
     return localUser.id;
+  }
+
+  if (!email) {
+    await db.user.create({
+      data: {
+        id: userId,
+        email: `${userId}@clerk.local`,
+        name,
+        image: user.imageUrl ?? null,
+        emailVerified: false,
+      },
+    });
+
+    return userId;
   }
 
   const existingByEmail = await db.user.findUnique({
@@ -72,7 +91,7 @@ export async function getCurrentUserId() {
           data: {
             id: userId,
             name,
-            image: user?.imageUrl ?? null,
+            image: user.imageUrl ?? null,
             emailVerified,
           },
         }),
@@ -88,7 +107,7 @@ export async function getCurrentUserId() {
         where: { id: userId },
         data: {
           name,
-          image: user?.imageUrl ?? null,
+          image: user.imageUrl ?? null,
           emailVerified,
         },
       });
@@ -102,7 +121,7 @@ export async function getCurrentUserId() {
       id: userId,
       email,
       name,
-      image: user?.imageUrl ?? null,
+      image: user.imageUrl ?? null,
       emailVerified,
     },
   });

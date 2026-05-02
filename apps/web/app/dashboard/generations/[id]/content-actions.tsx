@@ -44,7 +44,7 @@ export function ContentActions({
     setLoadingAction("copy");
 
     try {
-      await onCopy(text);
+      await onCopy(shareText);
     } finally {
       setLoadingAction(null);
     }

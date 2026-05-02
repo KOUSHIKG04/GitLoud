@@ -229,7 +229,7 @@ export function EmailCodeAuthForm({
             )}
           </Button>
 
-          <AuthModeLink mode={mode} />
+          <AuthModeLink mode={mode} redirectUrl={redirectUrl} />
         </form>
       ) : (
         <form className="space-y-4" onSubmit={submitCode}>
@@ -302,14 +302,21 @@ export function EmailCodeAuthForm({
   );
 }
 
-function AuthModeLink({ mode }: { mode: AuthMode }) {
+function AuthModeLink({ mode, redirectUrl }: { mode: AuthMode; redirectUrl?: string }) {
+  const buildHref = (basePath: string) => {
+    if (!redirectUrl) {
+      return basePath;
+    }
+    return `${basePath}?redirect_url=${encodeURIComponent(redirectUrl)}`;
+  };
+
   if (mode === "sign-in") {
     return (
       <p className="text-center text-sm text-muted-foreground">
         No account?{" "}
         <Link
           className="text-foreground underline-offset-4 hover:underline"
-          href="/sign-up"
+          href={buildHref("/sign-up")}
         >
           Sign up
         </Link>
@@ -322,7 +329,7 @@ function AuthModeLink({ mode }: { mode: AuthMode }) {
       Already have an account?{" "}
       <Link
         className="text-foreground underline-offset-4 hover:underline"
-        href="/sign-in"
+        href={buildHref("/sign-in")}
       >
         Sign in
       </Link>

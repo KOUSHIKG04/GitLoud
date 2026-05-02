@@ -82,13 +82,22 @@ export async function POST(request: Request): Promise<Response> {
   uploadFormData.set("signature", signature);
 
   try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
-      {
-        method: "POST",
-        body: uploadFormData,
-      },
-    );
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    let response: Response;
+    try {
+      response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+        {
+          method: "POST",
+          body: uploadFormData,
+          signal: controller.signal,
+        },
+      );
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const upload = (await response.json()) as
       | Partial<CloudinaryUploadResponse>
@@ -102,33 +111,79 @@ export async function POST(request: Request): Promise<Response> {
       throw new Error(message);
     }
 
-    const mediaAttachment = await db.mediaAttachment.create({
-      data: {
-        userId,
-        url: upload.url,
-        secureUrl: upload.secure_url,
-        publicId: upload.public_id,
-        resourceType: upload.resource_type,
-        format: upload.format,
-        fileName: file.name,
-        mimeType: file.type,
-        bytes: upload.bytes,
-        width: upload.width,
-        height: upload.height,
-        duration: upload.duration,
-      },
-      select: {
-        id: true,
-        secureUrl: true,
-        resourceType: true,
-        fileName: true,
-        mimeType: true,
-        bytes: true,
-      },
-    });
+    let mediaAttachment;
+    try {
+      mediaAttachment = await db.mediaAttachment.create({
+        data: {
+          userId,
+          url: upload.url,
+          secureUrl: upload.secure_url,
+          publicId: upload.public_id,
+          resourceType: upload.resource_type,
+          format: upload.format,
+          fileName: file.name,
+          mimeType: file.type,
+          bytes: upload.bytes,
+          width: upload.width,
+          height: upload.height,
+          duration: upload.duration,
+        },
+        select: {
+          id: true,
+          secureUrl: true,
+          resourceType: true,
+          fileName: true,
+          mimeType: true,
+          bytes: true,
+        },
+      });
+    } catch (dbError) {
+      // Compensating delete: clean up the Cloudinary upload
+      try {
+        const deleteTimestamp = Math.floor(Date.now() / 1000).toString();
+        const deleteSignature = createCloudinarySignature(
+          { public_id: upload.public_id, timestamp: deleteTimestamp },
+          apiSecret,
+        );
+
+        await fetch(
+          `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/destroy`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              public_id: upload.public_id,
+              api_key: apiKey,
+              timestamp: deleteTimestamp,
+              signature: deleteSignature,
+            }),
+          },
+        );
+      } catch (deleteError) {
+        logger.error("Failed to delete Cloudinary asset after DB error", {
+          publicId: upload.public_id,
+          deleteError:
+            deleteError instanceof Error ? deleteError.message : String(deleteError),
+        });
+      }
+
+      throw dbError;
+    }
 
     return NextResponse.json({ mediaAttachment });
   } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      logger.error("Media upload timed out", {
+        fileName: file.name,
+        mimeType: file.type,
+      });
+
+      return NextResponse.json(
+        { error: "Upload request timed out. Please try again." },
+        { status: 504 },
+      );
+    }
+
     const message = getUploadErrorMessage(error);
 
     logger.error("Media upload failed", {
@@ -174,8 +229,15 @@ function isCloudinaryUploadResponse(
 
 function getUploadErrorMessage(error: unknown) {
   if (!(error instanceof Error)) {
+    logger.error("Upload error (non-Error type)", { error });
     return "Could not upload media";
   }
+
+  logger.error("Upload error", {
+    message: error.message,
+    name: error.name,
+    stack: error.stack,
+  });
 
   if (
     error.message.includes("MediaAttachment") ||
@@ -193,5 +255,5 @@ function getUploadErrorMessage(error: unknown) {
     return "Cloudinary credentials are invalid. Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.";
   }
 
-  return error.message || "Could not upload media";
+  return "Could not upload media";
 }
