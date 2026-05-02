@@ -14,6 +14,15 @@ import { ExternalLink, Plus } from "lucide-react";
 import { DeleteGenerationButton } from "./delete-generation-button";
 import { HistoryDatePicker } from "./history-date-picker";
 import { getCurrentUserId } from "@/lib/session";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "History",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function HistoryPage({
   searchParams,

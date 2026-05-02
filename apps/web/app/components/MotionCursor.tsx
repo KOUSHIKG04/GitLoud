@@ -12,9 +12,10 @@ export function MotionCursor() {
 
   useEffect(() => {
     const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     function updateEnabled() {
-      const matches = canHover.matches;
+      const matches = canHover.matches && !reduceMotion.matches;
       setEnabled(matches);
       if (matches) {
         window.addEventListener("pointermove", updatePosition);
@@ -30,9 +31,12 @@ export function MotionCursor() {
 
     updateEnabled();
     canHover.addEventListener("change", updateEnabled);
+    reduceMotion.addEventListener("change", updateEnabled);
 
     return () => {
+      window.removeEventListener("pointermove", updatePosition);
       canHover.removeEventListener("change", updateEnabled);
+      reduceMotion.removeEventListener("change", updateEnabled);
     };
   }, [cursorX, cursorY]);
 

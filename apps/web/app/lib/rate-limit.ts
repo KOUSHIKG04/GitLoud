@@ -64,6 +64,9 @@ export function rateLimit({ key, limit, windowMs }: RateLimitOptions): RateLimit
     };
 }
 
+
+let lastPersistentCleanupMs = 0; const PERSISTENT_CLEANUP_INTERVAL_MS = 60_000;
+
 export async function persistentRateLimit({
     key,
     limit,
@@ -72,6 +75,7 @@ export async function persistentRateLimit({
     try {
         const { db } = await import("@repo/db/client");
         const now = new Date();
+        const nowMs = now.getTime();
         const resetAt = new Date(now.getTime() + windowMs);
 
         const rows = await db.$queryRaw<
@@ -93,10 +97,13 @@ export async function persistentRateLimit({
             RETURNING "count", "resetAt"
         `;
 
-        await db.$executeRaw`
-            DELETE FROM "RateLimitBucket"
-            WHERE "resetAt" <= ${now}
-        `;
+        if (nowMs - lastPersistentCleanupMs >= PERSISTENT_CLEANUP_INTERVAL_MS) {
+            await db.$executeRaw`
+        DELETE FROM "RateLimitBucket"
+        WHERE "resetAt" <= ${now}
+      `;
+            lastPersistentCleanupMs = nowMs;
+        }
 
         const bucket = rows[0];
 
@@ -114,6 +121,10 @@ export async function persistentRateLimit({
             error,
         });
 
-        return rateLimit({ key, limit, windowMs });
+        return {
+            success: false,
+            remaining: 0,
+            resetAt: new Date(Date.now() + windowMs),
+        };
     }
 }

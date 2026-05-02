@@ -29,8 +29,10 @@ export default async function proxy(request: NextRequest) {
   }
 
   const signInUrl = new URL("/sign-in", request.url);
-  signInUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
-
+  signInUrl.searchParams.set(
+    "callbackUrl",
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+  );
   return NextResponse.redirect(signInUrl);
 }
 

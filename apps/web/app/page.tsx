@@ -7,7 +7,10 @@ import { GeneratorSection } from "@/components/home/GeneratorSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { PhaseTwoUpdatesSection } from "@/components/home/PhaseTwoUpdatesSection";
-import { WhatGitLoudDoesSection } from "@/components/home/WhatGitLoudDoesSection";
+import {
+  getSeoFaqItems,
+  SeoFaqSection,
+} from "@/components/home/SeoFaqSection";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
@@ -22,11 +25,21 @@ export const metadata: Metadata = {
     description:
       "Use GitLoud to turn GitHub pull requests and commits into clear summaries, feature notes, changelog entries, portfolio bullets, and social posts.",
     url: "/",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "GitLoud - GitHub PR Summary and Social Post Generator",
+      },
+    ],
   },
   twitter: {
+    card: "summary_large_image",
     title: "GitHub PR Summary and Social Post Generator",
     description:
       "Use GitLoud to turn GitHub pull requests and commits into clear summaries, feature notes, changelog entries, portfolio bullets, and social posts.",
+    images: ["/twitter-image"],
   },
 };
 
@@ -46,6 +59,18 @@ const structuredData = {
     priceCurrency: "USD",
   },
 };
+const faqStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: getSeoFaqItems().map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
 
 export default function Home() {
   return (
@@ -58,13 +83,19 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqStructuredData),
+        }}
+      />
 
       <MotionCursor />
       <Header />
       <HeroSection />
       <GeneratorSection />
-      <WhatGitLoudDoesSection />
       <HowItWorksSection />
+      <SeoFaqSection />
       <PhaseTwoUpdatesSection />
       <Footer />
     </main>

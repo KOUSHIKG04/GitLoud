@@ -5,7 +5,8 @@ export function Footer() {
     <footer className="border-t bg-background px-4  py-2 sm:px-6 lg:px-10">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <span>
-          Copyright(©) 2026 GitLoud. Built for developers who ship in public.
+          Copyright(©) {new Date().getFullYear()} GitLoud. Built for developers
+          who ship in public.
         </span>
 
         <nav aria-label="Footer navigation" className="flex flex-wrap gap-4">

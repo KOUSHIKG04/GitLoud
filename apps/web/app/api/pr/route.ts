@@ -5,12 +5,14 @@ import {
 import { db } from "@repo/db/client";
 import { fetchCommit } from "@repo/github/fetch-commit";
 import { fetchPullRequest } from "@repo/github/fetch-pr";
+import type { CommitResult } from "@repo/shared/commit";
 import {
     getGithubUrlType,
     githubPrOrCommitUrlSchema,
     parseGithubCommitUrl,
     parseGithubPullRequestUrl,
 } from "@repo/shared/github";
+import type { PullRequestResult } from "@repo/shared/pull-request";
 import { Octokit } from "@octokit/rest";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
@@ -229,58 +231,67 @@ export async function POST(request: Request): Promise<Response> {
             send({ type: "progress", message: "Saving generated content..." });
 
 
-            const savedGeneratedContent = await db.generatedContent.create({
-                data: {
-                    user: { connect: { id: appUserId } },
-                    sourceType: "PULL_REQUEST",
-                    pullRequest: {
-                        connectOrCreate: {
-                            where: {
-                                userId_owner_repo_number_headSha: {
+            let savedGeneratedContent;
+            try {
+                savedGeneratedContent = await db.generatedContent.create({
+                    data: {
+                        user: { connect: { id: appUserId } },
+                        sourceType: "PULL_REQUEST",
+                        contextHash,
+                        pullRequest: {
+                            connectOrCreate: {
+                                where: {
+                                    userId_owner_repo_number_headSha: {
+                                        userId: appUserId,
+                                        owner: pullRequest.owner,
+                                        repo: pullRequest.repo,
+                                        number: pullRequest.number,
+                                        headSha: pullRequest.headSha,
+                                    },
+                                },
+                                create: {
                                     userId: appUserId,
                                     owner: pullRequest.owner,
                                     repo: pullRequest.repo,
                                     number: pullRequest.number,
+                                    title: pullRequest.title,
+                                    body: pullRequest.body,
+                                    author: pullRequest.author,
+                                    url: pullRequest.url,
+                                    state: pullRequest.state,
                                     headSha: pullRequest.headSha,
+                                    additions: pullRequest.additions,
+                                    deletions: pullRequest.deletions,
+                                    changedFiles: pullRequest.changedFiles,
                                 },
                             },
-                            create: {
-                                userId: appUserId,
-                                owner: pullRequest.owner,
-                                repo: pullRequest.repo,
-                                number: pullRequest.number,
-                                title: pullRequest.title,
-                                body: pullRequest.body,
-                                author: pullRequest.author,
-                                url: pullRequest.url,
-                                state: pullRequest.state,
-                                headSha: pullRequest.headSha,
-                                additions: pullRequest.additions,
-                                deletions: pullRequest.deletions,
-                                changedFiles: pullRequest.changedFiles,
-                            },
                         },
+                        shortSummary: generatedContent.shortSummary,
+                        technicalSummary: generatedContent.technicalSummary,
+                        features: generatedContent.features,
+                        techUsed: generatedContent.techUsed,
+                        tweet: generatedContent.tweet,
+                        linkedInPost: generatedContent.linkedInPost,
+                        redditPost: generatedContent.redditPost,
+                        discordPost: generatedContent.discordPost,
+                        portfolioBullet: generatedContent.portfolioBullet,
+                        changelogEntry: generatedContent.changelogEntry,
+                        beginnerSummary: generatedContent.beginnerSummary,
                     },
-                    shortSummary: generatedContent.shortSummary,
-                    technicalSummary: generatedContent.technicalSummary,
-                    features: generatedContent.features,
-                    techUsed: generatedContent.techUsed,
-                    tweet: generatedContent.tweet,
-                    linkedInPost: generatedContent.linkedInPost,
-                    redditPost: generatedContent.redditPost,
-                    discordPost: generatedContent.discordPost,
-                    portfolioBullet: generatedContent.portfolioBullet,
-                    changelogEntry: generatedContent.changelogEntry,
-                    beginnerSummary: generatedContent.beginnerSummary,
-                },
-                select: { id: true },
-            });
-
-            await db.$executeRaw`
-                UPDATE "GeneratedContent"
-                SET "contextHash" = ${contextHash}
-                WHERE "id" = ${savedGeneratedContent.id}
-            `;
+                    select: { id: true },
+                });
+            } catch (error: unknown) {
+                if (isPrismaUniqueConstraintError(error)) {
+                    const existing = await findExistingPrGeneration(appUserId, pullRequest, contextHash);
+                    if (existing) {
+                        savedGeneratedContent = existing;
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    throw error;
+                }
+            }
 
 
             logger.info("Generated pull request content", {
@@ -374,55 +385,60 @@ export async function POST(request: Request): Promise<Response> {
 
             send({ type: "progress", message: "Saving generated content..." });
 
-            const savedGeneratedContent = await db.generatedContent.create({
-                data: {
-                    user: { connect: { id: appUserId } },
-                    sourceType: "COMMIT",
-                    commit: {
-                        connectOrCreate: {
-                            where: {
-                                userId_owner_repo_sha: {
+            let savedGeneratedContent;
+            try {
+                savedGeneratedContent = await db.generatedContent.create({
+                    data: {
+                        user: { connect: { id: appUserId } },
+                        sourceType: "COMMIT",
+                        contextHash,
+                        commit: {
+                            connectOrCreate: {
+                                where: {
+                                    userId_owner_repo_sha: {
+                                        userId: appUserId,
+                                        owner: commit.owner,
+                                        repo: commit.repo,
+                                        sha: commit.sha,
+                                    },
+                                },
+                                create: {
                                     userId: appUserId,
                                     owner: commit.owner,
                                     repo: commit.repo,
                                     sha: commit.sha,
+                                    shortSha: commit.shortSha,
+                                    message: commit.message,
+                                    author: commit.author,
+                                    url: commit.url,
+                                    additions: commit.additions,
+                                    deletions: commit.deletions,
+                                    changedFiles: commit.changedFiles,
                                 },
                             },
-                            create: {
-                                userId: appUserId,
-                                owner: commit.owner,
-                                repo: commit.repo,
-                                sha: commit.sha,
-                                shortSha: commit.shortSha,
-                                message: commit.message,
-                                author: commit.author,
-                                url: commit.url,
-                                additions: commit.additions,
-                                deletions: commit.deletions,
-                                changedFiles: commit.changedFiles,
-                            },
                         },
+                        shortSummary: generatedContent.shortSummary,
+                        technicalSummary: generatedContent.technicalSummary,
+                        features: generatedContent.features,
+                        techUsed: generatedContent.techUsed,
+                        tweet: generatedContent.tweet,
+                        linkedInPost: generatedContent.linkedInPost,
+                        redditPost: generatedContent.redditPost,
+                        discordPost: generatedContent.discordPost,
+                        portfolioBullet: generatedContent.portfolioBullet,
+                        changelogEntry: generatedContent.changelogEntry,
+                        beginnerSummary: generatedContent.beginnerSummary,
                     },
-                    shortSummary: generatedContent.shortSummary,
-                    technicalSummary: generatedContent.technicalSummary,
-                    features: generatedContent.features,
-                    techUsed: generatedContent.techUsed,
-                    tweet: generatedContent.tweet,
-                    linkedInPost: generatedContent.linkedInPost,
-                    redditPost: generatedContent.redditPost,
-                    discordPost: generatedContent.discordPost,
-                    portfolioBullet: generatedContent.portfolioBullet,
-                    changelogEntry: generatedContent.changelogEntry,
-                    beginnerSummary: generatedContent.beginnerSummary,
-                },
-                select: { id: true },
-            });
-
-            await db.$executeRaw`
-                UPDATE "GeneratedContent"
-                SET "contextHash" = ${contextHash}
-                WHERE "id" = ${savedGeneratedContent.id}
-            `;
+                    select: { id: true },
+                });
+            } catch (error: unknown) {
+                if (isPrismaUniqueConstraintError(error)) {
+                    const existing = await findExistingCommitGeneration(appUserId, commit, contextHash);
+                    if (existing) { savedGeneratedContent = existing; } else { throw error; }
+                } else {
+                    throw error;
+                }
+            }
 
             logger.info("Generated commit content", {
                 owner,
@@ -515,4 +531,50 @@ function isAiProviderError(error: unknown) {
             status === 503 ||
             status === 504,
     );
+}
+
+
+
+function isPrismaUniqueConstraintError(error: unknown) {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        (error as { code?: unknown }).code === "P2002"
+    );
+}
+
+async function findExistingPrGeneration(appUserId: string, pullRequest: PullRequestResult, contextHash: string | null) {
+    const rows = await db.$queryRaw<Array<{ id: string }>>`
+    SELECT gc."id"
+    FROM "GeneratedContent" gc
+    INNER JOIN "PullRequest" pr ON pr."id" = gc."pullRequestId"
+    WHERE gc."userId" = ${appUserId}
+      AND gc."sourceType" = 'PULL_REQUEST'::"GeneratedSourceType"
+      AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+      AND pr."owner" = ${pullRequest.owner}
+      AND pr."repo" = ${pullRequest.repo}
+      AND pr."number" = ${pullRequest.number}
+      AND pr."headSha" = ${pullRequest.headSha}
+    ORDER BY gc."createdAt" DESC
+    LIMIT 1
+  `;
+    return rows[0] ?? null;
+}
+
+async function findExistingCommitGeneration(appUserId: string, commit: CommitResult, contextHash: string | null) {
+    const rows = await db.$queryRaw<Array<{ id: string }>>`
+    SELECT gc."id"
+    FROM "GeneratedContent" gc
+    INNER JOIN "Commit" c ON c."id" = gc."commitId"
+    WHERE gc."userId" = ${appUserId}
+      AND gc."sourceType" = 'COMMIT'::"GeneratedSourceType"
+      AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+      AND c."owner" = ${commit.owner}
+      AND c."repo" = ${commit.repo}
+      AND c."sha" = ${commit.sha}
+    ORDER BY gc."createdAt" DESC
+    LIMIT 1
+  `;
+    return rows[0] ?? null;
 }

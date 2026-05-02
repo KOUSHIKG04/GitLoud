@@ -6,7 +6,7 @@ It helps developers explain what they built, document their work, and publish co
 
 ## Features
 
-- Email/password sign in and account management with Better Auth.
+- Email/password sign-in and account management with Better Auth.
 - Dashboard for authenticated users.
 - Generate content from a public GitHub pull request URL and commit URL.
 - GitHub URL validation and source-type detection.

@@ -15,7 +15,7 @@ datasource db {
 model User {
   id            String   @id @default(cuid())
   name          String?
-  email         String?  @unique
+  email         String   @unique
   emailVerified Boolean  @default(false)
   image         String?
   createdAt     DateTime @default(now())
@@ -60,6 +60,7 @@ model Account {
   updatedAt             DateTime  @updatedAt
 
   @@index([userId])
+  @@unique([providerId, accountId])
 }
 
 model Verification {
@@ -162,6 +163,8 @@ model GeneratedContent {
   @@index([commitId])
   @@index([pullRequestId, userId])
   @@index([commitId, userId])
+  @@unique([userId, sourceType, contextHash, pullRequestId])
+  @@unique([userId, sourceType, contextHash, commitId])
 }
 
 model RateLimitBucket {
