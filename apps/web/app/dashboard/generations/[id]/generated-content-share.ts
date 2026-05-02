@@ -1,6 +1,12 @@
 import type { ShareMediaAttachment } from "./generated-content-types";
 
-export function createShareUrls({ title, text }: { title: string; text: string }) {
+export function createShareUrls({
+  title,
+  text,
+}: {
+  title: string;
+  text: string;
+}) {
   const encodedTitle = encodeURIComponent(title);
   const encodedText = encodeURIComponent(text);
 

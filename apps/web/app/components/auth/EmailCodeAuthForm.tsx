@@ -1,5 +1,6 @@
 "use client";
 
+import { GoogleIcon } from "@/assest/social-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -7,8 +8,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { Label } from "@/components/ui/label";
-import { useSignIn, useSignUp } from "@clerk/nextjs";
+import { useSignIn, useSignUp } from "@clerk/nextjs/legacy";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -25,13 +25,24 @@ export function EmailCodeAuthForm({
   redirectUrl: string;
 }) {
   const router = useRouter();
-  const signInState = useSignIn();
-  const signUpState = useSignUp();
+  const {
+    isLoaded: isSignInLoaded,
+    setActive: setSignInActive,
+    signIn,
+  } = useSignIn();
+  const {
+    isLoaded: isSignUpLoaded,
+    setActive: setSignUpActive,
+    signUp,
+  } = useSignUp();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
-  const [isPending, setIsPending] = useState(false);
+  const [pendingAction, setPendingAction] = useState<
+    "email" | "google" | "code" | "resend" | null
+  >(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const isPending = pendingAction !== null;
 
   async function submitEmail(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -40,23 +51,24 @@ export function EmailCodeAuthForm({
       return;
     }
 
-    setIsPending(true);
+    setPendingAction("email");
     setErrorMessage(null);
 
     try {
       if (mode === "sign-in") {
-        if (!signInState.isLoaded) {
+        if (!isSignInLoaded || !signIn) {
           return;
         }
 
-        const signIn = signInState.signIn;
         const attempt = await signIn.create({ identifier: email.trim() });
         const emailCodeFactor = attempt.supportedFirstFactors?.find(
           (factor) => factor.strategy === "email_code",
         );
 
         if (!emailCodeFactor || emailCodeFactor.strategy !== "email_code") {
-          throw new Error("Email code sign-in is not enabled for this account.");
+          throw new Error(
+            "Email code sign-in is not enabled for this account.",
+          );
         }
 
         await signIn.prepareFirstFactor({
@@ -64,12 +76,14 @@ export function EmailCodeAuthForm({
           emailAddressId: emailCodeFactor.emailAddressId,
         });
       } else {
-        if (!signUpState.isLoaded) {
+        if (!isSignUpLoaded || !signUp) {
           return;
         }
 
-        const signUp = signUpState.signUp;
-        await signUp.create({ emailAddress: email.trim() });
+        await signUp.create({
+          emailAddress: email.trim(),
+          legalAccepted: true,
+        });
         await signUp.prepareEmailAddressVerification({
           strategy: "email_code",
         });
@@ -82,7 +96,46 @@ export function EmailCodeAuthForm({
       setErrorMessage(message);
       toast.error(message, { duration: 7000 });
     } finally {
-      setIsPending(false);
+      setPendingAction(null);
+    }
+  }
+
+  async function continueWithGoogle() {
+    setPendingAction("google");
+    setErrorMessage(null);
+
+    try {
+      const redirectUrlComplete = new URL(
+        redirectUrl,
+        window.location.origin,
+      ).toString();
+
+      if (mode === "sign-in") {
+        if (!isSignInLoaded || !signIn) {
+          return;
+        }
+
+        await signIn.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete,
+        });
+      } else {
+        if (!isSignUpLoaded || !signUp) {
+          return;
+        }
+
+        await signUp.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete,
+        });
+      }
+    } catch (error) {
+      const message = getAuthErrorMessage(error);
+      setErrorMessage(message);
+      toast.error(message, { duration: 7000 });
+      setPendingAction(null);
     }
   }
 
@@ -93,16 +146,16 @@ export function EmailCodeAuthForm({
       return;
     }
 
-    setIsPending(true);
+    setPendingAction("code");
     setErrorMessage(null);
 
     try {
       if (mode === "sign-in") {
-        if (!signInState.isLoaded) {
+        if (!isSignInLoaded || !signIn || !setSignInActive) {
           return;
         }
 
-        const result = await signInState.signIn.attemptFirstFactor({
+        const result = await signIn.attemptFirstFactor({
           strategy: "email_code",
           code,
         });
@@ -111,20 +164,45 @@ export function EmailCodeAuthForm({
           throw new Error("Could not complete sign in with this code.");
         }
 
-        await signInState.setActive({ session: result.createdSessionId });
+        await setSignInActive({ session: result.createdSessionId });
       } else {
-        if (!signUpState.isLoaded) {
+        if (!isSignUpLoaded || !signUp || !setSignUpActive) {
           return;
         }
 
-        const result =
-          await signUpState.signUp.attemptEmailAddressVerification({ code });
+        const result = await signUp.attemptEmailAddressVerification({ code });
+
+        if (result.status === "missing_requirements") {
+          if (isOnlyMissingPassword(result.missingFields)) {
+            await signUp.create({
+              emailAddress: email.trim(),
+              legalAccepted: true,
+            });
+            await signUp.prepareEmailAddressVerification({
+              strategy: "email_code",
+            });
+            setCode("");
+
+            const message =
+              "Your previous code was created before passwordless sign-up was enabled. We sent a new verification code.";
+            setErrorMessage(message);
+            toast.info(message, { duration: 7000 });
+            return;
+          }
+
+          const missingFields = formatMissingFields(result.missingFields);
+          throw new Error(
+            missingFields
+              ? `Could not complete sign up. Missing: ${missingFields}.`
+              : "Could not complete sign up with this code.",
+          );
+        }
 
         if (result.status !== "complete" || !result.createdSessionId) {
           throw new Error("Could not complete sign up with this code.");
         }
 
-        await signUpState.setActive({ session: result.createdSessionId });
+        await setSignUpActive({ session: result.createdSessionId });
       }
 
       router.push(redirectUrl);
@@ -134,39 +212,41 @@ export function EmailCodeAuthForm({
       setErrorMessage(message);
       toast.error(message, { duration: 7000 });
     } finally {
-      setIsPending(false);
+      setPendingAction(null);
     }
   }
 
   async function resendCode() {
     setCode("");
-    setIsPending(true);
+    setPendingAction("resend");
     setErrorMessage(null);
 
     try {
       if (mode === "sign-in") {
-        if (!signInState.isLoaded) {
+        if (!isSignInLoaded || !signIn) {
           return;
         }
 
-        const emailCodeFactor = signInState.signIn.supportedFirstFactors?.find(
+        const emailCodeFactor = signIn.supportedFirstFactors?.find(
           (factor) => factor.strategy === "email_code",
         );
 
         if (!emailCodeFactor || emailCodeFactor.strategy !== "email_code") {
-          throw new Error("Email code sign-in is not enabled for this account.");
+          throw new Error(
+            "Email code sign-in is not enabled for this account.",
+          );
         }
 
-        await signInState.signIn.prepareFirstFactor({
+        await signIn.prepareFirstFactor({
           strategy: "email_code",
           emailAddressId: emailCodeFactor.emailAddressId,
         });
       } else {
-        if (!signUpState.isLoaded) {
+        if (!isSignUpLoaded || !signUp) {
           return;
         }
 
-        await signUpState.signUp.prepareEmailAddressVerification({
+        await signUp.prepareEmailAddressVerification({
           strategy: "email_code",
         });
       }
@@ -175,7 +255,7 @@ export function EmailCodeAuthForm({
       setErrorMessage(message);
       toast.error(message, { duration: 7000 });
     } finally {
-      setIsPending(false);
+      setPendingAction(null);
     }
   }
 
@@ -184,20 +264,19 @@ export function EmailCodeAuthForm({
   return (
     <div className="border bg-card p-5 text-card-foreground shadow-sm">
       {step === "email" ? (
-        <form className="space-y-4" onSubmit={submitEmail}>
+        <form className="space-y-3" onSubmit={submitEmail}>
           <div className="space-y-1.5">
-            <h2 className="text-xl font-semibold tracking-tight">
-              {isSignIn ? "Sign in with email" : "Create account"}
+            <h2 className="text-xl font-semibold tracking-tight text-center">
+              {isSignIn ? "Sign-in with email" : "Create account"}
             </h2>
-            <p className="text-sm leading-6 text-muted-foreground">
+            <p className="text-sm leading-6 text-muted-foreground text-center">
               {isSignIn
                 ? "Enter your email and we will send a one-time code."
                 : "Use your email to create an account and verify it with a one-time code."}
             </p>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+          <div className="space-y-1.5 mt-6">
             <Input
               id="email"
               autoComplete="email"
@@ -205,7 +284,7 @@ export function EmailCodeAuthForm({
               disabled={isPending}
               inputMode="email"
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="you@example.com"
+              placeholder="ENTER YOUR EMAIL - (eg, you@example.com)"
               type="email"
               value={email}
             />
@@ -215,12 +294,19 @@ export function EmailCodeAuthForm({
             <p className="text-sm text-destructive">{errorMessage}</p>
           ) : null}
 
+          {!isSignIn ? (
+            <div
+              id="clerk-captcha"
+              className="h-0 overflow-hidden empty:hidden"
+            />
+          ) : null}
+
           <Button
             className="w-full"
             disabled={isPending || !email.trim()}
             type="submit"
           >
-            {isPending ? (
+            {pendingAction === "email" ? (
               <Loader2 className="size-4 animate-spin" />
             ) : isSignIn ? (
               "Send sign-in code"
@@ -229,12 +315,33 @@ export function EmailCodeAuthForm({
             )}
           </Button>
 
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <Button
+            className="w-full"
+            disabled={isPending}
+            onClick={continueWithGoogle}
+            type="button"
+            variant="outline"
+          >
+            {pendingAction === "google" ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
+            CONTINUE WITH GOOGLE
+          </Button>
+
           <AuthModeLink mode={mode} redirectUrl={redirectUrl} />
         </form>
       ) : (
         <form className="space-y-4" onSubmit={submitCode}>
           <div className="space-y-1.5">
-            <h2 className="text-xl font-semibold tracking-tight">
+            <h2 className="text-xl font-semibold tracking-tight text-center">
               Enter verification code
             </h2>
             <p className="text-sm leading-6 text-muted-foreground">
@@ -265,7 +372,7 @@ export function EmailCodeAuthForm({
             disabled={isPending || code.length < 6}
             type="submit"
           >
-            {isPending ? (
+            {pendingAction === "code" ? (
               <Loader2 className="size-4 animate-spin" />
             ) : isSignIn ? (
               "Sign in"
@@ -293,7 +400,7 @@ export function EmailCodeAuthForm({
               onClick={resendCode}
               type="button"
             >
-              Resend code
+              {pendingAction === "resend" ? "Sending..." : "Resend code"}
             </button>
           </div>
         </form>
@@ -302,7 +409,13 @@ export function EmailCodeAuthForm({
   );
 }
 
-function AuthModeLink({ mode, redirectUrl }: { mode: AuthMode; redirectUrl?: string }) {
+function AuthModeLink({
+  mode,
+  redirectUrl,
+}: {
+  mode: AuthMode;
+  redirectUrl?: string;
+}) {
   const buildHref = (basePath: string) => {
     if (!redirectUrl) {
       return basePath;
@@ -356,4 +469,12 @@ function getAuthErrorMessage(error: unknown) {
   }
 
   return "Authentication failed. Please try again.";
+}
+
+function isOnlyMissingPassword(missingFields: string[]) {
+  return missingFields.length === 1 && missingFields[0] === "password";
+}
+
+function formatMissingFields(missingFields: string[]) {
+  return missingFields.join(", ");
 }

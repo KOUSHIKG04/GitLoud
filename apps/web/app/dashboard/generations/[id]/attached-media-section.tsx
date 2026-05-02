@@ -20,9 +20,12 @@ export function AttachedMediaSection({
   return (
     <section className="space-y-3 border bg-card p-3 text-card-foreground shadow-sm">
       <div>
-        <h2 className="text-lg font-semibold tracking-tight">Attached media</h2>
-        <p className="text-sm text-muted-foreground">
-          This image or video is included when you share generated posts.
+        <h2 className="text-lg font-semibold tracking-tight px-1.5">
+          Attached media
+        </h2>
+        <p className="px-1.5 text-sm text-muted-foreground">
+          Native share includes media. Direct app sharing (e.g., X) falls back
+          to a link instead.
         </p>
       </div>
 
@@ -33,8 +36,9 @@ export function AttachedMediaSection({
           ))}
         </Accordion>
       ) : (
-        <div className="flex min-h-40 items-center justify-center border bg-background p-4 text-center text-sm text-muted-foreground">
-          No file attached. Add media to include it when sharing generated posts.
+        <div className="flex min-h-35 items-center justify-center border bg-background p-4 text-center text-sm text-muted-foreground">
+          No file attached. Add media to include it when sharing generated
+          posts.
         </div>
       )}
     </section>
