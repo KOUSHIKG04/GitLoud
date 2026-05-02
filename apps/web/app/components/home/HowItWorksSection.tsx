@@ -21,7 +21,7 @@ export function HowItWorksSection() {
           <MotionItem>
             <p className="mx-auto max-w-2xl text-xs leading-6 text-muted-foreground sm:text-sm">
               Paste a public GitHub link once. GitLoud reads changed files,
-              stats, commit messages, and PR descriptions, then turns that
+              stats, commit messages, and PR descriptions when available, then turns that
               context into every format you need.
             </p>
           </MotionItem>

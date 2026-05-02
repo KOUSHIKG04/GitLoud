@@ -7,7 +7,7 @@ DROP COLUMN "clerkUserId";
 
 -- Preflight check: Deduplicate existing emails to prevent UNIQUE INDEX creation failure
 UPDATE "User"
-SET email = email || '+duplicate_' || id
+SET email = split_part(email, '@', 1) || '+duplicate_' || id || '@' || split_part(email, '@', 2)
 WHERE id IN (
     SELECT id
     FROM (
