@@ -10,7 +10,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
-import { ChevronRight, ExternalLink, Plus } from "lucide-react";
+import { ChevronRight, ExternalLink, Paperclip, Plus } from "lucide-react";
 import { DeleteGenerationButton } from "./delete-generation-button";
 import { HistoryDatePicker } from "./history-date-picker";
 import { getAuthenticatedUserId } from "@/lib/session";
@@ -89,6 +89,11 @@ export default async function HistoryPage({
               url: true,
             },
           },
+          _count: {
+            select: {
+              mediaAttachments: true,
+            },
+          },
         },
         skip,
         take: pageSize + 1,
@@ -101,7 +106,7 @@ export default async function HistoryPage({
     <main className="min-h-screen">
       <Header />
 
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-6 px-4 pt-12 pb-6">
+      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-6 px-4 pt-12 pb-6 ">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold flex items-center gap-2">
@@ -147,10 +152,13 @@ export default async function HistoryPage({
                 return (
                   <article
                     key={generation.id}
-                    className="rounded-xl border bg-card p-4 text-card-foreground"
+                    className="border bg-card text-card-foreground transition-colors hover:bg-muted/40"
                   >
-                    <div className="grid gap-4 md:grid-cols-[5fr_1fr] md:items-start">
-                      <div className="min-w-0 space-y-1">
+                    <div className="grid gap-4 p-4 md:grid-cols-[5fr_1fr] md:items-start">
+                      <Link
+                        href={`/dashboard/generations/${generation.id}`}
+                        className="min-w-0 space-y-1"
+                      >
                         <p className="text-xs text-muted-foreground">
                           {generation.sourceType === "PULL_REQUEST"
                             ? "Pull Request"
@@ -162,10 +170,16 @@ export default async function HistoryPage({
                           {title}
                         </h2>
 
-                        <p className="text-xs text-muted-foreground">
-                          {generation.createdAt.toLocaleString()}
-                        </p>
-                      </div>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                          <span>{generation.createdAt.toLocaleString()}</span>
+                          <span className="inline-flex items-center gap-1.5 border bg-background px-2 py-1">
+                            <Paperclip className="size-3.5" />
+                            {generation._count.mediaAttachments > 0
+                              ? `${generation._count.mediaAttachments} file attached`
+                              : "No file attached"}
+                          </span>
+                        </div>
+                      </Link>
 
                       <div className="flex flex-wrap gap-2 md:justify-end">
                         <Button asChild variant="outline" size="sm">

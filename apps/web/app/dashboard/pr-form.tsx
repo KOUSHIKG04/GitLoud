@@ -8,8 +8,13 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { GeneratedContent } from "@repo/shared/generated-content";
-import { ChevronRight, Info, Loader2 } from "lucide-react";
-import type { ComponentPropsWithoutRef } from "react";
+import { ChevronRight, Info, Loader2, Upload, X } from "lucide-react";
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ComponentPropsWithoutRef,
+} from "react";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
@@ -56,6 +61,15 @@ type CommitGenerateResponse = {
 };
 
 type GenerateResponse = PullRequestGenerateResponse | CommitGenerateResponse;
+
+type UploadedMediaAttachment = {
+  id: string;
+  secureUrl: string;
+  resourceType: string;
+  fileName: string;
+  mimeType: string;
+  bytes: number;
+};
 
 type ProgressEvent =
   | { type: "progress"; message: string }
@@ -121,11 +135,32 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function uploadMedia(file: File) {
+  const formData = new FormData();
+  formData.set("file", file);
+
+  const response = await fetch("/api/media", {
+    method: "POST",
+    body: formData,
+  });
+
+  const body = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(body?.error ?? "Could not upload media");
+  }
+
+  return body.mediaAttachment as UploadedMediaAttachment;
+}
+
 export function PrForm({
   className,
   ...props
 }: ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaAttachmentIdRef = useRef<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
 
   const {
     register,
@@ -144,6 +179,19 @@ export function PrForm({
     const minimumLoaderTime = wait(2500);
 
     try {
+      let mediaAttachmentId: string | undefined;
+
+      if (selectedMedia) {
+        if (mediaAttachmentIdRef.current) {
+          mediaAttachmentId = mediaAttachmentIdRef.current;
+        } else {
+          toast.loading("Uploading media attachment...", { id: toastId });
+          const mediaAttachment = await uploadMedia(selectedMedia);
+          mediaAttachmentId = mediaAttachment.id;
+          mediaAttachmentIdRef.current = mediaAttachmentId;
+        }
+      }
+
       const response = await fetch("/api/pr", {
         method: "POST",
         headers: {
@@ -152,6 +200,7 @@ export function PrForm({
         body: JSON.stringify({
           url: values.url,
           context: values.context,
+          mediaAttachmentId,
         }),
       });
 
@@ -180,6 +229,49 @@ export function PrForm({
           },
         },
       });
+    }
+  }
+
+  function onMediaChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+
+    if (!file) {
+      setSelectedMedia(null);
+      mediaAttachmentIdRef.current = null;
+      return;
+    }
+
+    const allowedMimeTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "video/mp4",
+      "video/webm",
+      "video/quicktime",
+    ];
+
+    if (!allowedMimeTypes.includes(file.type)) {
+      toast.error("Upload an image or video file", { duration: 7000 });
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error("Media file must be 25MB or smaller", { duration: 7000 });
+      event.target.value = "";
+      return;
+    }
+
+    setSelectedMedia(file);
+  }
+
+  function clearSelectedMedia() {
+    setSelectedMedia(null);
+    mediaAttachmentIdRef.current = null;
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   }
 
@@ -263,7 +355,51 @@ export function PrForm({
             </div>
           </div>
 
-          <div className="flex items-center justify-end border-t bg-muted/20 px-4 py-3 sm:px-6">
+          <div className="flex flex-col gap-3 border-t bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                className="hidden"
+                disabled={isSubmitting}
+                onChange={onMediaChange}
+              />
+
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-sm"
+                disabled={isSubmitting}
+                onClick={() => fileInputRef.current?.click()}
+                className="border-none bg-background text-foreground hover:bg-background/90 hover:text-foreground dark:bg-background dark:text-foreground"
+                aria-label="Upload media"
+                title="Upload media"
+              >
+                <Upload className="size-4" />
+              </Button>
+
+              {selectedMedia ? (
+                <div className="flex min-w-0 items-center text-xs text-muted-foreground">
+                  <span className="max-w-44 truncate">
+                    {selectedMedia.name}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="size-7 rounded-none"
+                    disabled={isSubmitting}
+                    onClick={clearSelectedMedia}
+                    aria-label="Remove selected media"
+                    title="Remove selected media"
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+
             <Button
               type="submit"
               disabled={isSubmitting}

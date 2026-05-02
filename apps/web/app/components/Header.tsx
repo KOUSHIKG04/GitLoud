@@ -89,11 +89,37 @@ export function Header() {
       <div className="flex items-center gap-3">
         {isLoaded && !isSignedIn ? (
           <>
-            <Button asChild variant="outline" size="sm">
+            <Button
+              asChild
+              variant="outline"
+              size="icon-sm"
+              className="sm:hidden"
+              aria-label="Sign in"
+              title="Sign in"
+            >
+              <Link href="/sign-in">
+                <svg
+                  className="size-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </Link>
+            </Button>
+
+            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
               <Link href="/sign-in">SIGN IN</Link>
             </Button>
 
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="hidden sm:inline-flex">
               <Link href="/sign-up">SIGN UP</Link>
             </Button>
           </>
