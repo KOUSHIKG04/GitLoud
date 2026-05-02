@@ -38,7 +38,7 @@ export function HowItWorksSection() {
           <MotionItem>
             <HowItWorksStep
               title="GitLoud reads the changes"
-              description="It fetches diffs, file stats, commit messages, PR descriptions, and repository context automatically."
+              description="It fetches diffs, file stats, commit messages, PR descriptions when available, and repository context automatically."
             />
           </MotionItem>
 

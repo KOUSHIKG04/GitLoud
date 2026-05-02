@@ -7,26 +7,26 @@
 */
 -- Preflight check: Deduplicate existing GeneratedContent rows for pullRequestId to prevent UNIQUE INDEX creation failure
 DELETE FROM "GeneratedContent"
-WHERE id NOT IN (
+WHERE "pullRequestId" IS NOT NULL AND "contextHash" IS NOT NULL AND id NOT IN (
     SELECT id
     FROM (
         SELECT id,
                ROW_NUMBER() OVER (PARTITION BY "userId", "sourceType", "contextHash", "pullRequestId" ORDER BY "createdAt" DESC) as row_num
         FROM "GeneratedContent"
-        WHERE "pullRequestId" IS NOT NULL
+        WHERE "pullRequestId" IS NOT NULL AND "contextHash" IS NOT NULL
     ) duplicates
     WHERE row_num = 1
 );
 
 -- Preflight check: Deduplicate existing GeneratedContent rows for commitId to prevent UNIQUE INDEX creation failure
 DELETE FROM "GeneratedContent"
-WHERE id NOT IN (
+WHERE "commitId" IS NOT NULL AND "contextHash" IS NOT NULL AND id NOT IN (
     SELECT id
     FROM (
         SELECT id,
                ROW_NUMBER() OVER (PARTITION BY "userId", "sourceType", "contextHash", "commitId" ORDER BY "createdAt" DESC) as row_num
         FROM "GeneratedContent"
-        WHERE "commitId" IS NOT NULL
+        WHERE "commitId" IS NOT NULL AND "contextHash" IS NOT NULL
     ) duplicates
     WHERE row_num = 1
 );
