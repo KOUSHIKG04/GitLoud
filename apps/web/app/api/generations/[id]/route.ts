@@ -1,6 +1,6 @@
 import { db } from "@repo/db/client";
 import { logger } from "@/lib/logger";
-import { getCurrentUserId } from "@/lib/session";
+import { getAuthenticatedUserId } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 class NotFoundError extends Error { }
@@ -10,7 +10,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   const { id } = await params;
-  const userId = await getCurrentUserId();
+  const userId = await getAuthenticatedUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

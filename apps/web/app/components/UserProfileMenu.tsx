@@ -8,17 +8,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { signOut, useSession } from "@/lib/auth-client";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export function UserProfileMenu() {
   const router = useRouter();
-  const { data: session } = useSession();
-  const user = session?.user;
+  const { signOut } = useClerk();
+  const { user } = useUser();
 
-  const displayName = user?.name ?? user?.email ?? "User";
+  const email = user?.primaryEmailAddress?.emailAddress;
+  const displayName = user?.fullName ?? email ?? "User";
   const initials = getInitials(displayName);
 
   async function handleLogout() {
@@ -56,9 +57,9 @@ export function UserProfileMenu() {
         <DropdownMenuLabel className="truncate">
           {displayName}
         </DropdownMenuLabel>
-        {user?.email ? (
+        {email ? (
           <DropdownMenuLabel className="truncate pt-0 text-[11px] font-normal">
-            {user.email}
+            {email}
           </DropdownMenuLabel>
         ) : null}
         <DropdownMenuSeparator />

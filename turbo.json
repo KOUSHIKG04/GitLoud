@@ -3,15 +3,12 @@
   "ui": "tui",
   "globalEnv": [
     "DATABASE_URL",
-    "BETTER_AUTH_SECRET",
-    "BETTER_AUTH_URL",
+    "CLERK_SECRET_KEY",
+    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
     "GEMINI_API_KEY",
     "GEMINI_MODEL",
-    "GITHUB_CLIENT_ID",
-    "GITHUB_CLIENT_SECRET",
     "GITHUB_TOKEN",
-    "RESEND_API_KEY",
-    "EMAIL_FROM"
+    "NEXT_PUBLIC_SITE_URL"
   ],
   "tasks": {
     "build": {

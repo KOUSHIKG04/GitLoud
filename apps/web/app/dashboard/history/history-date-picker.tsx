@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { CalendarIcon, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -38,12 +38,24 @@ export function HistoryDatePicker() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
   const [open, setOpen] = useState(false);
-  const selectedRange: DateRange | undefined = {
-    from: parseDateParam(searchParams.get("from")),
-    to: parseDateParam(searchParams.get("to")),
+  const selectedRangeFromParams: DateRange | undefined = {
+    from: parseDateParam(fromParam),
+    to: parseDateParam(toParam),
   };
-  const hasSelectedRange = Boolean(selectedRange.from);
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(
+    selectedRangeFromParams,
+  );
+  const hasSelectedRange = Boolean(selectedRange?.from);
+
+  useEffect(() => {
+    setSelectedRange({
+      from: parseDateParam(fromParam),
+      to: parseDateParam(toParam),
+    });
+  }, [fromParam, toParam]);
 
   function updateRange(range: DateRange | undefined) {
     const params = new URLSearchParams(searchParams.toString());
@@ -77,7 +89,7 @@ export function HistoryDatePicker() {
           aria-label="Filter history by date range"
         >
           <CalendarIcon className="size-4" />
-          {selectedRange.from ? (
+          {selectedRange?.from ? (
             selectedRange.to ? (
               <>
                 {format(selectedRange.from, "MMM d, yyyy")} - {" "}
@@ -95,9 +107,9 @@ export function HistoryDatePicker() {
       <PopoverContent align="end" className="w-auto gap-0 p-0 rounded-none">
         <Calendar
           mode="range"
-          defaultMonth={selectedRange.from}
+          defaultMonth={selectedRange?.from}
           selected={selectedRange}
-          onSelect={updateRange}
+          onSelect={setSelectedRange}
           numberOfMonths={1}
           className="p-3 [--cell-size:--spacing(8)] rounded-none"
           classNames={{
@@ -115,13 +127,14 @@ export function HistoryDatePicker() {
           }}
         />
 
-        {hasSelectedRange ? (
-          <div className="border-t p-2">
+        <div className="flex flex-col gap-2 border-t p-2 sm:flex-row">
+          {hasSelectedRange ? (
             <Button
               type="button"
               variant="outline"
               className="w-full"
               onClick={() => {
+                setSelectedRange(undefined);
                 updateRange(undefined);
                 setOpen(false);
               }}
@@ -129,8 +142,19 @@ export function HistoryDatePicker() {
               <X className="size-4" />
               Clear date
             </Button>
-          </div>
-        ) : null}
+          ) : null}
+
+          <Button
+            type="button"
+            className="w-full"
+            onClick={() => {
+              updateRange(selectedRange);
+              setOpen(false);
+            }}
+          >
+            Apply
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

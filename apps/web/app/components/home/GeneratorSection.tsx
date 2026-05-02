@@ -10,7 +10,7 @@ export function GeneratorSection() {
   return (
     <section
       id="generator"
-      className="border-y bg-background px-4 pt-16 pb-12 sm:px-6 lg:px-16"
+      className="bg-background px-4 pt-13 pb-16 sm:px-6 lg:px-20 lg:pt-21 lg:pb-24"
     >
       <MotionViewportStagger className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <MotionViewportStagger className="space-y-3">
@@ -27,8 +27,8 @@ export function GeneratorSection() {
           <MotionItem>
             <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
               This is the same public repository workflow from the dashboard.
-              After the content is created, GitLoud opens a separate result
-              page where you can copy and share each format.
+              After the content is created, GitLoud opens a separate result page
+              where you can copy and share each format.
             </p>
           </MotionItem>
         </MotionViewportStagger>

@@ -30,7 +30,7 @@ const faqs = [
 
 export function SeoFaqSection() {
   return (
-    <section className="border-t bg-background px-4 py-16 sm:px-6 lg:px-16">
+    <section className="bg-background px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
       <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
         <div className="space-y-3">
           <p className="text-sm font-semibold">FAQ</p>
@@ -43,7 +43,12 @@ export function SeoFaqSection() {
           </p>
         </div>
 
-        <Accordion type="single" collapsible className="grid gap-3">
+        <Accordion
+          type="single"
+          collapsible
+          defaultValue={faqs[0].question}
+          className="grid gap-3"
+        >
           {faqs.map((item) => (
             <AccordionItem
               key={item.question}

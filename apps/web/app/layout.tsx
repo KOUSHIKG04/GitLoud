@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Providers } from "@/provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Geist_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
@@ -83,12 +84,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${geistMono.variable} pt-20`}>
-        <Providers>
-          {/* <InitialLoader /> */}
-          {children}
-          <Toaster />
-        </Providers>
+      <body className={`${geistMono.variable} pt-18`}>
+        <ClerkProvider>
+          <Providers>
+            {/* <InitialLoader /> */}
+            {children}
+            <Toaster />
+          </Providers>
+        </ClerkProvider>
       </body>
     </html>
   );

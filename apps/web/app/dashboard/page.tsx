@@ -16,7 +16,7 @@ export default function DashboardPage() {
     <main className="min-h-screen flex flex-col">
       <Header />
 
-      <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-8">
+      <div className="flex flex-1 items-center justify-center px-4 pt-6 pb-6 sm:px-8">
         <section className="w-full max-w-2xl space-y-8">
           <div className="space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl mt-2">

@@ -6,11 +6,11 @@ import { ScrollToGeneratorButton } from "@/components/ScrollToGeneratorButton";
 
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-[68dvh] items-center justify-center px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+    <section className="relative flex min-h-[68dvh] items-center justify-center px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
       <div className="mx-auto w-full max-w-sm text-center sm:max-w-2xl lg:max-w-4xl">
         <MotionStagger>
           <MotionItem>
-            <p className="mb-4 inline-flex items-center gap-2 border border-border bg-background/60 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm">
+            <p className="mb-4 inline-flex items-center gap-2  bg-background/60 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm">
               <span className="h-2 w-2 rounded-full bg-chart-1" />
               Developer PR content assistant
             </p>

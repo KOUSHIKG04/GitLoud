@@ -95,8 +95,8 @@ export default function Home() {
       <HeroSection />
       <GeneratorSection />
       <HowItWorksSection />
-      <SeoFaqSection />
       <PhaseTwoUpdatesSection />
+      <SeoFaqSection />
       <Footer />
     </main>
   );

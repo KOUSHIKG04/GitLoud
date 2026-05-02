@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { SignUp } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { AuthForm } from "@/components/auth/AuthForm";
-import { getCurrentSession } from "@/lib/session";
+import { authAppearance } from "@/components/auth/clerkAppearance";
 
 export const metadata: Metadata = {
   title: "Sign Up",
@@ -19,15 +20,22 @@ export default async function SignUpPage({
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
   const { callbackUrl } = await searchParams;
-  const session = await getCurrentSession();
+  const { userId } = await auth();
 
-  if (session?.user) {
+  if (userId) {
     redirect("/");
   }
 
   return (
     <AuthShell eyebrow="Create your account" title="Start using GitLoud">
-      <AuthForm mode="sign-up" callbackUrl={callbackUrl} />
+      <SignUp
+        appearance={authAppearance}
+        fallbackRedirectUrl={callbackUrl ?? "/?auth=sign-up"}
+        forceRedirectUrl={callbackUrl ?? "/?auth=sign-up"}
+        path="/sign-up"
+        routing="path"
+        signInUrl="/sign-in"
+      />
     </AuthShell>
   );
 }

@@ -5,17 +5,19 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GeneratedContentView } from "./generated-content";
 import { RegenerateButton } from "./regenerate-button";
-import { History } from "lucide-react";
+import { FileDiff, History } from "lucide-react";
 import Link from "next/link";
 
 export function GenerationDetailClient({
   generationId,
   content,
   sourceUrl,
+  sourceDiffUrl,
 }: {
   generationId: string;
   content: GeneratedContent;
   sourceUrl: string;
+  sourceDiffUrl: string;
 }) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [currentContent, setCurrentContent] = useState(content);
@@ -41,6 +43,23 @@ export function GenerationDetailClient({
           >
             <GitHubIcon />
             <span className="hidden sm:inline">Open on GitHub</span>
+          </a>
+        </Button>
+
+        <Button
+          asChild
+          variant="outline"
+          className="size-9 p-0 sm:h-9 sm:w-auto sm:px-2.5"
+        >
+          <a
+            href={sourceDiffUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="View diff"
+            title="View diff"
+          >
+            <FileDiff className="size-4" />
+            <span className="hidden sm:inline">View diff</span>
           </a>
         </Button>
 
