@@ -89,11 +89,11 @@ export function Header() {
       <div className="flex items-center gap-3">
         {isLoaded && !isSignedIn ? (
           <>
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
               <Link href="/sign-in">SIGN IN</Link>
             </Button>
 
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="hidden sm:inline-flex">
               <Link href="/sign-up">SIGN UP</Link>
             </Button>
           </>

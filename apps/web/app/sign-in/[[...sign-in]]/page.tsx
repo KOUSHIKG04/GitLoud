@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { SignIn } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { authAppearance } from "@/components/auth/clerkAppearance";
+import { EmailCodeAuthForm } from "@/components/auth/EmailCodeAuthForm";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -17,10 +16,18 @@ export const metadata: Metadata = {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; redirect_url?: string }>;
 }) {
-  const { callbackUrl } = await searchParams;
+  const { callbackUrl, redirect_url: redirectUrl } = await searchParams;
   const { userId } = await auth();
+
+  const requestedUrl = callbackUrl ?? redirectUrl;
+  const isSafeRedirect =
+    typeof requestedUrl === "string" &&
+    requestedUrl.startsWith("/") &&
+    !requestedUrl.startsWith("//") &&
+    !requestedUrl.startsWith("/\\");
+  const afterAuthUrl = isSafeRedirect ? requestedUrl : "/?auth=sign-in";
 
   if (userId) {
     redirect("/");
@@ -28,14 +35,7 @@ export default async function SignInPage({
 
   return (
     <AuthShell eyebrow="Welcome back" title="Sign in to GitLoud">
-      <SignIn
-        appearance={authAppearance}
-        fallbackRedirectUrl={callbackUrl ?? "/?auth=sign-in"}
-        forceRedirectUrl={callbackUrl ?? "/?auth=sign-in"}
-        path="/sign-in"
-        routing="path"
-        signUpUrl="/sign-up"
-      />
+      <EmailCodeAuthForm mode="sign-in" redirectUrl={afterAuthUrl} />
     </AuthShell>
   );
 }

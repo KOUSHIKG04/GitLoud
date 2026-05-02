@@ -25,6 +25,7 @@ import { getCurrentUserId } from "@/lib/session";
 const requestBodySchema = z.object({
     url: githubPrOrCommitUrlSchema,
     context: z.string().trim().max(1000).optional(),
+    mediaAttachmentId: z.string().trim().min(1).max(128).optional(),
 });
 
 type ProgressEvent =
@@ -147,6 +148,7 @@ export async function POST(request: Request): Promise<Response> {
     const url = parsedBody.data.url;
     const urlType = getGithubUrlType(url);
     const contextHash = getContextHash(userContext);
+    const mediaAttachmentId = parsedBody.data.mediaAttachmentId;
 
     return createProgressStream(async (send) => {
         send({ type: "progress", message: "Validating GitHub URL..." });
@@ -199,6 +201,12 @@ export async function POST(request: Request): Promise<Response> {
             const existingGeneration = existingGenerations[0];
 
             if (existingGeneration) {
+                await attachMediaToGeneration({
+                    mediaAttachmentId,
+                    generatedContentId: existingGeneration.id,
+                    userId: appUserId,
+                });
+
                 logger.info("Reused existing pull request generation", {
                     owner,
                     repo,
@@ -294,6 +302,12 @@ export async function POST(request: Request): Promise<Response> {
             }
 
 
+            await attachMediaToGeneration({
+                mediaAttachmentId,
+                generatedContentId: savedGeneratedContent.id,
+                userId: appUserId,
+            });
+
             logger.info("Generated pull request content", {
                 owner,
                 repo,
@@ -354,6 +368,12 @@ export async function POST(request: Request): Promise<Response> {
             const existingGeneration = existingGenerations[0];
 
             if (existingGeneration) {
+                await attachMediaToGeneration({
+                    mediaAttachmentId,
+                    generatedContentId: existingGeneration.id,
+                    userId: appUserId,
+                });
+
                 logger.info("Reused existing commit generation", {
                     owner,
                     repo,
@@ -439,6 +459,12 @@ export async function POST(request: Request): Promise<Response> {
                     throw error;
                 }
             }
+
+            await attachMediaToGeneration({
+                mediaAttachmentId,
+                generatedContentId: savedGeneratedContent.id,
+                userId: appUserId,
+            });
 
             logger.info("Generated commit content", {
                 owner,
@@ -577,4 +603,29 @@ async function findExistingCommitGeneration(appUserId: string, commit: CommitRes
     LIMIT 1
   `;
     return rows[0] ?? null;
+}
+
+async function attachMediaToGeneration({
+    generatedContentId,
+    mediaAttachmentId,
+    userId,
+}: {
+    generatedContentId: string;
+    mediaAttachmentId: string | undefined;
+    userId: string;
+}) {
+    if (!mediaAttachmentId) {
+        return;
+    }
+
+    await db.mediaAttachment.updateMany({
+        where: {
+            id: mediaAttachmentId,
+            userId,
+            generatedContentId: null,
+        },
+        data: {
+            generatedContentId,
+        },
+    });
 }

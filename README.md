@@ -8,15 +8,35 @@ It helps developers explain what they built, document their work, and publish co
 
 GitLoud provides a Clerk-authenticated dashboard where developers can submit a
 public GitHub pull request or commit URL and generate reusable content from it.
-The app validates GitHub URLs, detects whether the source is a PR or commit,
-checks that the repository is public, fetches GitHub metadata and diffs, and
-streams progress while the AI generation workflow runs.
+Users can also attach an image or video for sharing; media is uploaded to
+Cloudinary, stored as metadata in PostgreSQL, and shown on the generated content
+page without being used as AI input. The app validates GitHub URLs, detects
+whether the source is a PR or commit, checks that the repository is public,
+fetches GitHub metadata and diffs, and streams progress while the AI generation
+workflow runs.
 
 Generated content is stored in PostgreSQL so authenticated users can revisit
 their history, open generation detail pages, regenerate output, and delete saved
 items when they no longer need them. The application also includes user-scoped
 persistent rate limiting, production-oriented database indexes and constraints,
 a responsive interface, and light/dark theme support.
+
+## Media Attachments
+
+GitLoud supports optional media attachments during generation. A user can upload
+an image or video from the dashboard before clicking generate; the file is
+uploaded to Cloudinary, and GitLoud stores its URL, Cloudinary public ID, file
+name, MIME type, size, dimensions, and related metadata in PostgreSQL.
+
+Attached media is not sent to the AI model and does not change the generated
+text. After generation finishes, the media appears on the generation detail page
+so the user can pair it with any generated social post. The detail page supports
+previewing the media, copying the hosted media link, using the native share
+sheet when available, opening the hosted asset, and downloading it.
+
+Supported uploads are images and common web video formats such as JPEG, PNG,
+WebP, GIF, MP4, WebM, and QuickTime/MOV. The current upload limit is 25 MB per
+file.
 
 ## Generated Output
 
@@ -35,6 +55,7 @@ and ready-to-use posts for X, LinkedIn, Reddit, and Discord.
 - Tailwind CSS
 - shadcn-style UI components
 - Clerk
+- Cloudinary
 - Prisma
 - PostgreSQL
 - Octokit
@@ -67,6 +88,7 @@ packages/
 - npm
 - PostgreSQL database
 - Clerk application keys
+- Cloudinary account for optional media uploads
 - GitHub token
 - AI provider credentials used by `packages/ai`
 
@@ -93,6 +115,10 @@ CLERK_SECRET_KEY="..."
 GITHUB_TOKEN="..."
 
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+
+CLOUDINARY_CLOUD_NAME="..."
+CLOUDINARY_API_KEY="..."
+CLOUDINARY_API_SECRET="..."
 ```
 
 For managed PostgreSQL providers such as Neon, use `sslmode=verify-full` in
@@ -105,6 +131,7 @@ email verification behavior from the Clerk dashboard. If you want GitHub login,
 enable the GitHub social connection in Clerk and add the OAuth credentials there.
 
 Add the AI provider variables required by your local `packages/ai` implementation.
+Cloudinary variables are required only when enabling dashboard media uploads.
 
 ### Database Setup
 
@@ -189,12 +216,14 @@ npx prisma migrate reset --config packages/db/prisma.config.ts
 ```txt
 User signs in
   -> User submits a GitHub PR or commit URL
+  -> User optionally uploads an image or video attachment
   -> API validates the URL and source type
   -> API checks that the repository is public
+  -> Media is uploaded to Cloudinary and stored as a database attachment
   -> GitHub metadata and diff are fetched
   -> AI generates platform-ready content
   -> Result is stored in PostgreSQL
-  -> User views, regenerates, copies, or deletes the saved output
+  -> User views, regenerates, copies, shares media, or deletes the saved output
 ```
 
 ## Current Phase: Phase 1
@@ -207,6 +236,7 @@ Current Phase 1 scope:
 - PR and commit support.
 - Authenticated dashboard.
 - Saved history.
+- Optional image and video attachments for generated content.
 - Regeneration.
 - Delete history items.
 - Persistent rate limiting.
@@ -301,6 +331,7 @@ Recommended production services:
 - Vercel for the Next.js web app.
 - Neon, Supabase, Railway, or another managed PostgreSQL provider.
 - Clerk for authentication.
+- Cloudinary for optional media uploads.
 - A GitHub token or GitHub App credentials.
 - Sentry once Phase 2 observability work starts.
 

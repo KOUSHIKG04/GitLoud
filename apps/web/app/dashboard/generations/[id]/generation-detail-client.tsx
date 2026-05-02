@@ -8,16 +8,30 @@ import { RegenerateButton } from "./regenerate-button";
 import { FileDiff, History } from "lucide-react";
 import Link from "next/link";
 
+type MediaAttachment = {
+  id: string;
+  secureUrl: string;
+  resourceType: string;
+  fileName: string;
+  mimeType: string;
+  bytes: number;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+};
+
 export function GenerationDetailClient({
   generationId,
   content,
   sourceUrl,
   sourceDiffUrl,
+  mediaAttachments,
 }: {
   generationId: string;
   content: GeneratedContent;
   sourceUrl: string;
   sourceDiffUrl: string;
+  mediaAttachments: MediaAttachment[];
 }) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [currentContent, setCurrentContent] = useState(content);
@@ -80,6 +94,7 @@ export function GenerationDetailClient({
       <GeneratedContentView
         content={currentContent}
         isRegenerating={isRegenerating}
+        mediaAttachments={mediaAttachments}
       />
     </>
   );

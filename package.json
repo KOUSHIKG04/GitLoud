@@ -26,6 +26,7 @@
     "packages/*"
   ],
   "dependencies": {
+    "next-cloudinary": "^6.17.5",
     "zod": "4.3.6"
   }
 }
