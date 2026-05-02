@@ -5,6 +5,20 @@ ADD COLUMN "emailVerified" BOOLEAN NOT NULL DEFAULT false,
 ADD COLUMN "image" TEXT,
 DROP COLUMN "clerkUserId";
 
+-- Preflight check: Deduplicate existing emails to prevent UNIQUE INDEX creation failure
+UPDATE "User"
+SET email = email || '+duplicate_' || id
+WHERE id IN (
+    SELECT id
+    FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (PARTITION BY email ORDER BY "createdAt" ASC) as row_num
+        FROM "User"
+        WHERE email IS NOT NULL
+    ) duplicates
+    WHERE row_num > 1
+);
+
 CREATE UNIQUE INDEX "User_email_key"
 ON "User"("email");
 

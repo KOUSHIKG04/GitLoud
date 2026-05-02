@@ -20,7 +20,7 @@ export function MotionSection({
       className={className}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, amount: 0.25 }}
+      viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
       variants={fadeUp}
     >
@@ -67,7 +67,7 @@ export function MotionViewportStagger({
       className={className}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: false, amount: 0.2 }}
+      viewport={{ once: true, amount: 0.2 }}
       variants={{
         hidden: {},
         visible: {

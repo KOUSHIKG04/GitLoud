@@ -7,6 +7,10 @@ import { getCurrentSession } from "@/lib/session";
 export const metadata: Metadata = {
   title: "Sign Up",
   description: "Create a GitLoud account to generate and save GitHub content.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function SignUpPage({

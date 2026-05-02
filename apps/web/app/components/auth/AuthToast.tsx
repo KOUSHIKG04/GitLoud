@@ -25,7 +25,7 @@ export function AuthToast() {
     }
 
     if (verified === "1") {
-      toast.success("Email verified!! You are signed in.", {
+      toast.success("Email verified. You can sign in now.", {
         duration: 7000,
       });
     }

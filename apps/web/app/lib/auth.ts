@@ -3,6 +3,12 @@ import { sendVerificationEmail } from "@/lib/email";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
+const githubClientId = process.env.GITHUB_CLIENT_ID; const githubClientSecret = process.env.GITHUB_CLIENT_SECRET;
+
+if ((githubClientId && !githubClientSecret) || (!githubClientId && githubClientSecret)) {
+  throw new Error("Both GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET must be set if you want to use the GitHub provider, or both must be unset to disable it.");
+}
+
 export const auth = betterAuth({
   appName: "GitLoud",
   baseURL:
@@ -12,6 +18,9 @@ export const auth = betterAuth({
   database: prismaAdapter(db, {
     provider: "postgresql",
   }),
+  account: {
+    encryptOAuthTokens: true,
+  },
   emailAndPassword: {
     autoSignIn: true,
     enabled: true,
@@ -19,7 +28,7 @@ export const auth = betterAuth({
     requireEmailVerification: true,
   },
   emailVerification: {
-    autoSignInAfterVerification: true,
+    autoSignInAfterVerification: false,
     expiresIn: 60 * 60,
     sendOnSignIn: true,
     sendOnSignUp: true,
@@ -31,10 +40,14 @@ export const auth = betterAuth({
     },
   },
   socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID ?? "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
-    },
+    ...(githubClientId && githubClientSecret
+      ? {
+          github: {
+            clientId: githubClientId,
+            clientSecret: githubClientSecret,
+          },
+        }
+      : {}),
   },
   trustedOrigins: [
     "http://localhost:3000",

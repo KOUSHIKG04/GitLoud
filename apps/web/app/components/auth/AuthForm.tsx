@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { signIn, signUp } from "@/lib/auth-client";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -69,10 +68,7 @@ export function AuthForm({
       if (isSignUp) {
         const message = "CHECK YOUR INBOX TO VERIFY YOUR EMAIL, THEN SIGN-IN";
         setNotice(message);
-        toast.success(message, {
-          id: toastId,
-          duration: 7000,
-        });
+        toast.dismiss(toastId);
         return;
       } else {
         toast.success("Signed in", {

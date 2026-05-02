@@ -10,6 +10,13 @@ const emailFrom = process.env.EMAIL_FROM ?? "GitLoud <onboarding@resend.dev>";
 
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
+function redactEmail(email: string): string {
+  const [localPart, domain] = email.split("@");
+  if (!localPart || !domain) return "***";
+  if (localPart.length <= 2) return `***@${domain}`;
+  return `${localPart[0]}***${localPart[localPart.length - 1]}@${domain}`;
+}
+
 export async function sendVerificationEmail({
   to,
   url,
@@ -19,8 +26,7 @@ export async function sendVerificationEmail({
 }) {
   if (!resend) {
     logger.warn("RESEND_API_KEY is missing; email verification link was not sent", {
-      to,
-      url,
+      to: redactEmail(to),
     });
     return;
   }
@@ -36,7 +42,7 @@ export async function sendVerificationEmail({
   if (result.error) {
     logger.error("Verification email failed", {
       error: result.error.message,
-      to,
+      to: redactEmail(to),
     });
     return;
   }

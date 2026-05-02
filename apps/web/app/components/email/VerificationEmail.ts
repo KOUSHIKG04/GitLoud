@@ -30,7 +30,7 @@ export function VerificationEmail({ verificationUrl }: VerificationEmailProps) {
     "border-bottom: 1px solid #2f2f36",
     "padding: 30px 28px",
   ].join("; ");
-  const panelStyle = "padding: 28px; background: #101014";
+  const panelStyle = "padding: 8px; background: #101014";
   const buttonStyle = [
     "display: inline-block",
     "border: 1px solid #facc15",
@@ -46,7 +46,7 @@ export function VerificationEmail({ verificationUrl }: VerificationEmailProps) {
     "padding: 14px",
     "margin: 0 0 10px",
   ].join("; ");
-  const mutedStyle = "font-size: 13px; color: #a1a1aa";
+  const mutedStyle = "font-size: 12px; color: #a1a1aa";
 
   return `
     <div style="${pageStyle}">
@@ -94,7 +94,7 @@ export function VerificationEmail({ verificationUrl }: VerificationEmailProps) {
             </span>
           </div>
 
-          <p style="${mutedStyle}; margin: 22px 0 8px;">
+          <p style="${mutedStyle}; text-align: center; margin: 22px 0 8px; border-top: 1px solid #2f2f36;">
             This link expires soon. If the button does not work, paste this URL
             into your browser:
           </p>
@@ -103,7 +103,7 @@ export function VerificationEmail({ verificationUrl }: VerificationEmailProps) {
           </p>
         </div>
 
-        <div style="border-top: 1px solid #2f2f36; padding: 18px 28px;">
+        <div style="border-top: 1px solid #2f2f36; padding: 18px 28px; text-align: center;">
           <p style="${mutedStyle}; margin: 0;">
             If you did not create a GitLoud account, you can ignore this email.
           </p>

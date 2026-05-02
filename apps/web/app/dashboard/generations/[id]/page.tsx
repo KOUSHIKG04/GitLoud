@@ -4,6 +4,15 @@ import { Header } from "@/components/Header";
 import { getCurrentUserId } from "@/lib/session";
 import { GenerationDetailClient } from "./generation-detail-client";
 import { ChevronRight } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Generated Content",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default async function GenerationDetailPage({
   params,
