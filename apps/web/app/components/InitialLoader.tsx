@@ -65,10 +65,7 @@ export function InitialLoader() {
         >
           <span className="gitloud-loader-ring gitloud-loader-ring-outer" />
           <span className="gitloud-loader-ring gitloud-loader-ring-inner" />
-          <GitLoudLoadingLogo
-            size={120}
-            className="gitloud-loading-logo relative z-10 h-24 w-24 drop-shadow-[0_18px_28px_rgba(250,204,21,0.28)] sm:h-28 sm:w-28"
-          />
+          <GitLoudLoadingLogo className="gitloud-loading-logo relative z-10 h-24 w-24 drop-shadow-[0_18px_28px_rgba(250,204,21,0.28)] sm:h-28 sm:w-28" />
         </motion.div>
 
         <motion.div
