@@ -16,6 +16,7 @@ BEGIN
     SELECT 1
     FROM pg_constraint
     WHERE conname = 'MediaAttachment_generatedContent_tenant_check'
+      AND conrelid = to_regclass(format('%I.%I', current_schema(), 'MediaAttachment'))
   ) THEN
     ALTER TABLE "MediaAttachment" ADD CONSTRAINT "MediaAttachment_generatedContent_tenant_check"
     CHECK (

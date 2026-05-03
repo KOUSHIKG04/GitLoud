@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { MotionCursor } from "@/components/MotionCursor";
+import { LazyMotionCursor } from "@/components/LazyMotionCursor";
 import { AuthToast } from "@/components/auth/AuthToast";
 import { GeneratorSection } from "@/components/home/GeneratorSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { PhaseTwoUpdatesSection } from "@/components/home/PhaseTwoUpdatesSection";
-import {
-  getSeoFaqItems,
-  SeoFaqSection,
-} from "@/components/home/SeoFaqSection";
+import { getSeoFaqItems, SeoFaqSection } from "@/components/home/SeoFaqSection";
+import { getCurrentUserId } from "@/lib/session";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
@@ -72,7 +70,9 @@ const faqStructuredData = {
   })),
 };
 
-export default function Home() {
+export default async function Home() {
+  await getCurrentUserId();
+
   return (
     <main className="min-h-dvh flex flex-col overflow-x-hidden">
       <Suspense fallback={null}>
@@ -90,7 +90,7 @@ export default function Home() {
         }}
       />
 
-      <MotionCursor />
+      <LazyMotionCursor />
       <Header />
       <HeroSection />
       <GeneratorSection />

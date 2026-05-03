@@ -1,3 +1,5 @@
+import { Home } from "lucide-react";
+import { HomeLink } from "@/components/HomeLink";
 import Link from "next/link";
 
 export function Footer() {
@@ -11,6 +13,12 @@ export function Footer() {
 
         <nav aria-label="Footer navigation" className="flex flex-wrap gap-4">
           <Link
+            href="/examples"
+            className="px-3 py-1 border shadow-sm text-chart-3 relative transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary/50 after:transition-all after:duration-300 hover:text-primary/80 hover:after:w-full"
+          >
+            EXAMPLES
+          </Link>
+          <Link
             href="/dashboard"
             className="px-3 py-1 border shadow-sm text-chart-3 relative transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary/50 after:transition-all after:duration-300 hover:text-primary/80 hover:after:w-full"
           >
@@ -22,6 +30,11 @@ export function Footer() {
           >
             HISTORY
           </Link>
+          <HomeLink
+            className="px-3 py-1 border shadow-sm text-chart-3 relative transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary/50 after:transition-all after:duration-300 hover:text-primary/80 hover:after:w-full"
+          >
+            <Home className="size-4 mt-0.25" />
+          </HomeLink>
         </nav>
       </div>
     </footer>

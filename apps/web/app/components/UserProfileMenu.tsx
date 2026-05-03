@@ -19,7 +19,12 @@ export function UserProfileMenu() {
   const { user } = useUser();
 
   const email = user?.primaryEmailAddress?.emailAddress;
-  const displayName = getDisplayName(user?.fullName, email);
+  const displayName = getDisplayName(
+    user?.fullName,
+    getMetadataDisplayName(user?.unsafeMetadata),
+    user?.username,
+    email,
+  );
   const initials = getInitials(displayName);
 
   async function handleLogout() {
@@ -92,6 +97,8 @@ function getInitials(value: string) {
 
 function getDisplayName(
   fullName: string | null | undefined,
+  metadataDisplayName: string | undefined,
+  username: string | null | undefined,
   email: string | undefined,
 ) {
   const trimmedName = fullName?.trim();
@@ -100,7 +107,29 @@ function getDisplayName(
     return trimmedName;
   }
 
+  const trimmedMetadataDisplayName = metadataDisplayName?.trim();
+
+  if (trimmedMetadataDisplayName) {
+    return trimmedMetadataDisplayName;
+  }
+
+  const trimmedUsername = username?.trim();
+
+  if (trimmedUsername) {
+    return trimmedUsername;
+  }
+
   const emailName = email?.split("@")[0]?.trim();
 
   return emailName || "User";
+}
+
+function getMetadataDisplayName(metadata: unknown) {
+  if (typeof metadata !== "object" || metadata === null) {
+    return undefined;
+  }
+
+  const displayName = (metadata as { displayName?: unknown }).displayName;
+
+  return typeof displayName === "string" ? displayName : undefined;
 }

@@ -5,6 +5,8 @@ import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 
 const maxUploadBytes = 25 * 1024 * 1024;
+const imageUploadTimeoutMs = 15_000;
+const videoUploadTimeoutMs = 45_000;
 const allowedMimeTypes = new Set([
   "image/jpeg",
   "image/png",
@@ -83,7 +85,10 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const uploadTimeoutMs = resourceType === "video"
+      ? videoUploadTimeoutMs
+      : imageUploadTimeoutMs;
+    const timeoutId = setTimeout(() => controller.abort(), uploadTimeoutMs);
 
     let response: Response;
     try {

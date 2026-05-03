@@ -1,28 +1,24 @@
-import {
-  MotionItem,
-  MotionViewportStagger,
-} from "@/components/LandingMotion";
+import { MotionItem, MotionViewportStagger } from "@/components/LandingMotion";
 
 export function HowItWorksSection() {
   return (
-    <section className="bg-background px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
+    <section className="bg-background px-4 py-16 sm:px-6 lg:px-20 lg:py-24 items-center">
       <div className="mx-auto w-full max-w-6xl space-y-7">
-        <MotionViewportStagger className="max-w-3xl space-y-3">
+        <MotionViewportStagger className="mx-auto max-w-3xl space-y-3 text-center">
           <MotionItem>
-            <p className="text-sm font-semibold">HOW IT WORKS</p>
+            <p className="text-sm font-semibold text-center">HOW IT WORKS</p>
           </MotionItem>
 
           <MotionItem>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              From code change to share-ready update
+            <h2 className="text-2xl font-bold tracking-tight sm:text-xl text-center">
+              Turns code changes into clear updates GitLoud reads public GitHub
             </h2>
           </MotionItem>
 
           <MotionItem>
-            <p className="max-w-2xl text-xs leading-6 text-muted-foreground sm:text-sm">
-              Paste a public GitHub link once. GitLoud reads changed files,
-              stats, commit messages, and PR descriptions when available, then
-              turns that context into every format you need.
+            <p className="mx-auto max-w-3xl text-xs leading-6 text-muted-foreground sm:text-lg">
+              pull requests and commits, summarizes the technical work, and
+              creates platform-ready content for sharing progress.
             </p>
           </MotionItem>
         </MotionViewportStagger>

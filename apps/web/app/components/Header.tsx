@@ -3,6 +3,7 @@
 import { ThemeToggle } from "@/components/ToggleThemeBtn";
 import { Button } from "@/components/ui/button";
 import { UserProfileMenu } from "@/components/UserProfileMenu";
+import { HomeLink } from "@/components/HomeLink";
 import { ChevronLeft, History, Home } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
@@ -55,9 +56,9 @@ export function Header() {
           </Button>
         ) : null}
 
-        <Link href="/" className="text-lg font-bold tracking-tight">
+        <HomeLink className="text-lg font-bold tracking-tight">
           GitLoud
-        </Link>
+        </HomeLink>
       </div>
       <div className="flex items-center gap-3">
         {isLoaded && !isSignedIn ? (
@@ -108,9 +109,9 @@ export function Header() {
               aria-label="Go to home"
               title="Go to home"
             >
-              <Link href="/">
+              <HomeLink>
                 <Home className="size-4" />
-              </Link>
+              </HomeLink>
             </Button>
 
             <Button

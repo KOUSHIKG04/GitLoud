@@ -36,7 +36,9 @@ export function EmailCodeAuthForm({
     signUp,
   } = useSignUp();
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [code, setCode] = useState("");
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [step, setStep] = useState<"email" | "code">("email");
   const [pendingAction, setPendingAction] = useState<
     "email" | "google" | "code" | "resend" | null
@@ -92,13 +94,31 @@ export function EmailCodeAuthForm({
       return;
     }
 
+    if (!username.trim()) {
+      const message = "Enter a username to create an account.";
+      setErrorMessage(message);
+      toast.error(message, { duration: 7000 });
+      return;
+    }
+
+    if (!legalAccepted) {
+      const message =
+        "Accept the Terms and Privacy Policy to create an account.";
+      setErrorMessage(message);
+      toast.error(message, { duration: 7000 });
+      return;
+    }
+
     setPendingAction("email");
     setErrorMessage(null);
 
     try {
       await signUp.create({
         emailAddress: email.trim(),
-        legalAccepted: true,
+        unsafeMetadata: {
+          displayName: username.trim(),
+        },
+        legalAccepted,
       });
 
       await signUp.prepareEmailAddressVerification({
@@ -117,6 +137,11 @@ export function EmailCodeAuthForm({
   }
 
   async function continueWithGoogle() {
+    const redirectUrlComplete = new URL(
+      redirectUrl,
+      window.location.origin,
+    ).toString();
+
     if (mode === "sign-in") {
       if (!isSignInLoaded || !signIn) {
         return;
@@ -126,11 +151,6 @@ export function EmailCodeAuthForm({
       setErrorMessage(null);
 
       try {
-        const redirectUrlComplete = new URL(
-          redirectUrl,
-          window.location.origin,
-        ).toString();
-
         await signIn.authenticateWithRedirect({
           strategy: "oauth_google",
           redirectUrl: "/sso-callback",
@@ -149,15 +169,18 @@ export function EmailCodeAuthForm({
       return;
     }
 
+    if (!legalAccepted) {
+      const message =
+        "Accept the Terms and Privacy Policy to create an account.";
+      setErrorMessage(message);
+      toast.error(message, { duration: 7000 });
+      return;
+    }
+
     setPendingAction("google");
     setErrorMessage(null);
 
     try {
-      const redirectUrlComplete = new URL(
-        redirectUrl,
-        window.location.origin,
-      ).toString();
-
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
@@ -210,7 +233,10 @@ export function EmailCodeAuthForm({
           if (isOnlyMissingPassword(result.missingFields)) {
             await signUp.create({
               emailAddress: email.trim(),
-              legalAccepted: true,
+              unsafeMetadata: {
+                displayName: username.trim(),
+              },
+              legalAccepted,
             });
             await signUp.prepareEmailAddressVerification({
               strategy: "email_code",
@@ -308,9 +334,35 @@ export function EmailCodeAuthForm({
                 ? "Enter your email and we will send a one-time code."
                 : "Use your email to create an account and verify it with a one-time code."}
             </p>
+
+            {!isSignIn ? (
+              <label className="mt-6 mx-auto flex max-w-fit items-start justify-center gap-2 text-center text-xs leading-5 text-muted-foreground">
+                <input
+                  checked={legalAccepted}
+                  className="mt-1 size-3 shrink-0 accent-primary"
+                  disabled={isPending}
+                  onChange={(event) => setLegalAccepted(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>I agree to GitLoud&apos;s Terms and Privacy Policy.</span>
+              </label>
+            ) : null}
           </div>
 
           <div className="space-y-1.5 mt-6">
+            {!isSignIn ? (
+              <Input
+                id="username"
+                autoComplete="username"
+                className="mb-3 rounded-none"
+                disabled={isPending}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="CHOOSE A USERNAME"
+                type="text"
+                value={username}
+              />
+            ) : null}
+
             <Input
               id="email"
               autoComplete="email"
@@ -337,7 +389,11 @@ export function EmailCodeAuthForm({
 
           <Button
             className="w-full"
-            disabled={isPending || !email.trim()}
+            disabled={
+              isPending ||
+              !email.trim() ||
+              (!isSignIn && (!username.trim() || !legalAccepted))
+            }
             type="submit"
           >
             {pendingAction === "email" ? (
@@ -357,7 +413,7 @@ export function EmailCodeAuthForm({
 
           <Button
             className="w-full"
-            disabled={isPending}
+            disabled={isPending || (!isSignIn && !legalAccepted)}
             onClick={continueWithGoogle}
             type="button"
             variant="outline"

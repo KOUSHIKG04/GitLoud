@@ -18,9 +18,19 @@ export async function getCurrentUserId() {
     return null;
   }
 
+  const existingById = await db.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true },
+  });
+
+  if (existingById && !existingById.email.endsWith("@clerk.local")) {
+    return existingById.id;
+  }
+
   const user = await currentUser();
 
   if (!user) {
+    await createPlaceholderUser(userId);
     return userId;
   }
 
@@ -37,37 +47,24 @@ export async function getCurrentUserId() {
 
   const name =
     user.fullName ??
+    getMetadataDisplayName(user.unsafeMetadata) ??
     user.username ??
     user.primaryEmailAddress?.emailAddress ??
     null;
 
-  const existingById = await db.user.findUnique({
-    where: { id: userId },
-    select: { id: true, email: true },
-  });
-
-  if (existingById) {
-    const localUser = await db.user.update({
-      where: { id: existingById.id },
-      data: {
-        ...(email ? { email, emailVerified } : {}),
-        name,
-        image: user.imageUrl ?? null,
-      },
-      select: { id: true },
-    });
-
-    return localUser.id;
-  }
-
   if (!email) {
-    await db.user.create({
-      data: {
+    await db.user.upsert({
+      where: { id: userId },
+      create: {
         id: userId,
-        email: `${userId}@clerk.local`,
+        email: getPlaceholderEmail(userId),
         name,
         image: user.imageUrl ?? null,
         emailVerified: false,
+      },
+      update: {
+        name,
+        image: user.imageUrl ?? null,
       },
     });
 
@@ -78,6 +75,20 @@ export async function getCurrentUserId() {
     where: { email },
     select: { id: true },
   });
+
+  if (existingById && existingById.email.endsWith("@clerk.local")) {
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        email,
+        name,
+        image: user.imageUrl ?? null,
+        emailVerified,
+      },
+    });
+
+    return userId;
+  }
 
   if (existingByEmail) {
     if (existingByEmail.id !== userId) {
@@ -127,4 +138,32 @@ export async function getCurrentUserId() {
   });
 
   return userId;
+}
+
+async function createPlaceholderUser(userId: string) {
+  await db.user.upsert({
+    where: { id: userId },
+    create: {
+      id: userId,
+      email: getPlaceholderEmail(userId),
+      emailVerified: false,
+    },
+    update: {},
+  });
+}
+
+function getPlaceholderEmail(userId: string) {
+  return `${userId}@clerk.local`;
+}
+
+function getMetadataDisplayName(metadata: unknown) {
+  if (typeof metadata !== "object" || metadata === null) {
+    return undefined;
+  }
+
+  const displayName = (metadata as { displayName?: unknown }).displayName;
+
+  return typeof displayName === "string" && displayName.trim()
+    ? displayName.trim()
+    : undefined;
 }
