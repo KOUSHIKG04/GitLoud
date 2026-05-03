@@ -1,15 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { useUser } from "@clerk/nextjs";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -55,28 +47,10 @@ export function DashboardGetStartedButton() {
         </svg>
       </button>
 
-      <Dialog open={loginDialogOpen} onOpenChange={setLoginDialogOpen}>
-        <DialogContent className="rounded-none">
-          <DialogHeader className="my-3">
-            <DialogTitle className="text-[16px]">
-              Please log in to continue
-            </DialogTitle>
-            <DialogDescription>
-              Sign in or create an account to generate and save GitHub content.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button asChild variant="outline">
-              <Link href="/sign-in">SIGN IN</Link>
-            </Button>
-
-            <Button asChild>
-              <Link href="/sign-up">SIGN UP</Link>
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AuthRequiredDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+      />
     </>
   );
 }
