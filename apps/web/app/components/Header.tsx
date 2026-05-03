@@ -41,7 +41,7 @@ export function Header() {
   }
 
   return (
-    <header className="fixed rounded-xs left-1/2 top-5.5 z-50 flex w-[80%] -translate-x-1/2 items-center justify-between border border-border/70 bg-background/65 px-5 py-3 shadow-[0_18px_50px_rgba(0,0,0,0.12)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/45 dark:border-white/10 dark:bg-background/35 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+    <header className="fixed rounded-xs left-1/2 top-5.5 z-50 flex h-14 w-[80%] -translate-x-1/2 items-center justify-between border border-border/70 bg-background/65 px-5 py-0 shadow-[0_18px_50px_rgba(0,0,0,0.12)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/45 dark:border-white/10 dark:bg-background/35 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
       <div className="flex items-center gap-2">
         {showBackButton ? (
           <Button
@@ -58,7 +58,7 @@ export function Header() {
         ) : null}
 
         <HomeLink className="flex items-center gap-2 text-lg font-bold tracking-tight">
-          <AppLogo className="size-7" />
+          <AppLogo className="size-6" />
           <span>GitLoud</span>
         </HomeLink>
       </div>

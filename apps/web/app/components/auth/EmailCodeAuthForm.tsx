@@ -137,11 +137,16 @@ export function EmailCodeAuthForm({
   }
 
   async function continueWithGoogle() {
-    const resolvedRedirect = new URL(redirectUrl, window.location.origin);
-    const redirectUrlComplete =
-      resolvedRedirect.origin === window.location.origin
-        ? resolvedRedirect.toString()
-        : new URL("/", window.location.origin).toString();
+    let redirectUrlComplete: string;
+    try {
+      const resolvedRedirect = new URL(redirectUrl, window.location.origin);
+      redirectUrlComplete =
+        resolvedRedirect.origin === window.location.origin
+          ? resolvedRedirect.toString()
+          : new URL("/", window.location.origin).toString();
+    } catch {
+      redirectUrlComplete = new URL("/", window.location.origin).toString();
+    }
 
     if (mode === "sign-in") {
       if (!isSignInLoaded || !signIn) {
