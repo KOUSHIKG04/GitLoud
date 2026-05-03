@@ -14,11 +14,15 @@ export function ProfileSync() {
 
     syncedRef.current = true;
 
-    void fetch("/api/profile/sync", {
-      method: "POST",
-    }).catch(() => {
-      syncedRef.current = false;
-    });
+    void fetch("/api/profile/sync", { method: "POST" })
+      .then((res) => {
+        if (!res.ok) {
+          syncedRef.current = false;
+        }
+      })
+      .catch(() => {
+        syncedRef.current = false;
+      });
   }, [isLoaded, isSignedIn]);
 
   return null;

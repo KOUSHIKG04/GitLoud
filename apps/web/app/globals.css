@@ -141,150 +141,104 @@
 
 
 
-.gitloud-loading-mark {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: gitloud-mark-breathe 1.6s ease-in-out 1.2s infinite;
+.gitloud-loader-orbit::before {
+  position: absolute;
+  inset: 1.5rem;
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--primary) 18%, transparent);
+  filter: blur(18px);
+  content: "";
+  animation: gitloud-loader-glow 1.8s ease-in-out infinite;
 }
 
-.gitloud-loading-title {
-  position: relative;
-  display: inline-block;
-  overflow: hidden;
-}
-
-.gitloud-loading-title::after {
+.gitloud-loader-ring {
   position: absolute;
   inset: 0;
-  width: 0;
-  color: var(--foreground);
-  content: "PREPARING GITLOUD";
-  overflow: hidden;
-  white-space: nowrap;
-  animation: gitloud-title-fill 1.25s ease-in-out 0.65s forwards;
+  border: 1px solid color-mix(in oklch, var(--primary) 45%, transparent);
+  border-radius: 9999px;
 }
 
-.gitloud-loading-stem {
-  stroke-dasharray: 84;
-  stroke-dashoffset: 84;
-  animation: gitloud-stem-draw 0.55s ease-out forwards;
+.gitloud-loader-ring-outer {
+  border-top-color: var(--primary);
+  animation: gitloud-loader-spin 2.2s linear infinite;
 }
 
-.gitloud-loading-commit {
+.gitloud-loader-ring-inner {
+  inset: 1.25rem;
+  border-right-color: var(--primary);
+  opacity: 0.72;
+  animation: gitloud-loader-spin 1.55s linear infinite reverse;
+}
+
+.gitloud-loading-logo {
   transform-box: fill-box;
   transform-origin: center;
-  opacity: 0;
-  transform: scale(0.55);
-  animation:
-    gitloud-commit-pop 0.45s ease-out 0.35s forwards,
-    gitloud-commit-pulse 1.6s ease-in-out 1.2s infinite;
+  animation: gitloud-logo-float 1.6s ease-in-out infinite;
 }
 
-.gitloud-loading-commit-hole {
-  opacity: 0;
-  animation: gitloud-commit-hole-show 0.01s linear 0.35s forwards;
-}
-
-.gitloud-loading-wave {
+.gitloud-loading-logo path {
   transform-box: fill-box;
   transform-origin: center;
-  stroke-dasharray: 80;
-  stroke-dashoffset: 80;
+  animation: gitloud-logo-pulse 1.6s ease-in-out infinite;
 }
 
-.gitloud-loading-wave-inner {
-  opacity: 0;
-  animation:
-    gitloud-wave-draw 0.55s ease-out 0.7s forwards,
-    gitloud-wave-inner-loop 1.6s ease-in-out 1.25s infinite;
+.gitloud-loader-progress {
+  transform-origin: left;
+  animation: gitloud-loader-progress 2.4s ease-in-out infinite;
 }
 
-.gitloud-loading-wave-outer {
-  opacity: 0;
-  animation:
-    gitloud-wave-draw 0.6s ease-out 0.95s forwards,
-    gitloud-wave-outer-loop 1.6s ease-in-out 1.35s infinite;
-}
-
-@keyframes gitloud-stem-draw {
+@keyframes gitloud-loader-spin {
   to {
-    stroke-dashoffset: 0;
+    transform: rotate(360deg);
   }
 }
 
-@keyframes gitloud-title-fill {
-  to {
-    width: 100%;
-  }
-}
-
-@keyframes gitloud-commit-pop {
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes gitloud-commit-hole-show {
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes gitloud-wave-draw {
-  to {
-    opacity: 1;
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes gitloud-mark-breathe {
+@keyframes gitloud-loader-glow {
   0%,
   100% {
-    transform: scale(0.98);
-  }
-
-  50% {
-    transform: scale(1.02);
-  }
-}
-
-@keyframes gitloud-wave-inner-loop {
-  0%,
-  100% {
-    opacity: 0.6;
-    transform: scale(0.98);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes gitloud-wave-outer-loop {
-  0%,
-  100% {
-    opacity: 0.25;
-    transform: scale(0.96);
-  }
-
-  50% {
     opacity: 0.55;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
     transform: scale(1.08);
   }
 }
 
-@keyframes gitloud-commit-pulse {
+@keyframes gitloud-logo-float {
   0%,
   100% {
-    opacity: 0.9;
-    transform: scale(0.94);
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-0.35rem) scale(1.04);
+  }
+}
+
+@keyframes gitloud-logo-pulse {
+  0%,
+  100% {
+    opacity: 0.88;
   }
 
   50% {
     opacity: 1;
-    transform: scale(1.07);
+  }
+}
+
+@keyframes gitloud-loader-progress {
+  0% {
+    transform: translateX(-100%) scaleX(0.28);
+  }
+
+  45% {
+    transform: translateX(8%) scaleX(0.72);
+  }
+
+  100% {
+    transform: translateX(120%) scaleX(0.32);
   }
 }
 
