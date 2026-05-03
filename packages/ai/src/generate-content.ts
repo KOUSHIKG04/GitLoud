@@ -104,16 +104,80 @@ type ChangedFile = {
 
 type ContextBudget = (typeof CONTEXT_BUDGETS)[number];
 
+const SOURCE_FILE_EXTENSIONS = [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs",
+    ".css",
+    ".scss",
+    ".sql",
+    ".prisma",
+    ".json",
+    ".md",
+    ".yml",
+    ".yaml",
+];
+
+const IMPORTANT_CONFIG_FILES = [
+    "package.json",
+    "tsconfig.json",
+    "next.config.js",
+    "next.config.mjs",
+    "vite.config.ts",
+    "tailwind.config.ts",
+    "prisma/schema.prisma",
+];
+
+function getFileContextScore(file: ChangedFile) {
+    const filename = file.filename.toLowerCase();
+    const extensionScore = SOURCE_FILE_EXTENSIONS.some((extension) =>
+        filename.endsWith(extension),
+    )
+        ? 20
+        : 0;
+    const configScore = IMPORTANT_CONFIG_FILES.some((configFile) =>
+        filename.endsWith(configFile),
+    )
+        ? 25
+        : 0;
+    const patchScore = file.patch
+        ? Math.min(file.patch.length / 250, 20)
+        : 0;
+    const changeScore = Math.min(file.additions + file.deletions, 60) / 6;
+    const skippedPenalty = file.skipped ? -100 : 0;
+    const testScore = filename.includes(".test.") || filename.includes(".spec.")
+        ? 8
+        : 0;
+
+    return extensionScore + configScore + patchScore + changeScore + testScore + skippedPenalty;
+}
+
+function rankFilesForContext(files: ChangedFile[]) {
+    return [...files].sort((a, b) => {
+        const scoreDelta = getFileContextScore(b) - getFileContextScore(a);
+
+        if (scoreDelta !== 0) {
+            return scoreDelta;
+        }
+
+        return a.filename.localeCompare(b.filename);
+    });
+}
+
 function buildFilesContext(
     files: ChangedFile[],
     budget: ContextBudget,
 ) {
+    const rankedFiles = rankFilesForContext(files);
     const trimmedNotice =
         files.length > budget.maxFiles
             ? `\n\nNote: Showing the first ${budget.maxFiles} of ${files.length} changed files.`
             : "";
 
-    return files
+    return rankedFiles
         .slice(0, budget.maxFiles)
         .map((file) => {
             if (file.skipped) {

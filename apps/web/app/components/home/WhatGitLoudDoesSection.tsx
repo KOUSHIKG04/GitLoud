@@ -2,18 +2,18 @@ import { MotionItem, MotionViewportStagger } from "@/components/LandingMotion";
 
 export function WhatGitLoudDoesSection() {
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-16">
+    <section className="px-4 py-10 sm:px-6 lg:px-16 lg:py-14">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <MotionViewportStagger className="space-y-3">
           <MotionItem>
             <p className="text-sm font-semibold">WHAT GITLOUD DOES</p>
           </MotionItem>
 
-          <MotionItem>
+          {/* <MotionItem>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
               Turn code changes into clear updates
             </h2>
-          </MotionItem>
+          </MotionItem> */}
 
           <MotionItem>
             <p className="text-sm leading-6 text-muted-foreground sm:text-base">

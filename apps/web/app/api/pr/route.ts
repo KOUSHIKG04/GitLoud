@@ -4,7 +4,10 @@ import {
 } from "@repo/ai/generate-content";
 import { db } from "@repo/db/client";
 import { fetchCommit } from "@repo/github/fetch-commit";
-import { fetchPullRequest } from "@repo/github/fetch-pr";
+import {
+    fetchPullRequestHydrated,
+    fetchPullRequestMetadata,
+} from "@repo/github/fetch-pr";
 import type { CommitResult } from "@repo/shared/commit";
 import {
     getGithubUrlType,
@@ -13,7 +16,6 @@ import {
     parseGithubPullRequestUrl,
 } from "@repo/shared/github";
 import type { PullRequestResult } from "@repo/shared/pull-request";
-import { Octokit } from "@octokit/rest";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -43,22 +45,6 @@ function getContextHash(userContext: string | undefined) {
     const normalizedContext = userContext.replace(/\r\n?/g, "\n").trim();
 
     return createHash("sha256").update(normalizedContext).digest("hex");
-}
-
-async function isRepoPublic(owner: string, repo: string): Promise<boolean> {
-    const octokit = new Octokit({
-        auth: process.env.GITHUB_TOKEN,
-    });
-
-    try {
-        const { data } = await octokit.repos.get({ owner, repo });
-        return data.private === false;
-    } catch (error) {
-        if (isGithubRequestError(error) && error.status === 404) {
-            return false;
-        }
-        throw error;
-    }
 }
 
 function createProgressStream(
@@ -161,23 +147,12 @@ export async function POST(request: Request): Promise<Response> {
                 return;
             }
 
-            send({ type: "progress", message: "Checking repository access..." });
-
-            const isPublic = await isRepoPublic(owner, repo);
-            if (!isPublic) {
-                send({
-                    type: "error",
-                    message: "Only public repositories are supported right now. Private repository access is planned for Phase 2 after GitHub App permissions are added.",
-                });
-                return;
-            }
-
             send({
                 type: "progress",
-                message: "Fetching pull request metadata and diff from GitHub...",
+                message: "Fetching pull request metadata from GitHub...",
             });
 
-            const pullRequest = await fetchPullRequest({
+            const pullRequestMetadata = await fetchPullRequestMetadata({
                 owner,
                 repo,
                 number,
@@ -191,10 +166,10 @@ export async function POST(request: Request): Promise<Response> {
                 WHERE gc."userId" = ${appUserId}
                     AND gc."sourceType" = 'PULL_REQUEST'::"GeneratedSourceType"
                     AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
-                    AND pr."owner" = ${pullRequest.owner}
-                    AND pr."repo" = ${pullRequest.repo}
-                    AND pr."number" = ${pullRequest.number}
-                    AND pr."headSha" = ${pullRequest.headSha}
+                    AND pr."owner" = ${pullRequestMetadata.owner}
+                    AND pr."repo" = ${pullRequestMetadata.repo}
+                    AND pr."number" = ${pullRequestMetadata.number}
+                    AND pr."headSha" = ${pullRequestMetadata.headSha}
                 ORDER BY gc."createdAt" DESC
                 LIMIT 1
             `;
@@ -225,6 +200,21 @@ export async function POST(request: Request): Promise<Response> {
 
                 return;
             }
+
+            send({
+                type: "progress",
+                message: "Fetching changed files from GitHub...",
+            });
+
+            const pullRequest = await fetchPullRequestHydrated(
+                pullRequestMetadata,
+                {
+                    owner,
+                    repo,
+                    number,
+                    githubToken: process.env.GITHUB_TOKEN,
+                },
+            );
 
             send({
                 type: "progress",
@@ -328,17 +318,6 @@ export async function POST(request: Request): Promise<Response> {
 
         if (urlType === "commit") {
             const { owner, repo, sha } = parseGithubCommitUrl(url);
-
-            send({ type: "progress", message: "Checking repository access..." });
-
-            const isPublic = await isRepoPublic(owner, repo);
-            if (!isPublic) {
-                send({
-                    type: "error",
-                    message: "Only public repositories are supported right now. Private repository access is planned for Phase 2 after GitHub App permissions are added.",
-                });
-                return;
-            }
 
             send({
                 type: "progress",
@@ -495,6 +474,10 @@ function getErrorMessage(error: unknown) {
 
 
     if (isGithubRequestError(error)) {
+        if (error.status === 404) {
+            return "GitHub could not find that public PR or commit. Check the URL, or use a public repository.";
+        }
+
         return `GitHub API error: ${error.message}`;
     }
 

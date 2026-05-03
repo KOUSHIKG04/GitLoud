@@ -373,8 +373,8 @@ export function PrForm({
                 disabled={isSubmitting}
                 onClick={() => fileInputRef.current?.click()}
                 className="border-none bg-background text-foreground hover:bg-background/90 hover:text-foreground dark:bg-background dark:text-foreground"
-                aria-label="Upload media"
-                title="Upload media"
+                aria-label="Upload media here to include it when sharing generated posts."
+                title="Upload media here to include it when sharing generated posts."
               >
                 <Upload className="size-4" />
               </Button>

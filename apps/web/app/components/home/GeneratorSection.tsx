@@ -10,7 +10,7 @@ export function GeneratorSection() {
   return (
     <section
       id="generator"
-      className="bg-background px-4 pt-13 pb-16 sm:px-6 lg:px-20 lg:pt-21 lg:pb-24"
+      className="bg-background px-4 pt-8 pb-10 sm:px-6 lg:px-20 lg:pt-12 lg:pb-14"
     >
       <MotionViewportStagger className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <MotionViewportStagger className="space-y-3">

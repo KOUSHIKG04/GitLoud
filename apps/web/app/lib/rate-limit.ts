@@ -121,10 +121,6 @@ export async function persistentRateLimit({
             error,
         });
 
-        return {
-            success: false,
-            remaining: 0,
-            resetAt: new Date(Date.now() + windowMs),
-        };
+        return rateLimit({ key, limit, windowMs });
     }
 }
