@@ -14,7 +14,6 @@ export function AppLogo({
     <svg
       aria-label={title}
       className={cn("shrink-0", className)}
-      id="Layer_1"
       role="img"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"

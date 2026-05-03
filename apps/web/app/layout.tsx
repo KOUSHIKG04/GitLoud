@@ -1,6 +1,6 @@
 import "@/globals.css";
 import type { Metadata } from "next";
-import { InitialLoader } from "@/components/InitialLoader";
+// import { InitialLoader } from "@/components/InitialLoader";
 import { Providers } from "@/provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Geist_Mono } from "next/font/google";
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
       },
     ],
     shortcut: "/favicon.ico",
-    apple: "/app-logo.svg",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     type: "website",
@@ -97,7 +97,7 @@ export default function RootLayout({
       <body className={`${geistMono.variable} pt-18`}>
         <ClerkProvider>
           <Providers>
-            <InitialLoader />
+            {/* <InitialLoader /> */}
             {children}
             <Toaster />
           </Providers>
