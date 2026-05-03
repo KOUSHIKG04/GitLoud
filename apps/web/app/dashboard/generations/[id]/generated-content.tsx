@@ -42,10 +42,12 @@ export function GeneratedContentView({
     value: string,
     attachments: ShareMediaAttachment[] = [],
   ) {
+    const shareText = withMediaLinks(value, attachments);
+
     if (!navigator.share) {
-      const copied = await copyText(withMediaLinks(value, attachments));
+      const copied = await copyText(shareText);
       if (copied) {
-        toast.info("Copied text. Share it from any app.");
+        toast.info("Copied text with media link.");
       }
       return;
     }
@@ -65,13 +67,19 @@ export function GeneratedContentView({
         "canShare" in navigator &&
         navigator.canShare({ files })
       ) {
-        await navigator.share({ title, text: value, files });
+        await navigator.share({ title, text: shareText, files });
         return;
+      }
+
+      if (attachments.length > 0) {
+        toast.warning("This browser cannot attach media to this share.", {
+          duration: 5000,
+        });
       }
 
       await navigator.share({
         title,
-        text: withMediaLinks(value, attachments),
+        text: shareText,
       });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {

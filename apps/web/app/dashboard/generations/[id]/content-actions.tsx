@@ -5,7 +5,7 @@ import {
   LinkedInIcon,
   RedditIcon,
   XIcon,
-} from "@/asses/social-icons";
+} from "@/assest/social-icons";
 import { Button } from "@/components/ui/button";
 import { Clipboard, Loader2, Share2 } from "lucide-react";
 import { useState } from "react";

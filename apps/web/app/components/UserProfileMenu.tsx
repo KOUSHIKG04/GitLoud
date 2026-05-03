@@ -19,7 +19,7 @@ export function UserProfileMenu() {
   const { user } = useUser();
 
   const email = user?.primaryEmailAddress?.emailAddress;
-  const displayName = user?.fullName ?? email ?? "User";
+  const displayName = getDisplayName(user?.fullName, email);
   const initials = getInitials(displayName);
 
   async function handleLogout() {
@@ -88,4 +88,19 @@ function getInitials(value: string) {
       .map((part) => part[0]?.toUpperCase())
       .join("") || "U"
   );
+}
+
+function getDisplayName(
+  fullName: string | null | undefined,
+  email: string | undefined,
+) {
+  const trimmedName = fullName?.trim();
+
+  if (trimmedName && trimmedName !== email) {
+    return trimmedName;
+  }
+
+  const emailName = email?.split("@")[0]?.trim();
+
+  return emailName || "User";
 }
