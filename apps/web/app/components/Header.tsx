@@ -8,6 +8,7 @@ import { ChevronLeft, History, Home } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { AppLogo } from "@/assest/AppLogo";
 
 export function Header() {
   const pathname = usePathname();
@@ -56,8 +57,9 @@ export function Header() {
           </Button>
         ) : null}
 
-        <HomeLink className="text-lg font-bold tracking-tight">
-          GitLoud
+        <HomeLink className="flex items-center gap-2 text-lg font-bold tracking-tight">
+          <AppLogo className="size-7" />
+          <span>GitLoud</span>
         </HomeLink>
       </div>
       <div className="flex items-center gap-3">
@@ -89,7 +91,12 @@ export function Header() {
               </Link>
             </Button>
 
-            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
               <Link href="/sign-in">SIGN IN</Link>
             </Button>
 

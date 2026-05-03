@@ -10,15 +10,16 @@ export function HowItWorksSection() {
           </MotionItem>
 
           <MotionItem>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-xl text-center">
-              Turns code changes into clear updates GitLoud reads public GitHub
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl text-center">
+              Turns code changes into clear updates
             </h2>
           </MotionItem>
 
           <MotionItem>
-            <p className="mx-auto max-w-3xl text-xs leading-6 text-muted-foreground sm:text-lg">
-              pull requests and commits, summarizes the technical work, and
-              creates platform-ready content for sharing progress.
+            <p className="mx-auto max-w-3xl text-sm leading-6 text-muted-foreground sm:text-sm">
+              GitLoud reads public GitHub pull requests and commits, summarizes
+              the technical work, and creates platform-ready content for sharing
+              your progress.
             </p>
           </MotionItem>
         </MotionViewportStagger>

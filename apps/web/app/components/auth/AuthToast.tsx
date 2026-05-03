@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function AuthToast() {
   const router = useRouter();
@@ -11,6 +11,7 @@ export function AuthToast() {
   const authError = searchParams.get("auth_error");
   const verified = searchParams.get("verified");
   const handledSignalRef = useRef<string | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const signal = [auth, authError, verified].filter(Boolean).join(":");
@@ -40,8 +41,8 @@ export function AuthToast() {
       });
     }
 
-    router.replace("/");
-  }, [auth, authError, router, verified]);
+    router.replace(pathname);
+  }, [auth, authError, router, verified, pathname]);
 
   return null;
 }

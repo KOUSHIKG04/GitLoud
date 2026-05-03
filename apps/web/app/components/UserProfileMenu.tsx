@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useClerk, useUser } from "@clerk/nextjs";
+import { getUserDisplayName } from "@/lib/userDisplayName";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -19,12 +20,12 @@ export function UserProfileMenu() {
   const { user } = useUser();
 
   const email = user?.primaryEmailAddress?.emailAddress;
-  const displayName = getDisplayName(
-    user?.fullName,
-    getMetadataDisplayName(user?.unsafeMetadata),
-    user?.username,
+  const displayName = getUserDisplayName({
+    fullName: user?.fullName,
+    metadata: user?.unsafeMetadata,
+    username: user?.username,
     email,
-  );
+  });
   const initials = getInitials(displayName);
 
   async function handleLogout() {
@@ -93,43 +94,4 @@ function getInitials(value: string) {
       .map((part) => part[0]?.toUpperCase())
       .join("") || "U"
   );
-}
-
-function getDisplayName(
-  fullName: string | null | undefined,
-  metadataDisplayName: string | undefined,
-  username: string | null | undefined,
-  email: string | undefined,
-) {
-  const trimmedName = fullName?.trim();
-
-  if (trimmedName && trimmedName.toLowerCase() !== email?.toLowerCase()) {
-    return trimmedName;
-  }
-
-  const trimmedMetadataDisplayName = metadataDisplayName?.trim();
-
-  if (trimmedMetadataDisplayName) {
-    return trimmedMetadataDisplayName;
-  }
-
-  const trimmedUsername = username?.trim();
-
-  if (trimmedUsername) {
-    return trimmedUsername;
-  }
-
-  const emailName = email?.split("@")[0]?.trim();
-
-  return emailName || "User";
-}
-
-function getMetadataDisplayName(metadata: unknown) {
-  if (typeof metadata !== "object" || metadata === null) {
-    return undefined;
-  }
-
-  const displayName = (metadata as { displayName?: unknown }).displayName;
-
-  return typeof displayName === "string" ? displayName : undefined;
 }

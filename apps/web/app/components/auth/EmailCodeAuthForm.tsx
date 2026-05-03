@@ -137,10 +137,11 @@ export function EmailCodeAuthForm({
   }
 
   async function continueWithGoogle() {
-    const redirectUrlComplete = new URL(
-      redirectUrl,
-      window.location.origin,
-    ).toString();
+    const resolvedRedirect = new URL(redirectUrl, window.location.origin);
+    const redirectUrlComplete =
+      resolvedRedirect.origin === window.location.origin
+        ? resolvedRedirect.toString()
+        : new URL("/", window.location.origin).toString();
 
     if (mode === "sign-in") {
       if (!isSignInLoaded || !signIn) {
@@ -344,7 +345,29 @@ export function EmailCodeAuthForm({
                   onChange={(event) => setLegalAccepted(event.target.checked)}
                   type="checkbox"
                 />
-                <span>I agree to GitLoud&apos;s Terms and Privacy Policy.</span>
+                <span>
+                  I agree to GitLoud&apos;s{" "}
+                  <a
+                    aria-label="Read GitLoud Terms of Service"
+                    className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+                    href="/terms"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Terms
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    aria-label="Read GitLoud Privacy Policy"
+                    className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+                    href="/privacy"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </span>
               </label>
             ) : null}
           </div>
