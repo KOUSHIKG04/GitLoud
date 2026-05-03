@@ -131,7 +131,7 @@ export default async function HistoryPage({
           {visibleGenerations.length === 0 ? (
             <div className="border p-6 text-sm text-muted-foreground">
               {page === 1
-                ? " NO GENERATIONS YET."
+                ? "NO GENERATIONS YET."
                 : "NO GENERATIONS YET ON THIS PAGE."}
             </div>
           ) : (

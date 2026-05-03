@@ -16,7 +16,7 @@ import type {
 
 export function GeneratedContentSkeleton() {
   return Array.from({ length: 6 }).map((_, index) => (
-    <section key={index} className="border bg-card p-4 shadow-sm">
+    <section key={index} className="bg-card p-4 shadow-sm">
       <Skeleton className="h-4 w-36" />
       <div className="mt-4 space-y-2">
         <Skeleton className="h-4 w-full" />
@@ -48,7 +48,7 @@ export function SocialPostCard({
   onShare: ShareContentHandler;
 }) {
   return (
-    <section className="flex h-full flex-col gap-4 border bg-card p-4 text-card-foreground shadow-sm">
+    <section className="flex h-full flex-col gap-4 bg-card p-4 text-card-foreground shadow-sm">
       <h3 className="text-sm font-semibold">{title}</h3>
 
       <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
@@ -87,9 +87,11 @@ export function ContentBlock({
   return (
     <AccordionItem
       value={valueKey}
-      className="border border-border/50 bg-card px-4 text-card-foreground shadow-sm"
+      className="border-none bg-card px-4 text-card-foreground shadow-sm"
     >
-      <AccordionTrigger>{title}</AccordionTrigger>
+      <AccordionTrigger className="hover:no-underline">
+        {title}
+      </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4">
           <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
@@ -129,9 +131,11 @@ export function ImplementationBlock({
   return (
     <AccordionItem
       value="tech-used-and-features"
-      className="border border-border/50 bg-card px-4 text-card-foreground shadow-sm"
+      className="border-none bg-card px-4 text-card-foreground shadow-sm"
     >
-      <AccordionTrigger>Tech used and features</AccordionTrigger>
+      <AccordionTrigger className="hover:no-underline">
+        Tech used and features
+      </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4">
           <div className="space-y-4 text-sm leading-6 text-muted-foreground">

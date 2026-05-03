@@ -96,7 +96,7 @@ function getDisplayName(
 ) {
   const trimmedName = fullName?.trim();
 
-  if (trimmedName && trimmedName !== email) {
+  if (trimmedName && trimmedName.toLowerCase() !== email?.toLowerCase()) {
     return trimmedName;
   }
 

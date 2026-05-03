@@ -104,7 +104,7 @@ export default async function GenerationDetailPage({
           </p>
         </div>
 
-        <section className="grid gap-3 border bg-card p-3 text-card-foreground shadow-sm lg:grid-cols-[2fr_3fr]">
+        <section className="grid gap-3  bg-card p-3 text-card-foreground shadow-sm lg:grid-cols-[2fr_3fr]">
           <div className="space-y-3">
             <div className="grid grid-cols-3 overflow-hidden border bg-background">
               <SourceStat

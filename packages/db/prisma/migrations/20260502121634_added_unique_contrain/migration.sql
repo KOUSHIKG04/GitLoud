@@ -17,6 +17,21 @@ FROM "GeneratedContent" gc
 WHERE ma."generatedContentId" = gc."id"
   AND ma."generatedContentId" IS NOT NULL;
 
+-- Enforce that generation-linked media belongs to the same tenant while
+-- still allowing media to be uploaded before it is attached to a generation.
+ALTER TABLE "MediaAttachment" ADD CONSTRAINT "MediaAttachment_generatedContent_tenant_check"
+CHECK (
+  (
+    "generatedContentId" IS NULL
+    AND "generatedContentUserId" IS NULL
+  )
+  OR (
+    "generatedContentId" IS NOT NULL
+    AND "generatedContentUserId" IS NOT NULL
+    AND "userId" = "generatedContentUserId"
+  )
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "GeneratedContent_id_userId_key" ON "GeneratedContent"("id", "userId");
 

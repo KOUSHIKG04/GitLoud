@@ -51,15 +51,15 @@ export function EmailCodeAuthForm({
       return;
     }
 
-    setPendingAction("email");
-    setErrorMessage(null);
+    if (mode === "sign-in") {
+      if (!isSignInLoaded || !signIn) {
+        return;
+      }
 
-    try {
-      if (mode === "sign-in") {
-        if (!isSignInLoaded || !signIn) {
-          return;
-        }
+      setPendingAction("email");
+      setErrorMessage(null);
 
+      try {
         const attempt = await signIn.create({ identifier: email.trim() });
         const emailCodeFactor = attempt.supportedFirstFactors?.find(
           (factor) => factor.strategy === "email_code",
@@ -75,19 +75,35 @@ export function EmailCodeAuthForm({
           strategy: "email_code",
           emailAddressId: emailCodeFactor.emailAddressId,
         });
-      } else {
-        if (!isSignUpLoaded || !signUp) {
-          return;
-        }
 
-        await signUp.create({
-          emailAddress: email.trim(),
-          legalAccepted: true,
-        });
-        await signUp.prepareEmailAddressVerification({
-          strategy: "email_code",
-        });
+        setCode("");
+        setStep("code");
+      } catch (error) {
+        const message = getAuthErrorMessage(error);
+        setErrorMessage(message);
+        toast.error(message, { duration: 7000 });
+      } finally {
+        setPendingAction(null);
       }
+      return;
+    }
+
+    if (!isSignUpLoaded || !signUp) {
+      return;
+    }
+
+    setPendingAction("email");
+    setErrorMessage(null);
+
+    try {
+      await signUp.create({
+        emailAddress: email.trim(),
+        legalAccepted: true,
+      });
+
+      await signUp.prepareEmailAddressVerification({
+        strategy: "email_code",
+      });
 
       setCode("");
       setStep("code");
@@ -101,6 +117,38 @@ export function EmailCodeAuthForm({
   }
 
   async function continueWithGoogle() {
+    if (mode === "sign-in") {
+      if (!isSignInLoaded || !signIn) {
+        return;
+      }
+
+      setPendingAction("google");
+      setErrorMessage(null);
+
+      try {
+        const redirectUrlComplete = new URL(
+          redirectUrl,
+          window.location.origin,
+        ).toString();
+
+        await signIn.authenticateWithRedirect({
+          strategy: "oauth_google",
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete,
+        });
+      } catch (error) {
+        const message = getAuthErrorMessage(error);
+        setErrorMessage(message);
+        toast.error(message, { duration: 7000 });
+        setPendingAction(null);
+      }
+      return;
+    }
+
+    if (!isSignUpLoaded || !signUp) {
+      return;
+    }
+
     setPendingAction("google");
     setErrorMessage(null);
 
@@ -110,27 +158,11 @@ export function EmailCodeAuthForm({
         window.location.origin,
       ).toString();
 
-      if (mode === "sign-in") {
-        if (!isSignInLoaded || !signIn) {
-          return;
-        }
-
-        await signIn.authenticateWithRedirect({
-          strategy: "oauth_google",
-          redirectUrl: "/sso-callback",
-          redirectUrlComplete,
-        });
-      } else {
-        if (!isSignUpLoaded || !signUp) {
-          return;
-        }
-
-        await signUp.authenticateWithRedirect({
-          strategy: "oauth_google",
-          redirectUrl: "/sso-callback",
-          redirectUrlComplete,
-        });
-      }
+      await signUp.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/sso-callback",
+        redirectUrlComplete,
+      });
     } catch (error) {
       const message = getAuthErrorMessage(error);
       setErrorMessage(message);
@@ -170,7 +202,9 @@ export function EmailCodeAuthForm({
           return;
         }
 
-        const result = await signUp.attemptEmailAddressVerification({ code });
+        const result = await signUp.attemptEmailAddressVerification({
+          code,
+        });
 
         if (result.status === "missing_requirements") {
           if (isOnlyMissingPassword(result.missingFields)) {
@@ -190,7 +224,7 @@ export function EmailCodeAuthForm({
             return;
           }
 
-          const missingFields = formatMissingFields(result.missingFields);
+          const missingFields = result.missingFields.join(", ");
           throw new Error(
             missingFields
               ? `Could not complete sign up. Missing: ${missingFields}.`
@@ -473,8 +507,4 @@ function getAuthErrorMessage(error: unknown) {
 
 function isOnlyMissingPassword(missingFields: string[]) {
   return missingFields.length === 1 && missingFields[0] === "password";
-}
-
-function formatMissingFields(missingFields: string[]) {
-  return missingFields.join(", ");
 }
