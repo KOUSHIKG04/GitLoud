@@ -71,6 +71,7 @@
   --chart-3: oklch(0.681 0.162 75.834);
   --chart-4: oklch(0.554 0.135 66.442);
   --chart-5: oklch(0.476 0.114 61.907);
+  --gitloud-logo-accent: var(--primary);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -106,6 +107,7 @@
   --chart-3: oklch(0.681 0.162 75.834);
   --chart-4: oklch(0.554 0.135 66.442);
   --chart-5: oklch(0.476 0.114 61.907);
+  --gitloud-logo-accent: var(--primary);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.795 0.184 86.047);
@@ -134,6 +136,155 @@
     @apply font-mono;
     scroll-behavior: smooth;
     scroll-padding-top: 4rem;
+  }
+}
+
+
+
+.gitloud-loading-mark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gitloud-mark-breathe 1.6s ease-in-out 1.2s infinite;
+}
+
+.gitloud-loading-title {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+}
+
+.gitloud-loading-title::after {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  color: var(--foreground);
+  content: "PREPARING GITLOUD";
+  overflow: hidden;
+  white-space: nowrap;
+  animation: gitloud-title-fill 1.25s ease-in-out 0.65s forwards;
+}
+
+.gitloud-loading-stem {
+  stroke-dasharray: 84;
+  stroke-dashoffset: 84;
+  animation: gitloud-stem-draw 0.55s ease-out forwards;
+}
+
+.gitloud-loading-commit {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  transform: scale(0.55);
+  animation:
+    gitloud-commit-pop 0.45s ease-out 0.35s forwards,
+    gitloud-commit-pulse 1.6s ease-in-out 1.2s infinite;
+}
+
+.gitloud-loading-commit-hole {
+  opacity: 0;
+  animation: gitloud-commit-hole-show 0.01s linear 0.35s forwards;
+}
+
+.gitloud-loading-wave {
+  transform-box: fill-box;
+  transform-origin: center;
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+}
+
+.gitloud-loading-wave-inner {
+  opacity: 0;
+  animation:
+    gitloud-wave-draw 0.55s ease-out 0.7s forwards,
+    gitloud-wave-inner-loop 1.6s ease-in-out 1.25s infinite;
+}
+
+.gitloud-loading-wave-outer {
+  opacity: 0;
+  animation:
+    gitloud-wave-draw 0.6s ease-out 0.95s forwards,
+    gitloud-wave-outer-loop 1.6s ease-in-out 1.35s infinite;
+}
+
+@keyframes gitloud-stem-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes gitloud-title-fill {
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes gitloud-commit-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes gitloud-commit-hole-show {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gitloud-wave-draw {
+  to {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes gitloud-mark-breathe {
+  0%,
+  100% {
+    transform: scale(0.98);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes gitloud-wave-inner-loop {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gitloud-wave-outer-loop {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.96);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes gitloud-commit-pulse {
+  0%,
+  100% {
+    opacity: 0.9;
+    transform: scale(0.94);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.07);
   }
 }
 

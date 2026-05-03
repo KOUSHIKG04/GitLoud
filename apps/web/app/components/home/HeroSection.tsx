@@ -10,7 +10,7 @@ export function HeroSection() {
       <div className="mx-auto w-full max-w-sm text-center sm:max-w-2xl lg:max-w-4xl">
         <MotionStagger>
           <MotionItem>
-            <p className="mb-4 inline-flex items-center gap-2  bg-background/60 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm">
+            <p className="mb-5 border inline-flex items-center gap-2  bg-background/60 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm">
               <span className="h-2 w-2 rounded-full bg-chart-1" />
               Developer PR content assistant
             </p>

@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 const maxUploadBytes = 25 * 1024 * 1024;
 const imageUploadTimeoutMs = 15_000;
 const videoUploadTimeoutMs = 45_000;
+const cloudinaryDeleteTimeoutMs = 5_000;
 const allowedMimeTypes = new Set([
   "image/jpeg",
   "image/png",
@@ -150,20 +151,30 @@ export async function POST(request: Request): Promise<Response> {
           { public_id: upload.public_id, timestamp: deleteTimestamp },
           apiSecret,
         );
-
-        await fetch(
-          `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/destroy`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              public_id: upload.public_id,
-              api_key: apiKey,
-              timestamp: deleteTimestamp,
-              signature: deleteSignature,
-            }),
-          },
+        const deleteController = new AbortController();
+        const deleteTimeoutId = setTimeout(
+          () => deleteController.abort(),
+          cloudinaryDeleteTimeoutMs,
         );
+
+        try {
+          await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/destroy`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                public_id: upload.public_id,
+                api_key: apiKey,
+                timestamp: deleteTimestamp,
+                signature: deleteSignature,
+              }),
+              signal: deleteController.signal,
+            },
+          );
+        } finally {
+          clearTimeout(deleteTimeoutId);
+        }
       } catch (deleteError) {
         logger.error("Failed to delete Cloudinary asset after DB error", {
           publicId: upload.public_id,

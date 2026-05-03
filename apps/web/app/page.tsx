@@ -8,7 +8,7 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { PhaseTwoUpdatesSection } from "@/components/home/PhaseTwoUpdatesSection";
 import { getSeoFaqItems, SeoFaqSection } from "@/components/home/SeoFaqSection";
-import { getCurrentUserId } from "@/lib/session";
+import { ProfileSync } from "@/components/auth/ProfileSync";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
@@ -70,14 +70,13 @@ const faqStructuredData = {
   })),
 };
 
-export default async function Home() {
-  await getCurrentUserId();
-
+export default function Home() {
   return (
     <main className="min-h-dvh flex flex-col overflow-x-hidden">
       <Suspense fallback={null}>
         <AuthToast />
       </Suspense>
+      <ProfileSync />
 
       <script
         type="application/ld+json"

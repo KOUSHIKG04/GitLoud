@@ -1,5 +1,6 @@
 import { db } from "@repo/db/client";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { getUserDisplayName } from "@/lib/userDisplayName";
 
 export async function getCurrentSession() {
   const userId = await getAuthenticatedUserId();
@@ -45,12 +46,12 @@ export async function getCurrentUserId() {
     emailVerified = true;
   }
 
-  const name =
-    user.fullName ??
-    getMetadataDisplayName(user.unsafeMetadata) ??
-    user.username ??
-    user.primaryEmailAddress?.emailAddress ??
-    null;
+  const name = getUserDisplayName({
+    fullName: user.fullName,
+    metadata: user.unsafeMetadata,
+    username: user.username,
+    email: user.primaryEmailAddress?.emailAddress,
+  });
 
   if (!email) {
     await db.user.upsert({
@@ -154,16 +155,4 @@ async function createPlaceholderUser(userId: string) {
 
 function getPlaceholderEmail(userId: string) {
   return `${userId}@clerk.local`;
-}
-
-function getMetadataDisplayName(metadata: unknown) {
-  if (typeof metadata !== "object" || metadata === null) {
-    return undefined;
-  }
-
-  const displayName = (metadata as { displayName?: unknown }).displayName;
-
-  return typeof displayName === "string" && displayName.trim()
-    ? displayName.trim()
-    : undefined;
 }
