@@ -36,9 +36,9 @@ export function AttachedMediaSection({
           ))}
         </Accordion>
       ) : (
-        <div className="flex min-h-35 items-center justify-center border bg-background p-4 text-center text-sm text-muted-foreground">
-          No file attached. Add media to include it when sharing generated
-          posts.
+        <div className="flex min-h-25 items-center justify-center border bg-background p-4 text-center text-sm text-muted-foreground">
+          No file attached. Add media in dasboard before genration to include it
+          when sharing generated posts.
         </div>
       )}
     </section>

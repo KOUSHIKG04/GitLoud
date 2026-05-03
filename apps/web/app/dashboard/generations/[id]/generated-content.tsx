@@ -2,7 +2,6 @@
 
 import { Accordion } from "@/components/ui/accordion";
 import type { GeneratedContent } from "@repo/shared/generated-content";
-import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import {
   ContentBlock,
@@ -46,7 +45,7 @@ export function GeneratedContentView({
 
     if (!navigator.share) {
       const copied = await copyText(shareText);
-      if (copied) {
+      if (copied && attachments.length > 0) {
         toast.info("Copied text with media link.");
       }
       return;
@@ -71,7 +70,11 @@ export function GeneratedContentView({
         return;
       }
 
-      if (attachments.length > 0) {
+      if (
+        attachments.length > 0 &&
+        files.length > 0 &&
+        (!("canShare" in navigator) || !navigator.canShare({ files }))
+      ) {
         toast.warning("This browser cannot attach media to this share.", {
           duration: 5000,
         });
@@ -93,8 +96,8 @@ export function GeneratedContentView({
   return (
     <section className="space-y-4">
       <div className="border-t pt-6">
-        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-          GENERATED CONTENT <ChevronDown />
+        <h2 className="text-xl font-semibold tracking-tight">
+          GENERATED CONTENT
         </h2>
       </div>
 
@@ -144,6 +147,14 @@ export function GeneratedContentView({
 
           <Accordion
             type="multiple"
+            defaultValue={[
+              "short-summary",
+              "beginner-friendly-explanation",
+              "technical-summary",
+              "portfolio-bullet",
+              "changelog-entry",
+              "tech-used-and-features",
+            ]}
             className="grid items-start gap-4 md:grid-cols-2"
           >
             <ContentBlock
