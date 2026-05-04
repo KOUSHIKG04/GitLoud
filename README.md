@@ -46,22 +46,7 @@ workspace.
 
 ## Demo
 
-<div align="center">
-  <video
-    src="apps/web/public/gitloud-demo-video.mp4"
-    controls
-    width="100%"
-    poster="apps/web/public/app-logo-512.png"
-  >
-    Your browser does not support the video tag.
-  </video>
-
-  <p>
-    <a href="apps/web/public/gitloud-demo-video.mp4">
-      Watch the GitLoud demo video
-    </a>
-  </p>
-</div>
+https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
 
 ## Features
 
