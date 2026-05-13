@@ -28,6 +28,7 @@ const requestBodySchema = z.object({
     url: githubPrOrCommitUrlSchema,
     context: z.string().trim().max(1000).optional(),
     mediaAttachmentId: z.string().trim().min(1).max(128).optional(),
+    xPostLength: z.enum(["standard", "premium"]).default("standard"),
 });
 
 type ProgressEvent =
@@ -36,6 +37,11 @@ type ProgressEvent =
     | { type: "error"; message: string };
 
 type SendProgress = (event: ProgressEvent) => void;
+type StoredXPostLength = "STANDARD" | "PREMIUM";
+
+function getStoredXPostLengthData(xPostLength: StoredXPostLength) {
+    return { xPostLength };
+}
 
 function getContextHash(userContext: string | undefined) {
     if (!userContext) {
@@ -135,6 +141,9 @@ export async function POST(request: Request): Promise<Response> {
     const urlType = getGithubUrlType(url);
     const contextHash = getContextHash(userContext);
     const mediaAttachmentId = parsedBody.data.mediaAttachmentId;
+    const xPostLength = parsedBody.data.xPostLength;
+    const storedXPostLength: StoredXPostLength =
+        xPostLength === "premium" ? "PREMIUM" : "STANDARD";
 
     return createProgressStream(async (send) => {
         send({ type: "progress", message: "Validating GitHub URL..." });
@@ -166,6 +175,7 @@ export async function POST(request: Request): Promise<Response> {
                 WHERE gc."userId" = ${appUserId}
                     AND gc."sourceType" = 'PULL_REQUEST'::"GeneratedSourceType"
                     AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+                    AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
                     AND pr."owner" = ${pullRequestMetadata.owner}
                     AND pr."repo" = ${pullRequestMetadata.repo}
                     AND pr."number" = ${pullRequestMetadata.number}
@@ -224,6 +234,7 @@ export async function POST(request: Request): Promise<Response> {
             const generatedContent = await generateContentFromPullRequest(
                 pullRequest,
                 userContext,
+                { xPostLength },
             );
 
             send({ type: "progress", message: "Saving generated content..." });
@@ -236,6 +247,7 @@ export async function POST(request: Request): Promise<Response> {
                         user: { connect: { id: appUserId } },
                         sourceType: "PULL_REQUEST",
                         contextHash,
+                        ...getStoredXPostLengthData(storedXPostLength),
                         pullRequest: {
                             connectOrCreate: {
                                 where: {
@@ -280,7 +292,12 @@ export async function POST(request: Request): Promise<Response> {
                 });
             } catch (error: unknown) {
                 if (isPrismaUniqueConstraintError(error)) {
-                    const existing = await findExistingPrGeneration(appUserId, pullRequest, contextHash);
+                    const existing = await findExistingPrGeneration(
+                        appUserId,
+                        pullRequest,
+                        contextHash,
+                        storedXPostLength,
+                    );
                     if (existing) {
                         savedGeneratedContent = existing;
                     } else {
@@ -338,6 +355,7 @@ export async function POST(request: Request): Promise<Response> {
                 WHERE gc."userId" = ${appUserId}
                     AND gc."sourceType" = 'COMMIT'::"GeneratedSourceType"
                     AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+                    AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
                     AND c."owner" = ${commit.owner}
                     AND c."repo" = ${commit.repo}
                     AND c."sha" = ${commit.sha}
@@ -380,6 +398,7 @@ export async function POST(request: Request): Promise<Response> {
             const generatedContent = await generateContentFromCommit(
                 commit,
                 userContext,
+                { xPostLength },
             );
 
             send({ type: "progress", message: "Saving generated content..." });
@@ -391,6 +410,7 @@ export async function POST(request: Request): Promise<Response> {
                         user: { connect: { id: appUserId } },
                         sourceType: "COMMIT",
                         contextHash,
+                        ...getStoredXPostLengthData(storedXPostLength),
                         commit: {
                             connectOrCreate: {
                                 where: {
@@ -432,7 +452,12 @@ export async function POST(request: Request): Promise<Response> {
                 });
             } catch (error: unknown) {
                 if (isPrismaUniqueConstraintError(error)) {
-                    const existing = await findExistingCommitGeneration(appUserId, commit, contextHash);
+                    const existing = await findExistingCommitGeneration(
+                        appUserId,
+                        commit,
+                        contextHash,
+                        storedXPostLength,
+                    );
                     if (existing) { savedGeneratedContent = existing; } else { throw error; }
                 } else {
                     throw error;
@@ -553,7 +578,12 @@ function isPrismaUniqueConstraintError(error: unknown) {
     );
 }
 
-async function findExistingPrGeneration(appUserId: string, pullRequest: PullRequestResult, contextHash: string | null) {
+async function findExistingPrGeneration(
+    appUserId: string,
+    pullRequest: PullRequestResult,
+    contextHash: string | null,
+    storedXPostLength: StoredXPostLength,
+) {
     const rows = await db.$queryRaw<Array<{ id: string }>>`
     SELECT gc."id"
     FROM "GeneratedContent" gc
@@ -561,6 +591,7 @@ async function findExistingPrGeneration(appUserId: string, pullRequest: PullRequ
     WHERE gc."userId" = ${appUserId}
       AND gc."sourceType" = 'PULL_REQUEST'::"GeneratedSourceType"
       AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+      AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
       AND pr."owner" = ${pullRequest.owner}
       AND pr."repo" = ${pullRequest.repo}
       AND pr."number" = ${pullRequest.number}
@@ -571,7 +602,12 @@ async function findExistingPrGeneration(appUserId: string, pullRequest: PullRequ
     return rows[0] ?? null;
 }
 
-async function findExistingCommitGeneration(appUserId: string, commit: CommitResult, contextHash: string | null) {
+async function findExistingCommitGeneration(
+    appUserId: string,
+    commit: CommitResult,
+    contextHash: string | null,
+    storedXPostLength: StoredXPostLength,
+) {
     const rows = await db.$queryRaw<Array<{ id: string }>>`
     SELECT gc."id"
     FROM "GeneratedContent" gc
@@ -579,6 +615,7 @@ async function findExistingCommitGeneration(appUserId: string, commit: CommitRes
     WHERE gc."userId" = ${appUserId}
       AND gc."sourceType" = 'COMMIT'::"GeneratedSourceType"
       AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+      AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
       AND c."owner" = ${commit.owner}
       AND c."repo" = ${commit.repo}
       AND c."sha" = ${commit.sha}

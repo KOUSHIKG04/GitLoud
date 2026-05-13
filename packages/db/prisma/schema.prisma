@@ -138,6 +138,7 @@ model GeneratedContent {
   pullRequestId    String?
   commitId         String?
   contextHash      String?
+  xPostLength      XPostLength         @default(STANDARD)
   shortSummary     String
   technicalSummary String
   features         String[]
@@ -166,8 +167,8 @@ model GeneratedContent {
   @@index([pullRequestId, userId])
   @@index([commitId, userId])
   @@unique([id, userId])
-  @@unique([userId, sourceType, contextHash, pullRequestId])
-  @@unique([userId, sourceType, contextHash, commitId])
+  @@unique([userId, sourceType, contextHash, xPostLength, pullRequestId], map: "GeneratedContent_pr_reuse_key")
+  @@unique([userId, sourceType, contextHash, xPostLength, commitId], map: "GeneratedContent_commit_reuse_key")
 }
 
 model MediaAttachment {
@@ -209,4 +210,9 @@ model RateLimitBucket {
 enum GeneratedSourceType {
   PULL_REQUEST
   COMMIT
+}
+
+enum XPostLength {
+  STANDARD
+  PREMIUM
 }
