@@ -58,7 +58,7 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
     </td>
     <td width="50%">
       <h3>Platform-ready output</h3>
-      <p>Create short summaries, technical notes, beginner explanations, changelog entries, portfolio bullets, and social posts.</p>
+      <p>Create short summaries, technical notes, beginner explanations, changelog entries, portfolio bullets, and social posts, including Standard X and X Premium post lengths.</p>
     </td>
   </tr>
   <tr>
@@ -68,7 +68,7 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
     </td>
     <td width="50%">
       <h3>Saved history</h3>
-      <p>Reopen previous generations, copy content, regenerate output, and delete records that are no longer needed.</p>
+      <p>Reopen previous generations, copy content, regenerate output with saved preferences, and delete records that are no longer needed.</p>
     </td>
   </tr>
   <tr>
@@ -78,7 +78,7 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
     </td>
     <td width="50%">
       <h3>Production-minded workflow</h3>
-      <p>Validate GitHub URLs, detect PRs versus commits, apply rate limits, parse AI output with shared schemas, and persist records through Prisma.</p>
+      <p>Validate GitHub URLs, detect PRs versus commits, apply rate limits, parse AI output with shared schemas, persist records through Prisma, and reuse matching generations safely.</p>
     </td>
   </tr>
 </table>
@@ -260,6 +260,10 @@ NEXT_PUBLIC_SITE_URL="https://your-domain.com"
 For managed PostgreSQL providers such as Neon, Supabase, or Railway, keep SSL enabled
 when the provider requires it.
 
+The database package loads environment files from root `.env.local`, root `.env`,
+and `packages/db/.env` in that order. Because dotenv keeps existing values by
+default, earlier files take precedence.
+
 ## Local Development
 
 Install dependencies:
@@ -290,9 +294,16 @@ http://localhost:3000
 
 The Prisma schema lives at `packages/db/prisma/schema.prisma`.
 
+Saved generations persist the selected X post length (`STANDARD` or `PREMIUM`) so
+regeneration keeps the same X output style. Standard and Premium generations are
+stored as separate reusable records for the same source/context.
+
 ```bash
 # Generate the Prisma client
 npm --workspace @repo/db run db:generate
+
+# Apply committed migrations to an existing database
+npx prisma migrate deploy --config packages/db/prisma.config.ts
 
 # Push schema changes during early development
 npm --workspace @repo/db run db:push
@@ -352,11 +363,13 @@ npm run build
 - GitHub inputs are validated and limited to public PR/commit URLs.
 - AI output is parsed through shared Zod schemas.
 - Media uploads are stored as metadata and are not sent as AI input.
+- X post length preferences are stored with generations and reused during regeneration.
 - Secrets must never be committed. Keep them in local `.env.local` and deployment environment variables.
 
 ## Current Scope
 
-GitLoud currently supports manual generation from public GitHub PRs and commits.
+GitLoud currently supports manual generation from public GitHub PRs and commits,
+with Standard X and X Premium post length selection.
 Private repository support, GitHub App installation, webhook ingestion, background
 queues, and advanced content editing are future expansion areas.
 
