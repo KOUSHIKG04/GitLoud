@@ -104,6 +104,10 @@ type ChangedFile = {
 
 type ContextBudget = (typeof CONTEXT_BUDGETS)[number];
 
+type GenerationOptions = {
+    xPostLength?: "standard" | "premium";
+};
+
 const SOURCE_FILE_EXTENSIONS = [
     ".ts",
     ".tsx",
@@ -343,6 +347,14 @@ function buildGenerationPrompt(input: string) {
     ].join("\n\n");
 }
 
+function getXPostLengthInstruction(options: GenerationOptions | undefined) {
+    if (options?.xPostLength === "premium") {
+        return "Write tweet as a longer X Premium-style post with 2-4 short paragraphs. It may exceed the standard short-post length, but must stay focused, readable, and grounded in the GitHub change.";
+    }
+
+    return "Write tweet as a concise standard X post.";
+}
+
 async function generateContent(inputs: string[]): Promise<GeneratedContent> {
     if (!process.env.GEMINI_API_KEY) {
         throw new Error("GEMINI_API_KEY is missing");
@@ -369,6 +381,7 @@ async function generateContent(inputs: string[]): Promise<GeneratedContent> {
 export async function generateContentFromPullRequest(
     pr: PullRequestResult,
     userContext?: string,
+    options?: GenerationOptions,
 ) {
     return generateContent(CONTEXT_BUDGETS.map((budget) => `Generate content for this GitHub pull request.
   Repository: ${pr.owner}/${pr.repo}
@@ -379,6 +392,7 @@ export async function generateContentFromPullRequest(
   Stats: +${pr.additions} -${pr.deletions}, ${pr.changedFiles} changed files
   URL: ${pr.url}
   User extra context requirements: ${userContext ?? "No extra context provided"}
+  X post length requirement: ${getXPostLengthInstruction(options)}
   Files:${buildFilesContext(pr.files, budget)}
   `));
 }
@@ -386,6 +400,7 @@ export async function generateContentFromPullRequest(
 export async function generateContentFromCommit(
     commit: CommitResult,
     userContext?: string,
+    options?: GenerationOptions,
 ) {
     return generateContent(CONTEXT_BUDGETS.map((budget) => `
   Generate content for this GitHub commit.
@@ -396,6 +411,7 @@ export async function generateContentFromCommit(
   Stats: +${commit.additions} -${commit.deletions}, ${commit.changedFiles} changed files
   URL: ${commit.url}
   User extra context requirements: ${userContext ?? "No extra context provided"}
+  X post length requirement: ${getXPostLengthInstruction(options)}
   Files:${buildFilesContext(commit.files, budget)}
   `));
 }

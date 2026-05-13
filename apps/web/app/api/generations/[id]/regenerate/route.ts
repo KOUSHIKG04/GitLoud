@@ -40,6 +40,22 @@ function buildGeneratedContentUpdate(generatedContent: GeneratedContent) {
   };
 }
 
+function getGenerationXPostLength(value: "STANDARD" | "PREMIUM") {
+  return value === "PREMIUM" ? "premium" : "standard";
+}
+
+async function getStoredXPostLength(generationId: string, userId: string) {
+  const rows = await db.$queryRaw<Array<{ xPostLength: "STANDARD" | "PREMIUM" }>>`
+    SELECT "xPostLength"
+    FROM "GeneratedContent"
+    WHERE "id" = ${generationId}
+      AND "userId" = ${userId}
+    LIMIT 1
+  `;
+
+  return rows[0]?.xPostLength ?? "STANDARD";
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -89,6 +105,8 @@ export async function POST(
       );
     }
 
+    const xPostLength = await getStoredXPostLength(generation.id, userId);
+
     if (generation.sourceType === "PULL_REQUEST") {
       if (!generation.pullRequest) {
         return NextResponse.json(
@@ -105,7 +123,9 @@ export async function POST(
       });
 
       const generatedContent =
-        await generateContentFromPullRequest(pullRequest);
+        await generateContentFromPullRequest(pullRequest, undefined, {
+          xPostLength: getGenerationXPostLength(xPostLength),
+        });
 
       const updated = await db.generatedContent.update({
         where: { id: generation.id },
@@ -146,7 +166,13 @@ export async function POST(
         githubToken: process.env.GITHUB_TOKEN,
       });
 
-      const generatedContent = await generateContentFromCommit(commit);
+      const generatedContent = await generateContentFromCommit(
+        commit,
+        undefined,
+        {
+          xPostLength: getGenerationXPostLength(xPostLength),
+        },
+      );
 
       const updated = await db.generatedContent.update({
         where: { id: generation.id },
