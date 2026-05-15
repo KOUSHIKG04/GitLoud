@@ -61,7 +61,7 @@ function InputOTPSlot({
   className?: string;
   index: number;
 }) {
-  const context = React.useContext(InputOTPContext);
+  const context = React.use(InputOTPContext);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   if (!context) {

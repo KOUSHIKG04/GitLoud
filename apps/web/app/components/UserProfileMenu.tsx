@@ -13,9 +13,10 @@ import { getUserDisplayName } from "@/lib/userDisplayName";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 export function UserProfileMenu() {
-  const router = useRouter();
+  const { push, refresh } = useRouter();
   const { signOut } = useClerk();
   const { user } = useUser();
 
@@ -34,8 +35,8 @@ export function UserProfileMenu() {
     try {
       await signOut();
       toast.success("Logged out", { id: toastId });
-      router.push("/");
-      router.refresh();
+      push("/");
+      refresh();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not log out",
@@ -47,7 +48,7 @@ export function UserProfileMenu() {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <button
+        <Button
           type="button"
           className="flex size-[31px] items-center justify-center border border-border bg-background p-0 rounded-none outline-none ring-offset-background transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           aria-label="Open user menu"
@@ -56,7 +57,7 @@ export function UserProfileMenu() {
           <span className="flex size-full items-center justify-center bg-card text-xs font-semibold uppercase text-card-foreground">
             {initials}
           </span>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="center" className="w-56 rounded-none mt-1.5">

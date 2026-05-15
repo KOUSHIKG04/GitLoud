@@ -1,15 +1,25 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function AuthToast() {
-  const router = useRouter();
+  return (
+    <Suspense fallback={null}>
+      <AuthToastContent />
+    </Suspense>
+  );
+}
+
+function AuthToastContent() {
+  const { replace } = useRouter();
   const searchParams = useSearchParams();
-  const auth = searchParams.get("auth");
-  const authError = searchParams.get("auth_error");
-  const verified = searchParams.get("verified");
+  const { get: rawGet } = searchParams;
+  const get = rawGet.bind(searchParams);
+  const auth = get("auth");
+  const authError = get("auth_error");
+  const verified = get("verified");
   const handledSignalRef = useRef<string | null>(null);
   const pathname = usePathname();
 
@@ -41,8 +51,8 @@ export function AuthToast() {
       });
     }
 
-    router.replace(pathname);
-  }, [auth, authError, router, verified, pathname]);
+    replace(pathname);
+  }, [auth, authError, replace, verified, pathname]);
 
   return null;
 }

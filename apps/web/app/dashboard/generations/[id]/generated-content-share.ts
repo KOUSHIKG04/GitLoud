@@ -34,28 +34,44 @@ export function withMediaLinks(
 }
 
 export async function getShareableFiles(attachments: ShareMediaAttachment[]) {
-  const files: File[] = [];
-  const failed: ShareMediaAttachment[] = [];
+  const results = await Promise.all(
+    attachments.map(async (attachment) => {
+      try {
+        const response = await fetch(attachment.secureUrl);
 
-  for (const attachment of attachments) {
-    try {
-      const response = await fetch(attachment.secureUrl);
+        if (!response.ok) {
+          return { file: null, failed: attachment };
+        }
 
-      if (!response.ok) {
-        failed.push(attachment);
-        continue;
+        const blob = await response.blob();
+        const file = new File([blob], attachment.fileName, {
+          type: attachment.mimeType || blob.type,
+        });
+
+        return { file, failed: null };
+      } catch {
+        return { file: null, failed: attachment };
+      }
+    }),
+  );
+
+  const { files, failed } = results.reduce(
+    (acc, result) => {
+      if (result.file) {
+        acc.files.push(result.file);
       }
 
-      const blob = await response.blob();
-      files.push(
-        new File([blob], attachment.fileName, {
-          type: attachment.mimeType || blob.type,
-        }),
-      );
-    } catch {
-      failed.push(attachment);
-    }
-  }
+      if (result.failed) {
+        acc.failed.push(result.failed);
+      }
+
+      return acc;
+    },
+    {
+      files: [] as File[],
+      failed: [] as ShareMediaAttachment[],
+    },
+  );
 
   return { files, failed };
 }

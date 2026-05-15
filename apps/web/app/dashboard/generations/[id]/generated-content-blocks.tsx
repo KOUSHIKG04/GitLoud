@@ -15,8 +15,15 @@ import type {
 } from "./generated-content-types";
 
 export function GeneratedContentSkeleton() {
-  return Array.from({ length: 6 }).map((_, index) => (
-    <section key={index} className="bg-card p-4 shadow-sm">
+  return [
+    "short-summary",
+    "beginner-summary",
+    "technical-summary",
+    "portfolio-bullet",
+    "changelog-entry",
+    "implementation",
+  ].map((key) => (
+    <section key={key} className="bg-card p-4 shadow-sm">
       <Skeleton className="h-4 w-36" />
       <div className="mt-4 space-y-2">
         <Skeleton className="h-4 w-full" />
@@ -151,8 +158,8 @@ export function ImplementationBlock({
                 Features
               </h4>
               <ul className="list-disc space-y-1 pl-5">
-                {features.map((value, index) => (
-                  <li key={index} className="break-words">
+                {features.map((value) => (
+                  <li key={value} className="break-words">
                     {value}
                   </li>
                 ))}

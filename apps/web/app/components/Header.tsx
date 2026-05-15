@@ -12,36 +12,36 @@ import { AppLogo } from "@/assest/AppLogo";
 
 export function Header() {
   const pathname = usePathname();
-  const router = useRouter();
+  const { back, push } = useRouter();
   const showBackButton = pathname !== "/";
   const { isLoaded, isSignedIn } = useUser();
 
   function navigateBack() {
     if (pathname.startsWith("/dashboard/generations/")) {
-      router.push("/dashboard");
+      push("/dashboard");
       return;
     }
 
     if (pathname === "/dashboard/history") {
-      router.push("/dashboard");
+      push("/dashboard");
       return;
     }
 
     if (pathname === "/dashboard") {
-      router.push("/");
+      push("/");
       return;
     }
 
     if (window.history.length > 1) {
-      router.back();
+      back();
       return;
     }
 
-    router.push("/");
+    push("/");
   }
 
   return (
-    <header className="fixed rounded-xs left-1/2 top-5.5 z-50 flex h-14 w-[80%] -translate-x-1/2 items-center justify-between border border-border/70 bg-background/65 px-5 py-0 shadow-[0_18px_50px_rgba(0,0,0,0.12)] backdrop-blur-2xl supports-[backdrop-filter]:bg-background/45 dark:border-white/10 dark:bg-background/35 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+    <header className="fixed rounded-xs left-1/2 top-5.5 z-50 flex h-14 w-[80%] -translate-x-1/2 items-center justify-between border border-border/70 bg-background/65 px-5 py-0 shadow-lg backdrop-blur-2xl supports-[backdrop-filter]:bg-background/45 dark:border-white/10 dark:bg-background/35 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
       <div className="flex items-center gap-2">
         {showBackButton ? (
           <Button
@@ -112,7 +112,7 @@ export function Header() {
               asChild
               variant="outline"
               size="icon-sm"
-              className="size-8 rounded-none p-0 border-0 shadow-xs"
+              className="size-8 rounded-none p-0 border border-border shadow-xs"
               aria-label="Go to home"
               title="Go to home"
             >
@@ -125,7 +125,7 @@ export function Header() {
               asChild
               variant="outline"
               size="icon-sm"
-              className="size-8 rounded-none p-0 border-0 shadow-xs"
+              className="size-8 rounded-none p-0 shadow-xs border border-border"
               aria-label="Go to History"
               title="Go to History"
             >

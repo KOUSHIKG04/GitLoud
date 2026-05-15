@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import { CalendarIcon, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { DateRange } from "react-day-picker";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -35,11 +35,22 @@ function parseDateParam(value: string | null) {
 }
 
 export function HistoryDatePicker() {
-  const router = useRouter();
+  return (
+    <Suspense fallback={null}>
+      <HistoryDatePickerContent />
+    </Suspense>
+  );
+}
+
+function HistoryDatePickerContent() {
+  const { push } = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const fromParam = searchParams.get("from");
-  const toParam = searchParams.get("to");
+  const { get: rawGet, toString: rawToString } = searchParams;
+  const get = rawGet.bind(searchParams);
+  const toString = rawToString.bind(searchParams);
+  const fromParam = get("from");
+  const toParam = get("to");
   const [open, setOpen] = useState(false);
   const selectedRangeFromParams: DateRange | undefined = {
     from: parseDateParam(fromParam),
@@ -58,7 +69,7 @@ export function HistoryDatePicker() {
   }, [fromParam, toParam]);
 
   function updateRange(range: DateRange | undefined) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(toString());
 
     params.delete("page");
     params.delete("date");
@@ -76,7 +87,7 @@ export function HistoryDatePicker() {
     }
 
     const query = params.toString();
-    router.push(query ? `${pathname}?${query}` : pathname);
+    push(query ? `${pathname}?${query}` : pathname);
   }
 
   return (

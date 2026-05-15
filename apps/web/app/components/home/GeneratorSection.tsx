@@ -19,7 +19,7 @@ export function GeneratorSection() {
           </MotionItem>
 
           <MotionItem>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Paste a PR or commit and generate content
             </h2>
           </MotionItem>

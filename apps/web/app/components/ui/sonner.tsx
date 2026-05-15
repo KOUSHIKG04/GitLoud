@@ -1,6 +1,6 @@
 "use client";
 
-import { useTheme } from "next-themes";
+import { useTheme } from "@/theme-provider";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import {
   CircleCheckIcon,
@@ -24,9 +24,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
         warning: <TriangleAlertIcon className="size-4" />,
         error: <OctagonXIcon className="size-4" />,
         loading: (
-          <span className="flex h-4 w-4 shrink-0 items-center justify-center">
+          <span className="flex size-4 shrink-0 items-center justify-center">
             <Loader2Icon
-              className="h-4 w-4"
+              className="size-4"
               style={{
                 animation: "spin 1s linear infinite",
                 transformOrigin: "50% 50%",

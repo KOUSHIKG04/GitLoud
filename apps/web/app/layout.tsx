@@ -1,10 +1,10 @@
 import "@/globals.css";
 import type { Metadata } from "next";
-// import { InitialLoader } from "@/components/InitialLoader";
 import { Providers } from "@/provider";
 import { Toaster } from "@/components/ui/sonner";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { cookies } from "next/headers";
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
@@ -87,17 +87,33 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+type Theme = "light" | "dark" | "system";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("theme")?.value;
+  const initialTheme: Theme =
+    themeCookie === "light" ||
+    themeCookie === "dark" ||
+    themeCookie === "system"
+      ? themeCookie
+      : "system";
+  const htmlClassName = initialTheme === "system" ? undefined : initialTheme;
+
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body className={`${geistMono.variable} pt-18`}>
+    <html
+      lang="en"
+      className={htmlClassName}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
+      <body className={`${geistMono.variable} pt-18`} suppressHydrationWarning>
         <ClerkProvider>
-          <Providers>
-            {/* <InitialLoader /> */}
+          <Providers initialTheme={initialTheme}>
             {children}
             <Toaster />
           </Providers>

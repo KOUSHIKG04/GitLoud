@@ -16,7 +16,7 @@ export function RegenerateButton({
   onRegeneratingChange?: (isRegenerating: boolean) => void;
   onRegenerated?: (content: GeneratedContent) => void;
 }) {
-  const router = useRouter();
+  const { refresh } = useRouter();
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   function setRegenerating(value: boolean) {
@@ -52,7 +52,7 @@ export function RegenerateButton({
         id: toastId,
       });
 
-      router.refresh();
+      refresh();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not regenerate content";

@@ -16,7 +16,7 @@ const buckets = new Map<string, { count: number; resetAt: number; }>();
 let lastCleanup = Date.now();
 const CLEANUP_INTERVAL_MS = 60 * 1000;
 
-export function rateLimit({ key, limit, windowMs }: RateLimitOptions): RateLimitResult {
+function rateLimit({ key, limit, windowMs }: RateLimitOptions): RateLimitResult {
     const now = Date.now();
 
     if (now - lastCleanup > CLEANUP_INTERVAL_MS) {

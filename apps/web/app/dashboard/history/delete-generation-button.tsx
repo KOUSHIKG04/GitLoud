@@ -21,7 +21,7 @@ export function DeleteGenerationButton({
 }: {
   generationId: string;
 }) {
-  const router = useRouter();
+  const { refresh } = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -40,7 +40,7 @@ export function DeleteGenerationButton({
 
       toast.success("Deleted");
       setOpen(false);
-      router.refresh();
+      refresh();
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Could not delete generated content";

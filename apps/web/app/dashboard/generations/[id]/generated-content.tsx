@@ -18,10 +18,12 @@ type GeneratedContentViewProps = {
   mediaAttachments?: ShareMediaAttachment[];
 };
 
+const EMPTY_MEDIA_ATTACHMENTS: ShareMediaAttachment[] = [];
+
 export function GeneratedContentView({
   content,
   isRegenerating = false,
-  mediaAttachments = [],
+  mediaAttachments = EMPTY_MEDIA_ATTACHMENTS,
 }: GeneratedContentViewProps) {
   async function copyText(value: string) {
     try {
