@@ -74,17 +74,18 @@ export function ThemeProvider({
   children: React.ReactNode;
   initialTheme: Theme;
 }) {
-  const theme = useSyncExternalStore(
+  const theme = useSyncExternalStore<Theme>(
     subscribeToThemeChange,
     getCookieTheme,
     () => initialTheme,
   );
-  const systemTheme = useSyncExternalStore(
+  const systemTheme = useSyncExternalStore<ResolvedTheme>(
     subscribeToThemeChange,
     getSystemTheme,
     () => "light",
   );
-  const resolvedTheme = theme === "system" ? systemTheme : theme;
+  const resolvedTheme: ResolvedTheme =
+    theme === "system" ? systemTheme : theme;
 
   useEffect(() => {
     applyTheme(theme);
@@ -95,7 +96,7 @@ export function ThemeProvider({
     window.dispatchEvent(new Event(themeChangeEvent));
   }, []);
 
-  const value = useMemo(
+  const value = useMemo<ThemeContextValue>(
     () => ({
       theme,
       resolvedTheme,
