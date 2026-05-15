@@ -25,7 +25,7 @@ export function ContentExamplesSection() {
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="max-w-2xl space-y-3">
           <p className="text-sm font-semibold">EXAMPLES</p>
-          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Examples of developer content GitLoud can generate
           </h2>
           <p className="text-sm leading-6 text-muted-foreground sm:text-base">
@@ -55,8 +55,4 @@ export function ContentExamplesSection() {
       </div>
     </section>
   );
-}
-
-export function getContentExamples() {
-  return examples;
 }

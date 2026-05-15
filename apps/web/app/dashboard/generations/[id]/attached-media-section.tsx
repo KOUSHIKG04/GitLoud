@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Clipboard, Download, ExternalLink, Share2 } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import type { ShareMediaAttachment } from "./generated-content-types";
 import { formatBytes } from "./generated-content-share";
@@ -96,7 +97,7 @@ function MediaAttachmentItem({ media }: { media: ShareMediaAttachment }) {
 
       <AccordionContent>
         <div className="space-y-3 pb-4">
-          <div className="flex aspect-video items-center justify-center border bg-muted">
+          <div className="relative flex aspect-video items-center justify-center border bg-muted">
             {isVideo ? (
               <video
                 src={media.secureUrl}
@@ -104,11 +105,13 @@ function MediaAttachmentItem({ media }: { media: ShareMediaAttachment }) {
                 className="h-full w-full object-contain"
               />
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={media.secureUrl}
                 alt={media.fileName}
-                className="h-full w-full object-contain"
+                fill
+                sizes="(min-width: 1024px) 36rem, calc(100vw - 4rem)"
+                unoptimized
+                className="object-contain"
               />
             )}
           </div>

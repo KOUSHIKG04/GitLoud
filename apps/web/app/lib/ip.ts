@@ -7,7 +7,12 @@ export function getRequestIp(request: Request) {
     }
 
     if (forwardedFor) {
-        const parts = forwardedFor.split(",").map((part) => part.trim()).filter(Boolean);
+        const parts = forwardedFor
+            .split(",")
+            .flatMap((part) => {
+                const trimmed = part.trim();
+                return trimmed ? [trimmed] : [];
+            });
         return parts[0] ?? "unknown";
     }
 

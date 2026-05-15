@@ -1,7 +1,7 @@
 "use client";
 
 import type { GeneratedContent } from "@repo/shared/generated-content";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GeneratedContentView } from "./generated-content";
 import { RegenerateButton } from "./regenerate-button";
@@ -34,11 +34,6 @@ export function GenerationDetailClient({
   mediaAttachments: MediaAttachment[];
 }) {
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const [currentContent, setCurrentContent] = useState(content);
-
-  useEffect(() => {
-    setCurrentContent(content);
-  }, [content]);
 
   return (
     <>
@@ -80,7 +75,6 @@ export function GenerationDetailClient({
         <RegenerateButton
           generationId={generationId}
           onRegeneratingChange={setIsRegenerating}
-          onRegenerated={setCurrentContent}
         />
 
         <Button asChild variant="outline" className="ml-auto h-9 px-2.5">
@@ -92,7 +86,7 @@ export function GenerationDetailClient({
       </div>
 
       <GeneratedContentView
-        content={currentContent}
+        content={content}
         isRegenerating={isRegenerating}
         mediaAttachments={mediaAttachments}
       />

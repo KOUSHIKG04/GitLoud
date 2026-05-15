@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { LazyMotion, domAnimation, m } from "framer-motion";
 import type { ReactNode } from "react";
 
 const fadeUp = {
@@ -16,16 +16,18 @@ export function MotionSection({
   className?: string;
 }) {
   return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.25 }}
-      transition={{ duration: 0.45, ease: "easeOut" }}
-      variants={fadeUp}
-    >
-      {children}
-    </motion.div>
+    <LazyMotion features={domAnimation}>
+      <m.div
+        className={className}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.25 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        variants={fadeUp}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   );
 }
 
@@ -37,21 +39,23 @@ export function MotionStagger({
   className?: string;
 }) {
   return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: 0.08,
+    <LazyMotion features={domAnimation}>
+      <m.div
+        className={className}
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: 0.08,
+            },
           },
-        },
-      }}
-    >
-      {children}
-    </motion.div>
+        }}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   );
 }
 
@@ -63,32 +67,36 @@ export function MotionViewportStagger({
   className?: string;
 }) {
   return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-      variants={{
-        hidden: {},
-        visible: {
-          transition: {
-            staggerChildren: 0.1,
+    <LazyMotion features={domAnimation}>
+      <m.div
+        className={className}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={{
+          hidden: {},
+          visible: {
+            transition: {
+              staggerChildren: 0.1,
+            },
           },
-        },
-      }}
-    >
-      {children}
-    </motion.div>
+        }}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   );
 }
 
 export function MotionItem({ children }: { children: ReactNode }) {
   return (
-    <motion.div
-      variants={fadeUp}
-      transition={{ duration: 0.45, ease: "easeOut" }}
-    >
-      {children}
-    </motion.div>
+    <LazyMotion features={domAnimation}>
+      <m.div
+        variants={fadeUp}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   );
 }

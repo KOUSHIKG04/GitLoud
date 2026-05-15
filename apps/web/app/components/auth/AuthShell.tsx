@@ -16,7 +16,7 @@ export function AuthShell({
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl gap-8 px-4 py-10 md:grid-cols-[0.9fr_1.1fr] md:items-center lg:px-8">
         <div className="space-y-2">
           <p className="text-md font-semibold">{eyebrow}</p>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
             {title}
           </h1>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">

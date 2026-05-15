@@ -9,7 +9,6 @@ import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { PhaseTwoUpdatesSection } from "@/components/home/PhaseTwoUpdatesSection";
 import { getSeoFaqItems, SeoFaqSection } from "@/components/home/SeoFaqSection";
 import { ProfileSync } from "@/components/auth/ProfileSync";
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "GitHub PR Summary and Social Post Generator",
@@ -73,21 +72,15 @@ const faqStructuredData = {
 export default function Home() {
   return (
     <main className="min-h-dvh flex flex-col overflow-x-hidden">
-      <Suspense fallback={null}>
-        <AuthToast />
-      </Suspense>
+      <AuthToast />
       <ProfileSync />
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(faqStructuredData),
-        }}
-      />
+      <script type="application/ld+json">
+        {JSON.stringify(structuredData)}
+      </script>
+      <script type="application/ld+json">
+        {JSON.stringify(faqStructuredData)}
+      </script>
 
       <LazyMotionCursor />
       <Header />

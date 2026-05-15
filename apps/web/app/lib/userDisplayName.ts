@@ -33,7 +33,7 @@ export function getUserDisplayName({
   return emailName || "User";
 }
 
-export function getMetadataDisplayName(metadata: unknown) {
+function getMetadataDisplayName(metadata: unknown) {
   if (typeof metadata !== "object" || metadata === null) {
     return undefined;
   }

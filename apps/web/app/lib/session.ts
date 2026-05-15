@@ -2,11 +2,6 @@ import { db } from "@repo/db/client";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getUserDisplayName } from "@/lib/userDisplayName";
 
-export async function getCurrentSession() {
-  const userId = await getAuthenticatedUserId();
-  return userId ? { user: { id: userId } } : null;
-}
-
 export async function getAuthenticatedUserId() {
   const { userId } = await auth();
   return userId;
@@ -72,11 +67,6 @@ export async function getCurrentUserId() {
     return userId;
   }
 
-  const existingByEmail = await db.user.findUnique({
-    where: { email },
-    select: { id: true },
-  });
-
   if (existingById && existingById.email.endsWith("@clerk.local")) {
     await db.user.update({
       where: { id: userId },
@@ -90,6 +80,11 @@ export async function getCurrentUserId() {
 
     return userId;
   }
+
+  const existingByEmail = await db.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
 
   if (existingByEmail) {
     if (existingByEmail.id !== userId) {

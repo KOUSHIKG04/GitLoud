@@ -18,6 +18,12 @@ import {
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
+const sourceDateFormatter = new Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
 export const metadata: Metadata = {
   title: "Generated Content",
   robots: {
@@ -31,8 +37,10 @@ export default async function GenerationDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const userId = await getAuthenticatedUserId();
+  const [{ id }, userId] = await Promise.all([
+    params,
+    getAuthenticatedUserId(),
+  ]);
 
   if (!userId) {
     notFound();
@@ -98,7 +106,7 @@ export default async function GenerationDetailPage({
               <ChevronRight size={16} />
             </span>
           </p>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
           <p className="break-all text-sm text-muted-foreground">
             {source.owner}/{source.repo}
           </p>
@@ -251,9 +259,5 @@ function SourceMeta({
 }
 
 function formatSourceDate(value: Date) {
-  return new Intl.DateTimeFormat("en", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(value);
+  return sourceDateFormatter.format(value);
 }

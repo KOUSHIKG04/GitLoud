@@ -1,6 +1,12 @@
 "use client";
 
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import {
+  LazyMotion,
+  domAnimation,
+  m,
+  useMotionValue,
+  useSpring,
+} from "framer-motion";
 import { useEffect, useState } from "react";
 
 export function MotionCursor() {
@@ -40,18 +46,20 @@ export function MotionCursor() {
     };
   }, [cursorX, cursorY]);
 
-  if (!enabled) {
-    return null;
-  }
-
   return (
-    <motion.div
-      aria-hidden="true"
-      className="pointer-events-none fixed left-0 top-0 z-[100] size-5 rounded-full border border-black bg-black/10 dark:border-primary/80 dark:bg-primary/10 dark:mix-blend-difference"
-      style={{
-        x: springX,
-        y: springY,
-      }}
-    />
+    <LazyMotion features={domAnimation}>
+      <m.div
+        aria-hidden="true"
+        className={
+          enabled
+            ? "pointer-events-none fixed left-0 top-0 z-[100] size-5 rounded-full border border-black bg-black/10 dark:border-primary/80 dark:bg-primary/10 dark:mix-blend-difference"
+            : "hidden"
+        }
+        style={{
+          x: springX,
+          y: springY,
+        }}
+      />
+    </LazyMotion>
   );
 }

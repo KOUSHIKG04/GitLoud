@@ -10,7 +10,7 @@ export function WhatGitLoudDoesSection() {
           </MotionItem>
 
           {/* <MotionItem>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
               Turn code changes into clear updates
             </h2>
           </MotionItem> */}

@@ -111,7 +111,7 @@ export default async function HistoryPage({
           <div>
             <p className="text-sm font-semibold flex items-center gap-2">
               Dashboard <ChevronRight />
-              <span className="text-2xl font-bold tracking-tight">History</span>
+              <span className="text-2xl font-semibold tracking-tight">History</span>
             </p>
           </div>
 
