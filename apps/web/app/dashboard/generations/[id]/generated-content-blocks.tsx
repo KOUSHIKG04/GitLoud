@@ -158,8 +158,8 @@ export function ImplementationBlock({
                 Features
               </h4>
               <ul className="list-disc space-y-1 pl-5">
-                {features.map((value) => (
-                  <li key={value} className="break-words">
+                {features.map((value, index) => (
+                  <li key={`${value}-${index}`} className="break-words">
                     {value}
                   </li>
                 ))}
