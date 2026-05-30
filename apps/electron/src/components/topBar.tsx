@@ -1,7 +1,9 @@
 import { Minus, Square, X } from "lucide-react";
 
 function TopBar() {
-  const showWindowActions = window.gitloud?.platform !== "darwin";
+  const showWindowActions =
+    typeof window.gitloud !== "undefined" &&
+    window.gitloud.platform !== "darwin";
 
   return (
     <header className="top-bar">
