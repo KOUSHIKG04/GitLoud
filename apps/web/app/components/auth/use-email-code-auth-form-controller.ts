@@ -196,7 +196,7 @@ export function useEmailCodeAuthFormController({
         }
         await setSignUpActive({ session: result.createdSessionId });
       }
-      push(redirectUrl);
+      push(getSafeRedirectUrl(redirectUrl));
       refresh();
     } catch (error) {
       showAuthError(error);
