@@ -32,5 +32,9 @@
   "dependencies": {
     "next-cloudinary": "^6.17.5",
     "zod": "4.3.6"
+  },
+  "optionalDependencies": {
+    "@tailwindcss/oxide-linux-x64-gnu": "^4.2.4",
+    "lightningcss-linux-x64-gnu": "^1.32.0"
   }
 }
