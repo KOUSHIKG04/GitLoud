@@ -4,7 +4,7 @@ import { ThemeToggle } from "@/components/ToggleThemeBtn";
 import { Button } from "@/components/ui/button";
 import { UserProfileMenu } from "@/components/UserProfileMenu";
 import { HomeLink } from "@/components/HomeLink";
-import { ChevronLeft, History, Home } from "lucide-react";
+import { ChevronLeft, History, Home, LayoutDashboard } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -62,6 +62,7 @@ export function Header() {
           <span>GitLoud</span>
         </HomeLink>
       </div>
+      
       <div className="flex items-center gap-3">
         {isLoaded && !isSignedIn ? (
           <>
@@ -119,6 +120,32 @@ export function Header() {
               <HomeLink>
                 <Home className="size-4" />
               </HomeLink>
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              aria-label="Go to dashboard"
+              title="Go to dashboard"
+              className="hidden rounded-none border border-border shadow-xs sm:inline-flex"
+            >
+              <Link href="/dashboard">
+                <LayoutDashboard className="size-4" />
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              size="icon-sm"
+              className="size-8 rounded-none p-0 border border-border shadow-xs sm:hidden"
+              aria-label="Go to dashboard"
+              title="Go to dashboard"
+            >
+              <Link href="/dashboard">
+                <LayoutDashboard className="size-4" />
+              </Link>
             </Button>
 
             <Button
