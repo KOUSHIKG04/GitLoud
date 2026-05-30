@@ -23,7 +23,7 @@ export function ContentExamplesSection() {
   return (
     <section className="bg-background px-4 py-8 sm:px-6 lg:px-20 lg:py-12">
       <div className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="max-w-2xl space-y-3">
+        <div className="max-w-5xl space-y-3">
           <p className="text-sm font-semibold">EXAMPLES</p>
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Examples of developer content GitLoud can generate

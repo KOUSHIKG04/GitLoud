@@ -27,10 +27,10 @@ export default function ExamplesPage() {
       <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-14">
         <div className="mx-auto max-w-6xl space-y-4">
           <p className="text-sm font-semibold">GITLOUD EXAMPLES</p>
-          <h1 className="max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="max-w-5xl text-3xl font-semibold tracking-tight sm:text-5xl">
             GitHub PR summaries and developer posts examples
           </h1>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+          <p className="max-w-4xl text-sm leading-6 text-muted-foreground sm:text-base">
             Use these examples to understand the kind of summaries, changelog
             entries, portfolio bullets, and social posts GitLoud creates from
             public pull requests and commits.
