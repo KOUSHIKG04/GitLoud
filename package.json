@@ -5,6 +5,8 @@
     "dev": "turbo run dev",
     "web": "turbo run dev --filter=web",
     "mobile": "turbo run dev --filter=mobile",
+    "desktop": "npm --workspace gitloud-electron run dev",
+    "desktop:build": "npm --workspace gitloud-electron run build",
     "android": "npm --workspace mobile run android",
     "ios": "npm --workspace mobile run ios",
     "build": "turbo run build",
