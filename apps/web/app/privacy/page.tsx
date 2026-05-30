@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Renders the Privacy Policy static page.
+ *
+ * @returns React page layout component.
+ */
 export default function PrivacyPage() {
   return (
     <main className="min-h-dvh bg-background text-foreground">

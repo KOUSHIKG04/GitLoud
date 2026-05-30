@@ -21,12 +21,23 @@ type ThemeContextValue = {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 const themeChangeEvent = "gitloud-theme-change";
 
+/**
+ * Determines the resolved theme based on the user's system preferences.
+ *
+ * @returns The resolved theme string ("dark" or "light").
+ */
 function getSystemTheme(): ResolvedTheme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
 
+/**
+ * Retrieves the preferred theme from document cookies.
+ * Falls back to "system" if no valid cookie is found.
+ *
+ * @returns The client theme preference.
+ */
 function getCookieTheme(): Theme {
   const themeCookie = document.cookie
     .split("; ")
@@ -44,6 +55,12 @@ function getCookieTheme(): Theme {
   return "system";
 }
 
+/**
+ * Updates the document body class and colorScheme style properties to match the selected theme.
+ *
+ * @param theme - The theme key to apply.
+ * @returns The resolved theme applied to the document.
+ */
 function applyTheme(theme: Theme): ResolvedTheme {
   const resolvedTheme = theme === "system" ? getSystemTheme() : theme;
   const root = document.documentElement;
@@ -55,6 +72,12 @@ function applyTheme(theme: Theme): ResolvedTheme {
   return resolvedTheme;
 }
 
+/**
+ * Subscribes to changes in system theme preferences or custom change events.
+ *
+ * @param callback - Event handler invoked when a theme change occurs.
+ * @returns A cleanup function to unsubscribe from listeners.
+ */
 function subscribeToThemeChange(callback: () => void) {
   const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -67,6 +90,14 @@ function subscribeToThemeChange(callback: () => void) {
   };
 }
 
+/**
+ * Provides context values for the theme and resolvedTheme state variables.
+ *
+ * @param props - React element properties.
+ * @param props.children - Child elements to render.
+ * @param props.initialTheme - The default theme to render initially.
+ * @returns ThemeContext provider container.
+ */
 export function ThemeProvider({
   children,
   initialTheme,
@@ -110,6 +141,12 @@ export function ThemeProvider({
   );
 }
 
+/**
+ * Custom React Hook to consume the ThemeContext.
+ * Throws an error if used outside a ThemeProvider.
+ *
+ * @returns The ThemeContext context value.
+ */
 export function useTheme() {
   const context = use(ThemeContext);
 

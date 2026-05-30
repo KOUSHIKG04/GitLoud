@@ -2,11 +2,23 @@ import { db } from "@repo/db/client";
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { getUserDisplayName } from "@/lib/userDisplayName";
 
+/**
+ * Retrieves the currently authenticated user's ID from Clerk auth.
+ *
+ * @returns The Clerk user ID if authenticated, or undefined/null.
+ */
 export async function getAuthenticatedUserId() {
   const { userId } = await auth();
   return userId;
 }
 
+/**
+ * Retrieves the user ID for the current session, syncing the user from
+ * Clerk to the local database if necessary, and handling migrations/merging
+ * when a guest user is converted or linked.
+ *
+ * @returns The resolved local user ID, or null if not authenticated.
+ */
 export async function getCurrentUserId() {
   const userId = await getAuthenticatedUserId();
 
@@ -136,6 +148,11 @@ export async function getCurrentUserId() {
   return userId;
 }
 
+/**
+ * Creates a placeholder user record in the local database.
+ *
+ * @param userId - The Clerk user ID.
+ */
 async function createPlaceholderUser(userId: string) {
   await db.user.upsert({
     where: { id: userId },
@@ -148,6 +165,12 @@ async function createPlaceholderUser(userId: string) {
   });
 }
 
+/**
+ * Helper to construct a placeholder email using the user's Clerk ID.
+ *
+ * @param userId - The Clerk user ID.
+ * @returns The generated placeholder email string.
+ */
 function getPlaceholderEmail(userId: string) {
   return `${userId}@clerk.local`;
 }

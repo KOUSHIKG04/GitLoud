@@ -1,5 +1,10 @@
 import type { MetadataRoute } from "next";
 
+/**
+ * Generates the web app manifest configuration dynamically.
+ *
+ * @returns The Next.js Web App Manifest metadata route configuration.
+ */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "GitLoud",

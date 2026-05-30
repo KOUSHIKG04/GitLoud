@@ -6,6 +6,14 @@ import { ThemeProvider } from "@/theme-provider";
 
 type Theme = "light" | "dark" | "system";
 
+/**
+ * Renders third-party provider contexts (QueryClient and Theme) around the application layout.
+ *
+ * @param props - Element properties.
+ * @param props.children - Child elements to wrap.
+ * @param props.initialTheme - The default theme to inject.
+ * @returns Wrapped component hierarchy.
+ */
 export function Providers({
   children,
   initialTheme,

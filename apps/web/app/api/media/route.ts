@@ -30,6 +30,12 @@ type CloudinaryUploadResponse = {
   duration?: number;
 };
 
+/**
+ * Handles media uploads by forwarding requests to Cloudinary and storing details in the database.
+ *
+ * @param request - The incoming HTTP Request containing FormData with the media file.
+ * @returns A JSON response containing the database media attachment record, or an error.
+ */
 export async function POST(request: Request): Promise<Response> {
   const userId = await getCurrentUserId();
 
@@ -215,6 +221,13 @@ export async function POST(request: Request): Promise<Response> {
   }
 }
 
+/**
+ * Generates a SHA1 signature for secure Cloudinary uploads.
+ *
+ * @param params - Upload parameters.
+ * @param apiSecret - Cloudinary API Secret key.
+ * @returns HEX encoded SHA1 signature.
+ */
 function createCloudinarySignature(
   params: Record<string, string>,
   apiSecret: string,
@@ -227,6 +240,12 @@ function createCloudinarySignature(
   return createHash("sha1").update(`${payload}${apiSecret}`).digest("hex");
 }
 
+/**
+ * Checks if a value conforms to the CloudinaryUploadResponse interface.
+ *
+ * @param value - The parsed JSON body.
+ * @returns True if the value matches the upload response schema.
+ */
 function isCloudinaryUploadResponse(
   value: Partial<CloudinaryUploadResponse> | { error?: { message?: string } },
 ): value is CloudinaryUploadResponse {
@@ -243,6 +262,12 @@ function isCloudinaryUploadResponse(
   );
 }
 
+/**
+ * Translates an internal error into a clean user-facing error message.
+ *
+ * @param error - The thrown error object.
+ * @returns User-friendly error message.
+ */
 function getUploadErrorMessage(error: unknown) {
   if (!(error instanceof Error)) {
     logger.error("Upload error (non-Error type)", { error });

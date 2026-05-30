@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Renders the Terms of Service static page.
+ *
+ * @returns React page layout component.
+ */
 export default function TermsPage() {
   return (
     <main className="min-h-dvh bg-background text-foreground">

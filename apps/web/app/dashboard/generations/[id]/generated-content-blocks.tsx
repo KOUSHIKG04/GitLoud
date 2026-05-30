@@ -58,7 +58,7 @@ export function SocialPostCard({
     <section className="flex h-full flex-col gap-4 bg-card p-4 text-card-foreground shadow-sm">
       <h3 className="text-sm font-semibold">{title}</h3>
 
-      <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+      <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6 text-muted-foreground">
         {value}
       </p>
 
@@ -101,7 +101,7 @@ export function ContentBlock({
       </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4">
-          <p className="whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+          <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6 text-muted-foreground">
             {value}
           </p>
 
@@ -150,7 +150,7 @@ export function ImplementationBlock({
               <h4 className="text-sm font-medium text-card-foreground">
                 Tech used
               </h4>
-              <p className="break-words">{techText}</p>
+              <p className="wrap-break-word">{techText}</p>
             </div>
 
             <div className="space-y-1">
@@ -159,7 +159,7 @@ export function ImplementationBlock({
               </h4>
               <ul className="list-disc space-y-1 pl-5">
                 {features.map((value, index) => (
-                  <li key={`${value}-${index}`} className="break-words">
+                  <li key={`${value}-${index}`} className="wrap-break-word">
                     {value}
                   </li>
                 ))}

@@ -2,6 +2,11 @@ import type { MetadataRoute } from "next";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud.app";
 
+/**
+ * Generates the sitemap.xml dynamically.
+ *
+ * @returns The Next.js Sitemap metadata route configuration.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
