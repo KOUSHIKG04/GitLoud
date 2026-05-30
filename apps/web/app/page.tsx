@@ -69,6 +69,13 @@ const faqStructuredData = {
   })),
 };
 
+/**
+ * Renders the main GitLoud landing page / home page.
+ * Includes SEO structured data scripts, dynamic motion cursor, hero elements,
+ * generator interface, features list, and FAQs section.
+ *
+ * @returns React page layout component.
+ */
 export default function Home() {
   return (
     <main className="min-h-dvh flex flex-col overflow-x-hidden">

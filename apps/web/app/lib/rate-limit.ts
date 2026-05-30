@@ -16,6 +16,15 @@ const buckets = new Map<string, { count: number; resetAt: number; }>();
 let lastCleanup = Date.now();
 const CLEANUP_INTERVAL_MS = 60 * 1000;
 
+/**
+ * Checks and updates an in-memory rate limit bucket for a given key.
+ *
+ * @param options - The rate limit configuration option parameters.
+ * @param options.key - The unique key identifying the client or action.
+ * @param options.limit - The maximum number of allowed requests.
+ * @param options.windowMs - The time window in milliseconds.
+ * @returns The rate limit status indicating success, remaining requests, and reset time.
+ */
 function rateLimit({ key, limit, windowMs }: RateLimitOptions): RateLimitResult {
     const now = Date.now();
 
@@ -67,6 +76,16 @@ function rateLimit({ key, limit, windowMs }: RateLimitOptions): RateLimitResult 
 
 let lastPersistentCleanupMs = 0; const PERSISTENT_CLEANUP_INTERVAL_MS = 60_000;
 
+/**
+ * Checks and updates a persistent rate limit bucket stored in the database.
+ * Falls back to in-memory rate limiting if the database query fails.
+ *
+ * @param options - The rate limit configuration option parameters.
+ * @param options.key - The unique key identifying the client or action.
+ * @param options.limit - The maximum number of allowed requests.
+ * @param options.windowMs - The time window in milliseconds.
+ * @returns The rate limit status indicating success, remaining requests, and reset time.
+ */
 export async function persistentRateLimit({
     key,
     limit,
