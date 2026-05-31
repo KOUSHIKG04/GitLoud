@@ -1,19 +1,19 @@
 import {
-    generateContentFromCommit,
-    generateContentFromPullRequest,
+  generateContentFromCommit,
+  generateContentFromPullRequest,
 } from "@repo/ai/generate-content";
 import { db } from "@repo/db/client";
 import { fetchCommit } from "@repo/github/fetch-commit";
 import {
-    fetchPullRequestHydrated,
-    fetchPullRequestMetadata,
+  fetchPullRequestHydrated,
+  fetchPullRequestMetadata,
 } from "@repo/github/fetch-pr";
 import type { CommitResult } from "@repo/shared/commit";
 import {
-    getGithubUrlType,
-    githubPrOrCommitUrlSchema,
-    parseGithubCommitUrl,
-    parseGithubPullRequestUrl,
+  getGithubUrlType,
+  githubPrOrCommitUrlSchema,
+  parseGithubCommitUrl,
+  parseGithubPullRequestUrl,
 } from "@repo/shared/github";
 import type { PullRequestResult } from "@repo/shared/pull-request";
 import { createHash } from "node:crypto";
@@ -25,150 +25,151 @@ import { logger } from "@/lib/logger";
 import { getCurrentUserId } from "@/lib/session";
 
 const requestBodySchema = z.object({
-    url: githubPrOrCommitUrlSchema,
-    context: z.string().trim().max(1000).optional(),
-    mediaAttachmentId: z.string().trim().min(1).max(128).optional(),
-    xPostLength: z.enum(["standard", "premium"]).default("standard"),
+  url: githubPrOrCommitUrlSchema,
+  context: z.string().trim().max(1000).optional(),
+  mediaAttachmentId: z.string().trim().min(1).max(128).optional(),
+  xPostLength: z.enum(["standard", "premium"]).default("standard"),
 });
 
 type ProgressEvent =
-    | { type: "progress"; message: string }
-    | { type: "done"; data: unknown }
-    | { type: "error"; message: string };
+  | { type: "progress"; message: string }
+  | { type: "done"; data: unknown }
+  | { type: "error"; message: string };
 
 type SendProgress = (event: ProgressEvent) => void;
 type StoredXPostLength = "STANDARD" | "PREMIUM";
 
 function getStoredXPostLengthData(xPostLength: StoredXPostLength) {
-    return { xPostLength };
+  return { xPostLength };
 }
 
 function getContextHash(userContext: string | undefined) {
-    if (!userContext) {
-        return null;
-    }
+  if (!userContext) {
+    return null;
+  }
 
-    const normalizedContext = userContext.replace(/\r\n?/g, "\n").trim();
+  const normalizedContext = userContext.replace(/\r\n?/g, "\n").trim();
 
-    return createHash("sha256").update(normalizedContext).digest("hex");
+  return createHash("sha256").update(normalizedContext).digest("hex");
 }
 
 function createProgressStream(
-    run: (send: SendProgress) => Promise<void>,
+  run: (send: SendProgress) => Promise<void>,
 ): Response {
-    const encoder = new TextEncoder();
+  const encoder = new TextEncoder();
 
-    return new Response(
-        new ReadableStream({
-            async start(controller) {
-                const send: SendProgress = (event) => {
-                    controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
-                };
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        const send: SendProgress = (event) => {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        };
 
-                try {
-                    await run(send);
-                } catch (error) {
-                    logger.error("GitHub URL processing failed", {
-                        error: getErrorMessage(error),
-                    });
-                    send({ type: "error", message: getErrorMessage(error) });
-                } finally {
-                    controller.close();
-                }
-            },
-        }),
-        {
-            headers: { "Cache-Control": "no-cache", "Content-Type": "application/x-ndjson" },
-        },
-    );
+        try {
+          await run(send);
+        } catch (error) {
+          logger.error("GitHub URL processing failed", {
+            error: getErrorMessage(error),
+          });
+          send({ type: "error", message: getErrorMessage(error) });
+        } finally {
+          controller.close();
+        }
+      },
+    }),
+    {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-ndjson",
+      },
+    },
+  );
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const appUserId = await getCurrentUserId();
 
-    const appUserId = await getCurrentUserId();
+  if (!appUserId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-    if (!appUserId) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const ip = getRequestIp(request);
+  const limit = await persistentRateLimit({
+    key: `generate:${appUserId}:${ip}`,
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
 
-    const ip = getRequestIp(request);
-    const limit = await persistentRateLimit({
-        key: `generate:${appUserId}:${ip}`,
-        limit: 5,
-        windowMs: 10 * 60 * 1000,
-    });
+  if (!limit.success) {
+    return NextResponse.json(
+      { error: "Too many generation requests. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil(
+            (limit.resetAt.getTime() - Date.now()) / 1000,
+          ).toString(),
+        },
+      },
+    );
+  }
 
-    if (!limit.success) {
-        return NextResponse.json(
-            { error: "Too many generation requests. Please try again later." },
-            {
-                status: 429,
-                headers: {
-                    "Retry-After": Math.ceil((limit.resetAt.getTime() - Date.now()) / 1000).toString(),
-                },
-            },
-        );
-    }
+  let body: unknown;
 
-    let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
 
-    try {
-        body = await request.json();
-    } catch {
-        return NextResponse.json(
-            { error: "Invalid JSON body" },
-            { status: 400 },
-        );
-    }
+  const parsedBody = requestBodySchema.safeParse(body);
 
-    const parsedBody = requestBodySchema.safeParse(body);
+  if (!parsedBody.success) {
+    const message =
+      parsedBody.error.issues[0]?.message ??
+      "Enter a valid GitHub pull request or commit URL";
 
-    if (!parsedBody.success) {
-        const message =
-            parsedBody.error.issues[0]?.message ??
-            "Enter a valid GitHub pull request or commit URL";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 
-        return NextResponse.json({ error: message }, { status: 400 });
-    }
+  const userContext =
+    typeof parsedBody.data.context === "string" &&
+    parsedBody.data.context.trim().length > 0
+      ? parsedBody.data.context.trim()
+      : undefined;
 
-    const userContext =
-        typeof parsedBody.data.context === "string" &&
-            parsedBody.data.context.trim().length > 0
-            ? parsedBody.data.context.trim()
-            : undefined;
+  const url = parsedBody.data.url;
+  const urlType = getGithubUrlType(url);
+  const contextHash = getContextHash(userContext);
+  const mediaAttachmentId = parsedBody.data.mediaAttachmentId;
+  const xPostLength = parsedBody.data.xPostLength;
+  const storedXPostLength: StoredXPostLength =
+    xPostLength === "premium" ? "PREMIUM" : "STANDARD";
 
-    const url = parsedBody.data.url;
-    const urlType = getGithubUrlType(url);
-    const contextHash = getContextHash(userContext);
-    const mediaAttachmentId = parsedBody.data.mediaAttachmentId;
-    const xPostLength = parsedBody.data.xPostLength;
-    const storedXPostLength: StoredXPostLength =
-        xPostLength === "premium" ? "PREMIUM" : "STANDARD";
+  return createProgressStream(async (send) => {
+    send({ type: "progress", message: "Validating GitHub URL..." });
 
-    return createProgressStream(async (send) => {
-        send({ type: "progress", message: "Validating GitHub URL..." });
+    if (urlType === "pull-request") {
+      const { owner, repo, number } = parseGithubPullRequestUrl(url);
 
-        if (urlType === "pull-request") {
-            const { owner, repo, number } = parseGithubPullRequestUrl(url);
+      if (!Number.isInteger(number) || number <= 0) {
+        send({ type: "error", message: "Enter a valid GitHub PR URL" });
+        return;
+      }
 
-            if (!Number.isInteger(number) || number <= 0) {
-                send({ type: "error", message: "Enter a valid GitHub PR URL" });
-                return;
-            }
+      send({
+        type: "progress",
+        message: "Fetching pull request metadata from GitHub...",
+      });
 
-            send({
-                type: "progress",
-                message: "Fetching pull request metadata from GitHub...",
-            });
+      const pullRequestMetadata = await fetchPullRequestMetadata({
+        owner,
+        repo,
+        number,
+        githubToken: process.env.GITHUB_TOKEN,
+      });
 
-            const pullRequestMetadata = await fetchPullRequestMetadata({
-                owner,
-                repo,
-                number,
-                githubToken: process.env.GITHUB_TOKEN,
-            });
-
-            const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
+      const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
                 SELECT gc."id"
                 FROM "GeneratedContent" gc
                 INNER JOIN "PullRequest" pr ON pr."id" = gc."pullRequestId"
@@ -183,172 +184,170 @@ export async function POST(request: Request): Promise<Response> {
                 ORDER BY gc."createdAt" DESC
                 LIMIT 1
             `;
-            const existingGeneration = existingGenerations[0];
+      const existingGeneration = existingGenerations[0];
 
-            if (existingGeneration) {
-                await attachMediaToGeneration({
-                    mediaAttachmentId,
-                    generatedContentId: existingGeneration.id,
-                    userId: appUserId,
-                });
+      if (existingGeneration) {
+        await attachMediaToGeneration({
+          mediaAttachmentId,
+          generatedContentId: existingGeneration.id,
+          userId: appUserId,
+        });
 
-                logger.info("Reused existing pull request generation", {
-                    owner,
-                    repo,
-                    number,
-                    generatedContentId: existingGeneration.id,
-                });
+        logger.info("Reused existing pull request generation", {
+          owner,
+          repo,
+          number,
+          generatedContentId: existingGeneration.id,
+        });
 
-                send({
-                    type: "done",
-                    data: {
-                        sourceType: "pull-request",
-                        generatedContentId: existingGeneration.id,
-                        reused: true,
-                    },
-                });
+        send({
+          type: "done",
+          data: {
+            sourceType: "pull-request",
+            generatedContentId: existingGeneration.id,
+            reused: true,
+          },
+        });
 
-                return;
-            }
+        return;
+      }
 
-            send({
-                type: "progress",
-                message: "Fetching changed files from GitHub...",
-            });
+      send({
+        type: "progress",
+        message: "Fetching changed files from GitHub...",
+      });
 
-            const pullRequest = await fetchPullRequestHydrated(
-                pullRequestMetadata,
-                {
-                    owner,
-                    repo,
-                    number,
-                    githubToken: process.env.GITHUB_TOKEN,
-                },
-            );
+      const pullRequest = await fetchPullRequestHydrated(pullRequestMetadata, {
+        owner,
+        repo,
+        number,
+        githubToken: process.env.GITHUB_TOKEN,
+      });
 
-            send({
-                type: "progress",
-                message: "Generating summaries and share-ready content with AI...",
-            });
+      send({
+        type: "progress",
+        message: "Generating summaries and share-ready content with AI...",
+      });
 
             const generatedContent = await generateContentFromPullRequest(
                 pullRequest,
                 userContext,
-                { xPostLength },
+                {
+                    xPostLength,
+                    onProgress: (message) => send({ type: "progress", message }),
+                },
             );
 
-            send({ type: "progress", message: "Saving generated content..." });
+      send({ type: "progress", message: "Saving generated content..." });
 
-
-            let savedGeneratedContent;
-            try {
-                savedGeneratedContent = await db.generatedContent.create({
-                    data: {
-                        user: { connect: { id: appUserId } },
-                        sourceType: "PULL_REQUEST",
-                        contextHash,
-                        ...getStoredXPostLengthData(storedXPostLength),
-                        pullRequest: {
-                            connectOrCreate: {
-                                where: {
-                                    userId_owner_repo_number_headSha: {
-                                        userId: appUserId,
-                                        owner: pullRequest.owner,
-                                        repo: pullRequest.repo,
-                                        number: pullRequest.number,
-                                        headSha: pullRequest.headSha,
-                                    },
-                                },
-                                create: {
-                                    userId: appUserId,
-                                    owner: pullRequest.owner,
-                                    repo: pullRequest.repo,
-                                    number: pullRequest.number,
-                                    title: pullRequest.title,
-                                    body: pullRequest.body,
-                                    author: pullRequest.author,
-                                    url: pullRequest.url,
-                                    state: pullRequest.state,
-                                    headSha: pullRequest.headSha,
-                                    additions: pullRequest.additions,
-                                    deletions: pullRequest.deletions,
-                                    changedFiles: pullRequest.changedFiles,
-                                },
-                            },
-                        },
-                        shortSummary: generatedContent.shortSummary,
-                        technicalSummary: generatedContent.technicalSummary,
-                        features: generatedContent.features,
-                        techUsed: generatedContent.techUsed,
-                        tweet: generatedContent.tweet,
-                        linkedInPost: generatedContent.linkedInPost,
-                        redditPost: generatedContent.redditPost,
-                        discordPost: generatedContent.discordPost,
-                        portfolioBullet: generatedContent.portfolioBullet,
-                        changelogEntry: generatedContent.changelogEntry,
-                        beginnerSummary: generatedContent.beginnerSummary,
-                    },
-                    select: { id: true },
-                });
-            } catch (error: unknown) {
-                if (isPrismaUniqueConstraintError(error)) {
-                    const existing = await findExistingPrGeneration(
-                        appUserId,
-                        pullRequest,
-                        contextHash,
-                        storedXPostLength,
-                    );
-                    if (existing) {
-                        savedGeneratedContent = existing;
-                    } else {
-                        throw error;
-                    }
-                } else {
-                    throw error;
-                }
-            }
-
-
-            await attachMediaToGeneration({
-                mediaAttachmentId,
-                generatedContentId: savedGeneratedContent.id,
-                userId: appUserId,
-            });
-
-            logger.info("Generated pull request content", {
-                owner,
-                repo,
-                number,
-                generatedContentId: savedGeneratedContent.id,
-            });
-
-            send({
-                type: "done",
-                data: {
-                    sourceType: "pull-request",
-                    generatedContentId: savedGeneratedContent.id,
+      let savedGeneratedContent;
+      try {
+        savedGeneratedContent = await db.generatedContent.create({
+          data: {
+            user: { connect: { id: appUserId } },
+            sourceType: "PULL_REQUEST",
+            contextHash,
+            ...getStoredXPostLengthData(storedXPostLength),
+            pullRequest: {
+              connectOrCreate: {
+                where: {
+                  userId_owner_repo_number_headSha: {
+                    userId: appUserId,
+                    owner: pullRequest.owner,
+                    repo: pullRequest.repo,
+                    number: pullRequest.number,
+                    headSha: pullRequest.headSha,
+                  },
                 },
-            });
-
-            return;
+                create: {
+                  userId: appUserId,
+                  owner: pullRequest.owner,
+                  repo: pullRequest.repo,
+                  number: pullRequest.number,
+                  title: pullRequest.title,
+                  body: pullRequest.body,
+                  author: pullRequest.author,
+                  url: pullRequest.url,
+                  state: pullRequest.state,
+                  headSha: pullRequest.headSha,
+                  additions: pullRequest.additions,
+                  deletions: pullRequest.deletions,
+                  changedFiles: pullRequest.changedFiles,
+                },
+              },
+            },
+            shortSummary: generatedContent.shortSummary,
+            technicalSummary: generatedContent.technicalSummary,
+            features: generatedContent.features,
+            techUsed: generatedContent.techUsed,
+            tweet: generatedContent.tweet,
+            linkedInPost: generatedContent.linkedInPost,
+            redditPost: generatedContent.redditPost,
+            discordPost: generatedContent.discordPost,
+            portfolioBullet: generatedContent.portfolioBullet,
+            changelogEntry: generatedContent.changelogEntry,
+            beginnerSummary: generatedContent.beginnerSummary,
+          },
+          select: { id: true },
+        });
+      } catch (error: unknown) {
+        if (isPrismaUniqueConstraintError(error)) {
+          const existing = await findExistingPrGeneration(
+            appUserId,
+            pullRequest,
+            contextHash,
+            storedXPostLength,
+          );
+          if (existing) {
+            savedGeneratedContent = existing;
+          } else {
+            throw error;
+          }
+        } else {
+          throw error;
         }
+      }
 
-        if (urlType === "commit") {
-            const { owner, repo, sha } = parseGithubCommitUrl(url);
+      await attachMediaToGeneration({
+        mediaAttachmentId,
+        generatedContentId: savedGeneratedContent.id,
+        userId: appUserId,
+      });
 
-            send({
-                type: "progress",
-                message: "Fetching commit metadata and diff from GitHub...",
-            });
+      logger.info("Generated pull request content", {
+        owner,
+        repo,
+        number,
+        generatedContentId: savedGeneratedContent.id,
+      });
 
-            const commit = await fetchCommit({
-                owner,
-                repo,
-                sha,
-                githubToken: process.env.GITHUB_TOKEN,
-            });
+      send({
+        type: "done",
+        data: {
+          sourceType: "pull-request",
+          generatedContentId: savedGeneratedContent.id,
+        },
+      });
 
-            const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
+      return;
+    }
+
+    if (urlType === "commit") {
+      const { owner, repo, sha } = parseGithubCommitUrl(url);
+
+      send({
+        type: "progress",
+        message: "Fetching commit metadata and diff from GitHub...",
+      });
+
+      const commit = await fetchCommit({
+        owner,
+        repo,
+        sha,
+        githubToken: process.env.GITHUB_TOKEN,
+      });
+
+      const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
                 SELECT gc."id"
                 FROM "GeneratedContent" gc
                 INNER JOIN "Commit" c ON c."id" = gc."commitId"
@@ -362,229 +361,234 @@ export async function POST(request: Request): Promise<Response> {
                 ORDER BY gc."createdAt" DESC
                 LIMIT 1
             `;
-            const existingGeneration = existingGenerations[0];
+      const existingGeneration = existingGenerations[0];
 
-            if (existingGeneration) {
-                await attachMediaToGeneration({
-                    mediaAttachmentId,
-                    generatedContentId: existingGeneration.id,
-                    userId: appUserId,
-                });
+      if (existingGeneration) {
+        await attachMediaToGeneration({
+          mediaAttachmentId,
+          generatedContentId: existingGeneration.id,
+          userId: appUserId,
+        });
 
-                logger.info("Reused existing commit generation", {
-                    owner,
-                    repo,
-                    sha,
-                    generatedContentId: existingGeneration.id,
-                });
+        logger.info("Reused existing commit generation", {
+          owner,
+          repo,
+          sha,
+          generatedContentId: existingGeneration.id,
+        });
 
-                send({
-                    type: "done",
-                    data: {
-                        sourceType: "commit",
-                        generatedContentId: existingGeneration.id,
-                        reused: true,
-                    },
-                });
+        send({
+          type: "done",
+          data: {
+            sourceType: "commit",
+            generatedContentId: existingGeneration.id,
+            reused: true,
+          },
+        });
 
-                return;
-            }
+        return;
+      }
 
-            send({
-                type: "progress",
-                message: "Generating summaries and share-ready content with AI...",
-            });
+      send({
+        type: "progress",
+        message: "Generating summaries and share-ready content with AI...",
+      });
 
             const generatedContent = await generateContentFromCommit(
                 commit,
                 userContext,
-                { xPostLength },
+                {
+                    xPostLength,
+                    onProgress: (message) => send({ type: "progress", message }),
+                },
             );
 
-            send({ type: "progress", message: "Saving generated content..." });
+      send({ type: "progress", message: "Saving generated content..." });
 
-            let savedGeneratedContent;
-            try {
-                savedGeneratedContent = await db.generatedContent.create({
-                    data: {
-                        user: { connect: { id: appUserId } },
-                        sourceType: "COMMIT",
-                        contextHash,
-                        ...getStoredXPostLengthData(storedXPostLength),
-                        commit: {
-                            connectOrCreate: {
-                                where: {
-                                    userId_owner_repo_sha: {
-                                        userId: appUserId,
-                                        owner: commit.owner,
-                                        repo: commit.repo,
-                                        sha: commit.sha,
-                                    },
-                                },
-                                create: {
-                                    userId: appUserId,
-                                    owner: commit.owner,
-                                    repo: commit.repo,
-                                    sha: commit.sha,
-                                    shortSha: commit.shortSha,
-                                    message: commit.message,
-                                    author: commit.author,
-                                    url: commit.url,
-                                    additions: commit.additions,
-                                    deletions: commit.deletions,
-                                    changedFiles: commit.changedFiles,
-                                },
-                            },
-                        },
-                        shortSummary: generatedContent.shortSummary,
-                        technicalSummary: generatedContent.technicalSummary,
-                        features: generatedContent.features,
-                        techUsed: generatedContent.techUsed,
-                        tweet: generatedContent.tweet,
-                        linkedInPost: generatedContent.linkedInPost,
-                        redditPost: generatedContent.redditPost,
-                        discordPost: generatedContent.discordPost,
-                        portfolioBullet: generatedContent.portfolioBullet,
-                        changelogEntry: generatedContent.changelogEntry,
-                        beginnerSummary: generatedContent.beginnerSummary,
-                    },
-                    select: { id: true },
-                });
-            } catch (error: unknown) {
-                if (isPrismaUniqueConstraintError(error)) {
-                    const existing = await findExistingCommitGeneration(
-                        appUserId,
-                        commit,
-                        contextHash,
-                        storedXPostLength,
-                    );
-                    if (existing) { savedGeneratedContent = existing; } else { throw error; }
-                } else {
-                    throw error;
-                }
-            }
-
-            await attachMediaToGeneration({
-                mediaAttachmentId,
-                generatedContentId: savedGeneratedContent.id,
-                userId: appUserId,
-            });
-
-            logger.info("Generated commit content", {
-                owner,
-                repo,
-                sha,
-                generatedContentId: savedGeneratedContent.id,
-            });
-
-            send({
-                type: "done",
-                data: {
-                    sourceType: "commit",
-                    generatedContentId: savedGeneratedContent.id,
+      let savedGeneratedContent;
+      try {
+        savedGeneratedContent = await db.generatedContent.create({
+          data: {
+            user: { connect: { id: appUserId } },
+            sourceType: "COMMIT",
+            contextHash,
+            ...getStoredXPostLengthData(storedXPostLength),
+            commit: {
+              connectOrCreate: {
+                where: {
+                  userId_owner_repo_sha: {
+                    userId: appUserId,
+                    owner: commit.owner,
+                    repo: commit.repo,
+                    sha: commit.sha,
+                  },
                 },
-            });
-
-            return;
-        }
-
-        send({
-            type: "error",
-            message: "Enter a valid GitHub PR or commit URL",
+                create: {
+                  userId: appUserId,
+                  owner: commit.owner,
+                  repo: commit.repo,
+                  sha: commit.sha,
+                  shortSha: commit.shortSha,
+                  message: commit.message,
+                  author: commit.author,
+                  url: commit.url,
+                  additions: commit.additions,
+                  deletions: commit.deletions,
+                  changedFiles: commit.changedFiles,
+                },
+              },
+            },
+            shortSummary: generatedContent.shortSummary,
+            technicalSummary: generatedContent.technicalSummary,
+            features: generatedContent.features,
+            techUsed: generatedContent.techUsed,
+            tweet: generatedContent.tweet,
+            linkedInPost: generatedContent.linkedInPost,
+            redditPost: generatedContent.redditPost,
+            discordPost: generatedContent.discordPost,
+            portfolioBullet: generatedContent.portfolioBullet,
+            changelogEntry: generatedContent.changelogEntry,
+            beginnerSummary: generatedContent.beginnerSummary,
+          },
+          select: { id: true },
         });
+      } catch (error: unknown) {
+        if (isPrismaUniqueConstraintError(error)) {
+          const existing = await findExistingCommitGeneration(
+            appUserId,
+            commit,
+            contextHash,
+            storedXPostLength,
+          );
+          if (existing) {
+            savedGeneratedContent = existing;
+          } else {
+            throw error;
+          }
+        } else {
+          throw error;
+        }
+      }
+
+      await attachMediaToGeneration({
+        mediaAttachmentId,
+        generatedContentId: savedGeneratedContent.id,
+        userId: appUserId,
+      });
+
+      logger.info("Generated commit content", {
+        owner,
+        repo,
+        sha,
+        generatedContentId: savedGeneratedContent.id,
+      });
+
+      send({
+        type: "done",
+        data: {
+          sourceType: "commit",
+          generatedContentId: savedGeneratedContent.id,
+        },
+      });
+
+      return;
+    }
+
+    send({
+      type: "error",
+      message: "Enter a valid GitHub PR or commit URL",
     });
+  });
 }
 
 function getErrorMessage(error: unknown) {
-
-
-    if (isGithubRequestError(error)) {
-        if (error.status === 404) {
-            return "GitHub could not find that public PR or commit. Check the URL, or use a public repository.";
-        }
-
-        return `GitHub API error: ${error.message}`;
+  if (isGithubRequestError(error)) {
+    if (error.status === 404) {
+      return "GitHub could not find that public PR or commit. Check the URL, or use a public repository.";
     }
 
-    if (isAiProviderError(error)) {
-        return "The AI provider is temporarily unavailable. Please try again in a minute.";
-    }
+    return `GitHub API error: ${error.message}`;
+  }
 
-    if (error instanceof Error) {
-        return error.message;
-    }
+  if (isAiProviderError(error)) {
+    return error instanceof Error
+      ? error.message
+      : "The AI provider is temporarily unavailable. Please try again in a minute.";
+  }
 
-    return "Failed to process GitHub URL";
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Failed to process GitHub URL";
 }
 
 function isGithubRequestError(
-    error: unknown,
+  error: unknown,
 ): error is { message: string; status: number } {
-    return (
-        typeof error === "object" &&
-        error !== null &&
-        "message" in error &&
-        "status" in error &&
-        typeof (error as { status?: unknown }).status === "number"
-    );
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    "status" in error &&
+    typeof (error as { status?: unknown }).status === "number"
+  );
 }
 
 function isAiProviderError(error: unknown) {
-    if (typeof error !== "object" || error === null) {
-        return false;
-    }
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
 
-    const apiError = error as {
-        message?: unknown;
-        status?: unknown;
-        code?: unknown;
-        error?: { status?: unknown; code?: unknown };
-    };
+  const apiError = error as {
+    message?: unknown;
+    status?: unknown;
+    code?: unknown;
+    error?: { status?: unknown; code?: unknown };
+  };
 
-    const statuses = [
-        apiError.status,
-        apiError.code,
-        apiError.error?.status,
-        apiError.error?.code,
-        typeof apiError.message === "string" &&
-            apiError.message.includes("DEADLINE_EXCEEDED")
-            ? "DEADLINE_EXCEEDED"
-            : undefined,
-        typeof apiError.message === "string" && apiError.message.includes("504")
-            ? 504
-            : undefined,
-    ];
+  const statuses = [
+    apiError.status,
+    apiError.code,
+    apiError.error?.status,
+    apiError.error?.code,
+    typeof apiError.message === "string" &&
+    apiError.message.includes("DEADLINE_EXCEEDED")
+      ? "DEADLINE_EXCEEDED"
+      : undefined,
+    typeof apiError.message === "string" && apiError.message.includes("504")
+      ? 504
+      : undefined,
+  ];
 
-    return statuses.some(
-        (status) =>
-            status === "UNAVAILABLE" ||
-            status === "DEADLINE_EXCEEDED" ||
-            status === "RESOURCE_EXHAUSTED" ||
-            status === 429 ||
-            status === 500 ||
-            status === 503 ||
-            status === 504,
-    );
+  return statuses.some(
+    (status) =>
+      status === "UNAVAILABLE" ||
+      status === "DEADLINE_EXCEEDED" ||
+      status === "RESOURCE_EXHAUSTED" ||
+      status === 429 ||
+      status === 500 ||
+      status === 503 ||
+      status === 504,
+  );
 }
 
-
-
 function isPrismaUniqueConstraintError(error: unknown) {
-    return (
-        typeof error === "object" &&
-        error !== null &&
-        "code" in error &&
-        (error as { code?: unknown }).code === "P2002"
-    );
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  );
 }
 
 async function findExistingPrGeneration(
-    appUserId: string,
-    pullRequest: PullRequestResult,
-    contextHash: string | null,
-    storedXPostLength: StoredXPostLength,
+  appUserId: string,
+  pullRequest: PullRequestResult,
+  contextHash: string | null,
+  storedXPostLength: StoredXPostLength,
 ) {
-    const rows = await db.$queryRaw<Array<{ id: string }>>`
+  const rows = await db.$queryRaw<Array<{ id: string }>>`
     SELECT gc."id"
     FROM "GeneratedContent" gc
     INNER JOIN "PullRequest" pr ON pr."id" = gc."pullRequestId"
@@ -599,16 +603,16 @@ async function findExistingPrGeneration(
     ORDER BY gc."createdAt" DESC
     LIMIT 1
   `;
-    return rows[0] ?? null;
+  return rows[0] ?? null;
 }
 
 async function findExistingCommitGeneration(
-    appUserId: string,
-    commit: CommitResult,
-    contextHash: string | null,
-    storedXPostLength: StoredXPostLength,
+  appUserId: string,
+  commit: CommitResult,
+  contextHash: string | null,
+  storedXPostLength: StoredXPostLength,
 ) {
-    const rows = await db.$queryRaw<Array<{ id: string }>>`
+  const rows = await db.$queryRaw<Array<{ id: string }>>`
     SELECT gc."id"
     FROM "GeneratedContent" gc
     INNER JOIN "Commit" c ON c."id" = gc."commitId"
@@ -622,31 +626,31 @@ async function findExistingCommitGeneration(
     ORDER BY gc."createdAt" DESC
     LIMIT 1
   `;
-    return rows[0] ?? null;
+  return rows[0] ?? null;
 }
 
 async function attachMediaToGeneration({
-    generatedContentId,
-    mediaAttachmentId,
-    userId,
+  generatedContentId,
+  mediaAttachmentId,
+  userId,
 }: {
-    generatedContentId: string;
-    mediaAttachmentId: string | undefined;
-    userId: string;
+  generatedContentId: string;
+  mediaAttachmentId: string | undefined;
+  userId: string;
 }) {
-    if (!mediaAttachmentId) {
-        return;
-    }
+  if (!mediaAttachmentId) {
+    return;
+  }
 
-    await db.mediaAttachment.updateMany({
-        where: {
-            id: mediaAttachmentId,
-            userId,
-            generatedContentId: null,
-        },
-        data: {
-            generatedContentId,
-            generatedContentUserId: userId,
-        },
-    });
+  await db.mediaAttachment.updateMany({
+    where: {
+      id: mediaAttachmentId,
+      userId,
+      generatedContentId: null,
+    },
+    data: {
+      generatedContentId,
+      generatedContentUserId: userId,
+    },
+  });
 }
