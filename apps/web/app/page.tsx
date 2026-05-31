@@ -7,7 +7,8 @@ import { GeneratorSection } from "@/components/home/GeneratorSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { PhaseTwoUpdatesSection } from "@/components/home/PhaseTwoUpdatesSection";
-import { getSeoFaqItems, SeoFaqSection } from "@/components/home/SeoFaqSection";
+import { SeoFaqSection } from "@/components/home/SeoFaqSection";
+import { getSeoFaqItems } from "@/components/home/seo-faq-items";
 import { ProfileSync } from "@/components/auth/ProfileSync";
 
 export const metadata: Metadata = {

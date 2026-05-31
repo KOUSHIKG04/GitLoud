@@ -1,7 +1,7 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { useEffect } from "react";
 import { toast } from "sonner";
 

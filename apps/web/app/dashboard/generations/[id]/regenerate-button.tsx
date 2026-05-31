@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";

@@ -10,8 +10,8 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { ChevronRight, Info, Loader2, Upload, X } from "lucide-react";
 import {
@@ -164,6 +164,17 @@ async function uploadMedia(file: File) {
   return body.mediaAttachment as UploadedMediaAttachment;
 }
 
+function onInvalid(formErrors: FieldErrors<FormValues>) {
+  const message =
+    formErrors.url?.message ??
+    formErrors.context?.message ??
+    "Check the form and try again";
+
+  toast.error(message, {
+    duration: 7000,
+  });
+}
+
 export function PrForm({
   className,
   ...props
@@ -296,17 +307,6 @@ export function PrForm({
     await generate(values);
   }
 
-  function onInvalid(formErrors: FieldErrors<FormValues>) {
-    const message =
-      formErrors.url?.message ??
-      formErrors.context?.message ??
-      "Check the form and try again";
-
-    toast.error(message, {
-      duration: 7000,
-    });
-  }
-
   return (
     <div
       {...props}
@@ -414,6 +414,7 @@ function PrFormFooter({
         <input
           ref={fileInputRef}
           type="file"
+          aria-label="Upload media attachment"
           accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
           className="hidden"
           disabled={isSubmitting}

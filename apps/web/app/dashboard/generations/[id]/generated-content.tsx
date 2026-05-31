@@ -1,6 +1,6 @@
 "use client";
 
-import { Accordion } from "@/components/ui/accordion";
+import { Accordion } from "@repo/ui/components/accordion";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { toast } from "sonner";
 import {
@@ -128,7 +128,7 @@ export function GeneratedContentView({
             className={
               isReducedFallbackContent
                 ? "grid gap-4 lg:grid-cols-2"
-                : "grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+                : "grid gap-4 md:grid-cols-2"
             }
           >
             <SocialPostCard
@@ -281,9 +281,9 @@ function ContentCard({
   ) => Promise<void>;
 }) {
   return (
-    <section className="space-y-4 bg-card p-4 text-card-foreground shadow-sm">
-      <h3 className="text-sm font-semibold">{title}</h3>
-      <p className="whitespace-pre-wrap wrap-break-word text-sm leading-6 text-muted-foreground">
+    <section className="space-y-4 bg-card p-5 text-card-foreground shadow-sm">
+      <h3 className="text-[17px] font-semibold leading-7">{title}</h3>
+      <p className="whitespace-pre-wrap wrap-break-word text-base leading-7 text-muted-foreground">
         {value}
       </p>
       <ContentActions

@@ -1,13 +1,13 @@
 "use client";
 
 import { GoogleIcon } from "@/assest/social-icons";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp";
+} from "@repo/ui/components/input-otp";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { FormEvent } from "react";

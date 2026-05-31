@@ -6,7 +6,7 @@ import {
   RedditIcon,
   XIcon,
 } from "@/assest/social-icons";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { Clipboard, Loader2, Share2 } from "lucide-react";
 import { useState } from "react";
 import type {

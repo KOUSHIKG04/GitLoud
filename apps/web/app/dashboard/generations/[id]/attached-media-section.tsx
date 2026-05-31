@@ -5,8 +5,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
+} from "@repo/ui/components/accordion";
+import { Button } from "@repo/ui/components/button";
 import { Clipboard, Download, ExternalLink, Share2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -101,9 +101,12 @@ function MediaAttachmentItem({ media }: { media: ShareMediaAttachment }) {
             {isVideo ? (
               <video
                 src={media.secureUrl}
+                aria-label={`Preview ${media.fileName}`}
                 controls
                 className="h-full w-full object-contain"
-              />
+              >
+                <track kind="captions" label="Captions unavailable" />
+              </video>
             ) : (
               <Image
                 src={media.secureUrl}
