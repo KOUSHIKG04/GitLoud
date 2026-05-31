@@ -1,7 +1,7 @@
 "use client";
 
 import { ThemeToggle } from "@/components/ToggleThemeBtn";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { UserProfileMenu } from "@/components/UserProfileMenu";
 import { HomeLink } from "@/components/HomeLink";
 import { ChevronLeft, History, Home, LayoutDashboard } from "lucide-react";

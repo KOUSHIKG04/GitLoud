@@ -1,15 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
+
+function scrollToGenerator() {
+  document.getElementById("generator")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
 
 export function ScrollToGeneratorButton() {
-  function scrollToGenerator() {
-    document.getElementById("generator")?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
-
   return (
     <Button
       type="button"

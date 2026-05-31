@@ -1,4 +1,5 @@
 import { Minus, Square, X } from "lucide-react";
+import { AppLogo } from "./AppLogo";
 
 function TopBar() {
   const showWindowActions =
@@ -8,6 +9,7 @@ function TopBar() {
   return (
     <header className="top-bar">
       <div className="drag-region">
+        <AppLogo className="app-logo" />
         <span className="app-title">GitLoud</span>
       </div>
 

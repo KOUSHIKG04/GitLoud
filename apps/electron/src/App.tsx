@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Home, History, PlusCircle, Settings } from "lucide-react";
+import { Button } from "@repo/ui/components/button";
 import "./App.css";
 import TopBar from "./components/topBar";
 
@@ -42,37 +43,41 @@ export default function App() {
       </section>
 
       <nav className="bottom-tabs">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setTab("home")}
           className={tab === "home" ? "active" : ""}
         >
           <Home size={20} />
           Home
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setTab("generate")}
           className={tab === "generate" ? "active" : ""}
         >
           <PlusCircle size={20} />
           Generate
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setTab("history")}
           className={tab === "history" ? "active" : ""}
         >
           <History size={20} />
           History
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setTab("settings")}
           className={tab === "settings" ? "active" : ""}
         >
           <Settings size={20} />
           Settings
-        </button>
+        </Button>
       </nav>
     </main>
   );

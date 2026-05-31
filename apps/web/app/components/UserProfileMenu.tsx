@@ -7,13 +7,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@repo/ui/components/dropdown-menu";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { getUserDisplayName } from "@/lib/userDisplayName";
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 
 export function UserProfileMenu() {
   const { push, refresh } = useRouter();

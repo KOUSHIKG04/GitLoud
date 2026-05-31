@@ -24,7 +24,7 @@ export function HowItWorksSection() {
           </MotionItem>
         </MotionViewportStagger>
 
-        <MotionViewportStagger className="grid items-stretch gap-4 md:grid-cols-3">
+        <MotionViewportStagger className="grid items-stretch gap-5 md:grid-cols-3">
           <MotionItem>
             <HowItWorksStep
               title="Paste a PR or commit link"
@@ -59,9 +59,9 @@ function HowItWorksStep({
   description: string;
 }) {
   return (
-    <article className="h-full border bg-card p-5 text-card-foreground shadow-sm">
-      <h3 className="text-base font-semibold">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+    <article className="h-full min-h-52 border bg-card p-7 text-card-foreground shadow-sm sm:p-8">
+      <h3 className="text-xl font-semibold leading-8">{title}</h3>
+      <p className="mt-4 text-[17px] leading-8 text-muted-foreground">
         {description}
       </p>
     </article>

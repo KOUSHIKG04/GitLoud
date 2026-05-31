@@ -1,6 +1,6 @@
 import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   Pagination,
   PaginationContent,
@@ -8,7 +8,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
+} from "@repo/ui/components/pagination";
 import Link from "next/link";
 import { ChevronRight, ExternalLink, Paperclip, Plus } from "lucide-react";
 import { DeleteGenerationButton } from "./delete-generation-button";
@@ -135,7 +135,7 @@ export default async function HistoryPage({
                 : "NO GENERATIONS YET ON THIS PAGE."}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3.5">
               {visibleGenerations.map((generation) => {
                 const source = generation.pullRequest ?? generation.commit;
 
@@ -154,23 +154,23 @@ export default async function HistoryPage({
                     key={generation.id}
                     className="border bg-card text-card-foreground transition-colors hover:bg-muted/40"
                   >
-                    <div className="grid gap-4 p-4 md:grid-cols-[5fr_1fr] md:items-start">
+                    <div className="grid gap-4 p-5 md:grid-cols-[5fr_1fr] md:items-start">
                       <Link
                         href={`/dashboard/generations/${generation.id}`}
-                        className="min-w-0 space-y-1"
+                        className="min-w-0 space-y-1.5"
                       >
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm text-muted-foreground">
                           {generation.sourceType === "PULL_REQUEST"
                             ? "Pull Request"
                             : "Commit"}{" "}
                           - {source.owner}/{source.repo}
                         </p>
 
-                        <h2 className="break-words text-base font-semibold">
+                        <h2 className="break-words text-lg font-semibold leading-7">
                           {title}
                         </h2>
 
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                           <span>{generation.createdAt.toLocaleString()}</span>
                           <span className="inline-flex items-center gap-1.5 border bg-background px-2 py-1">
                             <Paperclip className="size-3.5" />

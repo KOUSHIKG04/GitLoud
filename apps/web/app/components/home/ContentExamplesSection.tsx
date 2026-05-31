@@ -34,19 +34,19 @@ export function ContentExamplesSection() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3">
           {examples.map((example) => (
             <article
               key={example.title}
-              className="bg-card p-5 text-card-foreground shadow-sm"
+              className="min-h-72 bg-card p-7 text-card-foreground shadow-sm sm:p-8"
             >
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="text-[15px] font-medium uppercase leading-6 text-muted-foreground">
                 {example.source}
               </p>
-              <h3 className="mt-3 text-base font-semibold">
+              <h3 className="mt-4 text-xl font-semibold leading-8">
                 {example.title}
               </h3>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              <p className="mt-4 text-[17px] leading-8 text-muted-foreground">
                 {example.output}
               </p>
             </article>

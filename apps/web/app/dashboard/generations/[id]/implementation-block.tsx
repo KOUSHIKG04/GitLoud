@@ -4,7 +4,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
+} from "@repo/ui/components/accordion";
 import { ContentActions } from "./content-actions";
 import type {
   CopyContentHandler,
@@ -32,23 +32,23 @@ export function ImplementationBlock({
   return (
     <AccordionItem
       value="tech-used-and-features"
-      className="border-none bg-card px-4 text-card-foreground shadow-sm"
+      className="border-none bg-card px-5 text-card-foreground shadow-sm"
     >
-      <AccordionTrigger className="hover:no-underline">
+      <AccordionTrigger className="py-4 text-[17px] font-semibold leading-7 hover:no-underline">
         Tech used and features
       </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4">
-          <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+          <div className="space-y-4 text-base leading-7 text-muted-foreground">
             <div className="space-y-1">
-              <h4 className="text-sm font-medium text-card-foreground">
+              <h4 className="text-base font-medium text-card-foreground">
                 Tech used
               </h4>
               <p className="wrap-break-word">{techText}</p>
             </div>
 
             <div className="space-y-1">
-              <h4 className="text-sm font-medium text-card-foreground">
+              <h4 className="text-base font-medium text-card-foreground">
                 Features
               </h4>
               <ul className="list-disc space-y-1 pl-5">

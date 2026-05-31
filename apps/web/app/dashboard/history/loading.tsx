@@ -1,5 +1,5 @@
 import { Header } from "@/components/Header";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@repo/ui/components/skeleton";
 
 export default function Loading() {
   return (

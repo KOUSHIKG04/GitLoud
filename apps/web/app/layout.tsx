@@ -1,7 +1,7 @@
 import "@/globals.css";
 import type { Metadata } from "next";
 import { Providers } from "@/provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@repo/ui/components/sonner";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { cookies } from "next/headers";

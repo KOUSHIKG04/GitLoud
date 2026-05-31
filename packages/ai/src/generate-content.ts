@@ -611,14 +611,14 @@ async function generateContent(
   const contentVariants = inputs.map(buildGenerationPrompt);
 
   try {
-    options?.onProgress?.("Trying Gemini...");
+    options?.onProgress?.("Trying initial generation...");
 
     // throw { status: 429 }; -> used for testing falbacks models
 
     const response = await generateWithRetry(ai, contentVariants);
 
     if (!response.text) {
-      throw new Error("Gemini returned an empty response");
+      throw new Error("model returned an empty response");
     }
 
     return sanitizeGeneratedContent(

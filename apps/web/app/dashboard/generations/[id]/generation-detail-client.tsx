@@ -2,7 +2,7 @@
 
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { GeneratedContentView } from "./generated-content";
 import { RegenerateButton } from "./regenerate-button";
 import { FileDiff, History } from "lucide-react";
