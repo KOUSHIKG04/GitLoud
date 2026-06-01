@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+import { startBackendDelayToast } from "@/lib/api-delay-toast";
 
 export function RegenerateButton({
   generationId,
@@ -31,6 +32,7 @@ export function RegenerateButton({
     setRegenerating(true);
 
     const toastId = toast.loading("Regenerating content...");
+    const clearBackendDelayToast = startBackendDelayToast(toastId);
 
     try {
       const response = await apiFetch(
@@ -72,6 +74,7 @@ export function RegenerateButton({
         },
       });
     } finally {
+      clearBackendDelayToast();
       setRegenerating(false);
     }
   }
