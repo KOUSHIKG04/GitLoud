@@ -3,8 +3,10 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { getAllowedOrigins } from "@/env";
+import { scheduleLazyCleanup } from "@/lib/lazy-cleanup";
 import { generationRoutes } from "@/routes/generations";
 import { healthRoutes } from "@/routes/health";
+import { jobRoutes } from "@/routes/jobs";
 import { mediaRoutes } from "@/routes/media";
 import { prRoutes } from "@/routes/pr";
 import { profileRoutes } from "@/routes/profile";
@@ -17,6 +19,10 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
   const app = new Hono();
 
   app.use("*", logger());
+  app.use("*", async (_context, next) => {
+    scheduleLazyCleanup();
+    await next();
+  });
   app.use(
     "*",
     cors({
@@ -43,6 +49,8 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
 
   app.route("/health", healthRoutes);
   app.route("/v1/health", healthRoutes);
+  app.route("/jobs", jobRoutes);
+  app.route("/v1/jobs", jobRoutes);
   app.route("/profile", profileRoutes);
   app.route("/v1/profile", profileRoutes);
   app.route("/pr", prRoutes);
