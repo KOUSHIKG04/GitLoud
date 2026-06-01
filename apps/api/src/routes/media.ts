@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { db } from "@repo/db/client";
-import { getCurrentUserId } from "@/lib/session";
+import { Hono } from "hono";
+import { getCurrentUserId } from "@/lib/auth";
 import { logger } from "@/lib/logger";
-import { NextResponse } from "next/server";
 
 const maxUploadBytes = 25 * 1024 * 1024;
 const imageUploadTimeoutMs = 15_000;
@@ -30,17 +30,11 @@ type CloudinaryUploadResponse = {
   duration?: number;
 };
 
-/**
- * Handles media uploads by forwarding requests to Cloudinary and storing details in the database.
- *
- * @param request - The incoming HTTP Request containing FormData with the media file.
- * @returns A JSON response containing the database media attachment record, or an error.
- */
-export async function POST(request: Request): Promise<Response> {
-  const userId = await getCurrentUserId();
+export const mediaRoutes = new Hono().post("/", async (context) => {
+  const userId = await getCurrentUserId(context.req.raw);
 
   if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return context.json({ error: "Unauthorized" }, 401);
   }
 
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -48,40 +42,28 @@ export async function POST(request: Request): Promise<Response> {
   const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
   if (!cloudName || !apiKey || !apiSecret) {
-    return NextResponse.json(
-      { error: "Media uploads are not configured" },
-      { status: 503 },
-    );
+    return context.json({ error: "Media uploads are not configured" }, 503);
   }
 
-  const formData = await request.formData();
+  const formData = await context.req.raw.formData();
   const file = formData.get("file");
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Upload a media file" }, { status: 400 });
+    return context.json({ error: "Upload a media file" }, 400);
   }
 
   if (!allowedMimeTypes.has(file.type)) {
-    return NextResponse.json(
-      { error: "Upload an image or video file" },
-      { status: 400 },
-    );
+    return context.json({ error: "Upload an image or video file" }, 400);
   }
 
   if (file.size > maxUploadBytes) {
-    return NextResponse.json(
-      { error: "Media file must be 25MB or smaller" },
-      { status: 400 },
-    );
+    return context.json({ error: "Media file must be 25MB or smaller" }, 400);
   }
 
   const resourceType = file.type.startsWith("video/") ? "video" : "image";
   const timestamp = Math.floor(Date.now() / 1000).toString();
   const folder = `gitloud/${userId}`;
-  const signature = createCloudinarySignature(
-    { folder, timestamp },
-    apiSecret,
-  );
+  const signature = createCloudinarySignature({ folder, timestamp }, apiSecret);
 
   const uploadFormData = new FormData();
   uploadFormData.set("file", file);
@@ -92,9 +74,8 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const controller = new AbortController();
-    const uploadTimeoutMs = resourceType === "video"
-      ? videoUploadTimeoutMs
-      : imageUploadTimeoutMs;
+    const uploadTimeoutMs =
+      resourceType === "video" ? videoUploadTimeoutMs : imageUploadTimeoutMs;
     const timeoutId = setTimeout(() => controller.abort(), uploadTimeoutMs);
 
     let response: Response;
@@ -150,7 +131,6 @@ export async function POST(request: Request): Promise<Response> {
         },
       });
     } catch (dbError) {
-      // Compensating delete: clean up the Cloudinary upload
       try {
         const deleteTimestamp = Math.floor(Date.now() / 1000).toString();
         const deleteSignature = createCloudinarySignature(
@@ -185,14 +165,16 @@ export async function POST(request: Request): Promise<Response> {
         logger.error("Failed to delete Cloudinary asset after DB error", {
           publicId: upload.public_id,
           deleteError:
-            deleteError instanceof Error ? deleteError.message : String(deleteError),
+            deleteError instanceof Error
+              ? deleteError.message
+              : String(deleteError),
         });
       }
 
       throw dbError;
     }
 
-    return NextResponse.json({ mediaAttachment });
+    return context.json({ mediaAttachment });
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       logger.error("Media upload timed out", {
@@ -200,9 +182,9 @@ export async function POST(request: Request): Promise<Response> {
         mimeType: file.type,
       });
 
-      return NextResponse.json(
+      return context.json(
         { error: "Upload request timed out. Please try again." },
-        { status: 504 },
+        504,
       );
     }
 
@@ -214,20 +196,10 @@ export async function POST(request: Request): Promise<Response> {
       mimeType: file.type,
     });
 
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    return context.json({ error: message }, 500);
   }
-}
+});
 
-/**
- * Generates a SHA1 signature for secure Cloudinary uploads.
- *
- * @param params - Upload parameters.
- * @param apiSecret - Cloudinary API Secret key.
- * @returns HEX encoded SHA1 signature.
- */
 function createCloudinarySignature(
   params: Record<string, string>,
   apiSecret: string,
@@ -240,12 +212,6 @@ function createCloudinarySignature(
   return createHash("sha1").update(`${payload}${apiSecret}`).digest("hex");
 }
 
-/**
- * Checks if a value conforms to the CloudinaryUploadResponse interface.
- *
- * @param value - The parsed JSON body.
- * @returns True if the value matches the upload response schema.
- */
 function isCloudinaryUploadResponse(
   value: Partial<CloudinaryUploadResponse> | { error?: { message?: string } },
 ): value is CloudinaryUploadResponse {
@@ -262,12 +228,6 @@ function isCloudinaryUploadResponse(
   );
 }
 
-/**
- * Translates an internal error into a clean user-facing error message.
- *
- * @param error - The thrown error object.
- * @returns User-friendly error message.
- */
 function getUploadErrorMessage(error: unknown) {
   if (!(error instanceof Error)) {
     logger.error("Upload error (non-Error type)", { error });

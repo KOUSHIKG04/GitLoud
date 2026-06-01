@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ import {
   DialogTrigger,
 } from "@repo/ui/components/dialog";
 import { Loader2, Trash2 } from "lucide-react";
+import { apiFetch } from "@/lib/api-client";
 
 export function DeleteGenerationButton({
   generationId,
@@ -22,6 +24,7 @@ export function DeleteGenerationButton({
   generationId: string;
 }) {
   const { refresh } = useRouter();
+  const { getToken } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -29,9 +32,13 @@ export function DeleteGenerationButton({
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`/api/generations/${generationId}`, {
-        method: "DELETE",
-      });
+      const response = await apiFetch(
+        `/generations/${generationId}`,
+        {
+          method: "DELETE",
+        },
+        getToken,
+      );
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
@@ -43,7 +50,9 @@ export function DeleteGenerationButton({
       refresh();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Could not delete generated content";
+        error instanceof Error
+          ? error.message
+          : "Could not delete generated content";
       toast.error(message, {
         duration: 7000,
       });
