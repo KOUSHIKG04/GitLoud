@@ -1,9 +1,0 @@
-import { contextBridge, ipcRenderer } from "electron";
-
-contextBridge.exposeInMainWorld("gitloud", {
-  platform: process.platform,
-  windowControls: {
-    minimize: () => ipcRenderer.send("window:minimize"),
-    maximize: () => ipcRenderer.send("window:maximize"), close: () => ipcRenderer.send("window:close"),
-  },
-});

@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("node:path");
 
+const windowIcon = path.resolve(__dirname, "../../web/public/app-logo-512.png");
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
@@ -8,6 +10,7 @@ function createWindow() {
     minWidth: 960,
     minHeight: 640,
     title: "GitLoud",
+    icon: windowIcon,
     frame: false,
     backgroundColor: "#0f1115",
     titleBarStyle: process.platform === "darwin" ? "hidden" : "default",
@@ -21,6 +24,12 @@ function createWindow() {
   });
 
   win.loadURL("http://localhost:5173");
+
+  const showDebugger = process.env.ELECTRON_SHOW_DEBUGGER === "true";
+
+  if (!app.isPackaged && showDebugger) {
+    win.webContents.openDevTools({ mode: "detach" });
+  }
 }
 
 app.whenReady().then(createWindow);
