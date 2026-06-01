@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 const backendWakeDelayMs = 8_000;
 const backendWakeMessage =
-  "The backend may be waking from free hosting. This can take up to a minute.";
+  "Preparing the generation service. This can take a little longer on the first request.";
 
 export function startBackendDelayToast(toastId: string | number) {
   const timeoutId = window.setTimeout(() => {
