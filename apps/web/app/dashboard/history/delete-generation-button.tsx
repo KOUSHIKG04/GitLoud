@@ -17,6 +17,7 @@ import {
 } from "@repo/ui/components/dialog";
 import { Loader2, Trash2 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { startBackendDelayToast } from "@/lib/api-delay-toast";
 
 export function DeleteGenerationButton({
   generationId,
@@ -30,6 +31,8 @@ export function DeleteGenerationButton({
 
   async function deleteGeneration() {
     setIsDeleting(true);
+    const toastId = toast.loading("Deleting...");
+    const clearBackendDelayToast = startBackendDelayToast(toastId);
 
     try {
       const response = await apiFetch(
@@ -45,7 +48,7 @@ export function DeleteGenerationButton({
         throw new Error(body?.error ?? "Could not delete generated content");
       }
 
-      toast.success("Deleted");
+      toast.success("Deleted", { id: toastId });
       setOpen(false);
       refresh();
     } catch (error) {
@@ -54,9 +57,11 @@ export function DeleteGenerationButton({
           ? error.message
           : "Could not delete generated content";
       toast.error(message, {
+        id: toastId,
         duration: 7000,
       });
     } finally {
+      clearBackendDelayToast();
       setIsDeleting(false);
     }
   }

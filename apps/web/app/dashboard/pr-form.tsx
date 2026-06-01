@@ -24,6 +24,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
+import { startBackendDelayToast } from "@/lib/api-delay-toast";
 
 const formSchema = z.object({
   url: githubPrOrCommitUrlSchema,
@@ -210,6 +211,7 @@ export function PrForm({
 
   async function generate(values: FormValues) {
     const toastId = toast.loading("Fetching GitHub item...");
+    const clearBackendDelayToast = startBackendDelayToast(toastId);
     const minimumLoaderTime = wait(2500);
 
     try {
@@ -268,6 +270,8 @@ export function PrForm({
           },
         },
       });
+    } finally {
+      clearBackendDelayToast();
     }
   }
 
