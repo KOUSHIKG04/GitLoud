@@ -19,6 +19,7 @@ POST   /media
 POST   /pr
 DELETE /generations/:id
 POST   /generations/:id/regenerate
+POST   /jobs/delete-old-generations
 ```
 
 The same routes are also available under `/v1/*`.
@@ -46,4 +47,5 @@ GEMINI_API_KEY=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
+CRON_SECRET=
 ```
