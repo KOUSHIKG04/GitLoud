@@ -1,10 +1,14 @@
-import { useState } from "react";
-import { Home, History, PlusCircle, Settings } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
 import "./App.css";
+import { useEffect } from "react";
+import { HistoryIcon, Home, PlusCircle, SettingsIcon } from "lucide-react";
+import { Button } from "@repo/ui/components/button";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 import TopBar from "./components/topBar";
-
-type Tab = "home" | "generate" | "history" | "settings";
+import HomeScreen from "./screens/Home";
+import GenerateScreen from "./screens/Generate";
+import HistoryScreen from "./screens/History";
+import SettingsScreen from "./screens/Settings";
+import { useAppStore } from "./stores/app-store";
 
 declare global {
   interface Window {
@@ -29,56 +33,110 @@ declare global {
 }
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>("home");
+  const tab = useAppStore((state) => state.tab);
+  const themeMode = useAppStore((state) => state.themeMode);
+  const setTab = useAppStore((state) => state.setTab);
+  const setResolvedTheme = useAppStore((state) => state.setResolvedTheme);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = () => {
+      const resolvedTheme =
+        themeMode === "system"
+          ? systemDark.matches
+            ? "dark"
+            : "light"
+          : themeMode;
+
+      root.classList.toggle("dark", resolvedTheme === "dark");
+      root.classList.toggle("light", resolvedTheme === "light");
+      root.style.colorScheme = resolvedTheme;
+      setResolvedTheme(resolvedTheme);
+    };
+
+    applyTheme();
+    systemDark.addEventListener("change", applyTheme);
+
+    return () => {
+      systemDark.removeEventListener("change", applyTheme);
+    };
+  }, [setResolvedTheme, themeMode]);
 
   return (
-    <main className="app-shell">
-      <TopBar />
+    <TooltipProvider>
+      <main className="app-shell">
+        <TopBar />
+        <section className="screen">
+          {tab === "home" && <HomeScreen />}
+          {tab === "generate" && <GenerateScreen />}
+          {tab === "history" && <HistoryScreen />}
+          {tab === "settings" && <SettingsScreen />}
+        </section>
 
-      <section className="screen">
-        {tab === "home" && <h1>Home</h1>}
-        {tab === "generate" && <h1>Generate</h1>}
-        {tab === "history" && <h1>History</h1>}
-        {tab === "settings" && <h1>Settings</h1>}
-      </section>
+        <nav className="bottom-tabs" aria-label="Primary">
+          <Button
+            variant={tab === "home" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setTab("home")}
+            className={
+              tab === "home"
+                ? "dock-item dock-home active"
+                : "dock-item dock-home"
+            }
+            aria-label="Home"
+            title="Home"
+          >
+            <Home />
+          </Button>
 
-      <nav className="bottom-tabs">
-        <Button
-          variant="ghost"
-          onClick={() => setTab("home")}
-          className={tab === "home" ? "active" : ""}
-        >
-          <Home size={20} />
-          Home
-        </Button>
+          <Button
+            variant={tab === "generate" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setTab("generate")}
+            className={
+              tab === "generate"
+                ? "dock-item dock-generate active"
+                : "dock-item dock-generate"
+            }
+            aria-label="Generate"
+            title="Generate"
+          >
+            <PlusCircle />
+          </Button>
 
-        <Button
-          variant="ghost"
-          onClick={() => setTab("generate")}
-          className={tab === "generate" ? "active" : ""}
-        >
-          <PlusCircle size={20} />
-          Generate
-        </Button>
+          <Button
+            variant={tab === "history" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setTab("history")}
+            className={
+              tab === "history"
+                ? "dock-item dock-history active"
+                : "dock-item dock-history"
+            }
+            aria-label="History"
+            title="History"
+          >
+            <HistoryIcon />
+          </Button>
 
-        <Button
-          variant="ghost"
-          onClick={() => setTab("history")}
-          className={tab === "history" ? "active" : ""}
-        >
-          <History size={20} />
-          History
-        </Button>
-
-        <Button
-          variant="ghost"
-          onClick={() => setTab("settings")}
-          className={tab === "settings" ? "active" : ""}
-        >
-          <Settings size={20} />
-          Settings
-        </Button>
-      </nav>
-    </main>
+          <Button
+            variant={tab === "settings" ? "default" : "outline"}
+            size="icon"
+            onClick={() => setTab("settings")}
+            className={
+              tab === "settings"
+                ? "dock-item dock-settings active"
+                : "dock-item dock-settings"
+            }
+            aria-label="Settings"
+            title="Settings"
+          >
+            <SettingsIcon />
+          </Button>
+        </nav>
+      </main>
+    </TooltipProvider>
   );
 }

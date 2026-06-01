@@ -9,7 +9,6 @@ export default defineConfig([
   globalIgnores(["dist"]),
   {
     files: ["**/*.{ts,tsx}"],
-    ignores: ["src/main/**", "src/preload/**"],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -18,13 +17,6 @@ export default defineConfig([
     ],
     languageOptions: {
       globals: globals.browser,
-    },
-  },
-  {
-    files: ["src/main/**/*.{ts,tsx}", "src/preload/**/*.{ts,tsx}"],
-    extends: [js.configs.recommended, tseslint.configs.recommended],
-    languageOptions: {
-      globals: globals.node,
     },
   },
 ]);
