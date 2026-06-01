@@ -4,6 +4,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "web": "turbo run dev --filter=web",
+    "api": "turbo run dev --filter=api",
     "mobile": "turbo run dev --filter=mobile",
     "desktop": "npm --workspace gitloud-electron run dev",
     "desktop:build": "npm --workspace gitloud-electron run build",

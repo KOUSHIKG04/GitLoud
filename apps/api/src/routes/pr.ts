@@ -17,12 +17,12 @@ import {
 } from "@repo/shared/github";
 import type { PullRequestResult } from "@repo/shared/pull-request";
 import { createHash } from "node:crypto";
-import { NextResponse } from "next/server";
+import { Hono } from "hono";
 import { z } from "zod";
+import { getCurrentUserId } from "@/lib/auth";
 import { getRequestIp } from "@/lib/ip";
-import { persistentRateLimit } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
-import { getCurrentUserId } from "@/lib/session";
+import { persistentRateLimit } from "@/lib/rate-limit";
 
 const requestBodySchema = z.object({
   url: githubPrOrCommitUrlSchema,
@@ -39,61 +39,14 @@ type ProgressEvent =
 type SendProgress = (event: ProgressEvent) => void;
 type StoredXPostLength = "STANDARD" | "PREMIUM";
 
-function getStoredXPostLengthData(xPostLength: StoredXPostLength) {
-  return { xPostLength };
-}
-
-function getContextHash(userContext: string | undefined) {
-  if (!userContext) {
-    return null;
-  }
-
-  const normalizedContext = userContext.replace(/\r\n?/g, "\n").trim();
-
-  return createHash("sha256").update(normalizedContext).digest("hex");
-}
-
-function createProgressStream(
-  run: (send: SendProgress) => Promise<void>,
-): Response {
-  const encoder = new TextEncoder();
-
-  return new Response(
-    new ReadableStream({
-      async start(controller) {
-        const send: SendProgress = (event) => {
-          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
-        };
-
-        try {
-          await run(send);
-        } catch (error) {
-          logger.error("GitHub URL processing failed", {
-            error: getErrorMessage(error),
-          });
-          send({ type: "error", message: getErrorMessage(error) });
-        } finally {
-          controller.close();
-        }
-      },
-    }),
-    {
-      headers: {
-        "Cache-Control": "no-cache",
-        "Content-Type": "application/x-ndjson",
-      },
-    },
-  );
-}
-
-export async function POST(request: Request): Promise<Response> {
-  const appUserId = await getCurrentUserId();
+export const prRoutes = new Hono().post("/", async (context) => {
+  const appUserId = await getCurrentUserId(context.req.raw);
 
   if (!appUserId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return context.json({ error: "Unauthorized" }, 401);
   }
 
-  const ip = getRequestIp(request);
+  const ip = getRequestIp(context.req.raw);
   const limit = await persistentRateLimit({
     key: `generate:${appUserId}:${ip}`,
     limit: 5,
@@ -101,15 +54,13 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (!limit.success) {
-    return NextResponse.json(
+    return context.json(
       { error: "Too many generation requests. Please try again later." },
+      429,
       {
-        status: 429,
-        headers: {
-          "Retry-After": Math.ceil(
-            (limit.resetAt.getTime() - Date.now()) / 1000,
-          ).toString(),
-        },
+        "Retry-After": Math.ceil(
+          (limit.resetAt.getTime() - Date.now()) / 1000,
+        ).toString(),
       },
     );
   }
@@ -117,9 +68,9 @@ export async function POST(request: Request): Promise<Response> {
   let body: unknown;
 
   try {
-    body = await request.json();
+    body = await context.req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    return context.json({ error: "Invalid JSON body" }, 400);
   }
 
   const parsedBody = requestBodySchema.safeParse(body);
@@ -129,7 +80,7 @@ export async function POST(request: Request): Promise<Response> {
       parsedBody.error.issues[0]?.message ??
       "Enter a valid GitHub pull request or commit URL";
 
-    return NextResponse.json({ error: message }, { status: 400 });
+    return context.json({ error: message }, 400);
   }
 
   const userContext =
@@ -170,20 +121,20 @@ export async function POST(request: Request): Promise<Response> {
       });
 
       const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
-                SELECT gc."id"
-                FROM "GeneratedContent" gc
-                INNER JOIN "PullRequest" pr ON pr."id" = gc."pullRequestId"
-                WHERE gc."userId" = ${appUserId}
-                    AND gc."sourceType" = 'PULL_REQUEST'::"GeneratedSourceType"
-                    AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
-                    AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
-                    AND pr."owner" = ${pullRequestMetadata.owner}
-                    AND pr."repo" = ${pullRequestMetadata.repo}
-                    AND pr."number" = ${pullRequestMetadata.number}
-                    AND pr."headSha" = ${pullRequestMetadata.headSha}
-                ORDER BY gc."createdAt" DESC
-                LIMIT 1
-            `;
+        SELECT gc."id"
+        FROM "GeneratedContent" gc
+        INNER JOIN "PullRequest" pr ON pr."id" = gc."pullRequestId"
+        WHERE gc."userId" = ${appUserId}
+          AND gc."sourceType" = 'PULL_REQUEST'::"GeneratedSourceType"
+          AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+          AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
+          AND pr."owner" = ${pullRequestMetadata.owner}
+          AND pr."repo" = ${pullRequestMetadata.repo}
+          AND pr."number" = ${pullRequestMetadata.number}
+          AND pr."headSha" = ${pullRequestMetadata.headSha}
+        ORDER BY gc."createdAt" DESC
+        LIMIT 1
+      `;
       const existingGeneration = existingGenerations[0];
 
       if (existingGeneration) {
@@ -229,14 +180,14 @@ export async function POST(request: Request): Promise<Response> {
         message: "Generating summaries and share-ready content with AI...",
       });
 
-            const generatedContent = await generateContentFromPullRequest(
-                pullRequest,
-                userContext,
-                {
-                    xPostLength,
-                    onProgress: (message) => send({ type: "progress", message }),
-                },
-            );
+      const generatedContent = await generateContentFromPullRequest(
+        pullRequest,
+        userContext,
+        {
+          xPostLength,
+          onProgress: (message) => send({ type: "progress", message }),
+        },
+      );
 
       send({ type: "progress", message: "Saving generated content..." });
 
@@ -348,19 +299,19 @@ export async function POST(request: Request): Promise<Response> {
       });
 
       const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
-                SELECT gc."id"
-                FROM "GeneratedContent" gc
-                INNER JOIN "Commit" c ON c."id" = gc."commitId"
-                WHERE gc."userId" = ${appUserId}
-                    AND gc."sourceType" = 'COMMIT'::"GeneratedSourceType"
-                    AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
-                    AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
-                    AND c."owner" = ${commit.owner}
-                    AND c."repo" = ${commit.repo}
-                    AND c."sha" = ${commit.sha}
-                ORDER BY gc."createdAt" DESC
-                LIMIT 1
-            `;
+        SELECT gc."id"
+        FROM "GeneratedContent" gc
+        INNER JOIN "Commit" c ON c."id" = gc."commitId"
+        WHERE gc."userId" = ${appUserId}
+          AND gc."sourceType" = 'COMMIT'::"GeneratedSourceType"
+          AND gc."contextHash" IS NOT DISTINCT FROM ${contextHash}
+          AND gc."xPostLength" = ${storedXPostLength}::"XPostLength"
+          AND c."owner" = ${commit.owner}
+          AND c."repo" = ${commit.repo}
+          AND c."sha" = ${commit.sha}
+        ORDER BY gc."createdAt" DESC
+        LIMIT 1
+      `;
       const existingGeneration = existingGenerations[0];
 
       if (existingGeneration) {
@@ -394,14 +345,14 @@ export async function POST(request: Request): Promise<Response> {
         message: "Generating summaries and share-ready content with AI...",
       });
 
-            const generatedContent = await generateContentFromCommit(
-                commit,
-                userContext,
-                {
-                    xPostLength,
-                    onProgress: (message) => send({ type: "progress", message }),
-                },
-            );
+      const generatedContent = await generateContentFromCommit(
+        commit,
+        userContext,
+        {
+          xPostLength,
+          onProgress: (message) => send({ type: "progress", message }),
+        },
+      );
 
       send({ type: "progress", message: "Saving generated content..." });
 
@@ -499,6 +450,51 @@ export async function POST(request: Request): Promise<Response> {
       message: "Enter a valid GitHub PR or commit URL",
     });
   });
+});
+
+function getStoredXPostLengthData(xPostLength: StoredXPostLength) {
+  return { xPostLength };
+}
+
+function getContextHash(userContext: string | undefined) {
+  if (!userContext) {
+    return null;
+  }
+
+  const normalizedContext = userContext.replace(/\r\n?/g, "\n").trim();
+
+  return createHash("sha256").update(normalizedContext).digest("hex");
+}
+
+function createProgressStream(run: (send: SendProgress) => Promise<void>) {
+  const encoder = new TextEncoder();
+
+  return new Response(
+    new ReadableStream({
+      async start(controller) {
+        const send: SendProgress = (event) => {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        };
+
+        try {
+          await run(send);
+        } catch (error) {
+          logger.error("GitHub URL processing failed", {
+            error: getErrorMessage(error),
+          });
+          send({ type: "error", message: getErrorMessage(error) });
+        } finally {
+          controller.close();
+        }
+      },
+    }),
+    {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Content-Type": "application/x-ndjson",
+      },
+    },
+  );
 }
 
 function getErrorMessage(error: unknown) {
@@ -603,6 +599,7 @@ async function findExistingPrGeneration(
     ORDER BY gc."createdAt" DESC
     LIMIT 1
   `;
+
   return rows[0] ?? null;
 }
 
@@ -626,6 +623,7 @@ async function findExistingCommitGeneration(
     ORDER BY gc."createdAt" DESC
     LIMIT 1
   `;
+
   return rows[0] ?? null;
 }
 

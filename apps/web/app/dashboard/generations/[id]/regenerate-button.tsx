@@ -1,11 +1,13 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { apiFetch } from "@/lib/api-client";
 
 export function RegenerateButton({
   generationId,
@@ -17,6 +19,7 @@ export function RegenerateButton({
   onRegenerated?: (content: GeneratedContent) => void;
 }) {
   const { refresh } = useRouter();
+  const { getToken } = useAuth();
   const [isRegenerating, setIsRegenerating] = useState(false);
 
   function setRegenerating(value: boolean) {
@@ -30,11 +33,12 @@ export function RegenerateButton({
     const toastId = toast.loading("Regenerating content...");
 
     try {
-      const response = await fetch(
-        `/api/generations/${generationId}/regenerate`,
+      const response = await apiFetch(
+        `/generations/${generationId}/regenerate`,
         {
           method: "POST",
         },
+        getToken,
       );
 
       if (!response.ok) {

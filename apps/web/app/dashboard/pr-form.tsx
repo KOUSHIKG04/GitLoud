@@ -10,6 +10,7 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useAuth } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import type { GeneratedContent } from "@repo/shared/generated-content";
@@ -22,6 +23,7 @@ import {
   type RefObject,
 } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api-client";
 
 const formSchema = z.object({
   url: githubPrOrCommitUrlSchema,
@@ -146,14 +148,18 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function uploadMedia(file: File) {
+async function uploadMedia(file: File, getToken: () => Promise<string | null>) {
   const formData = new FormData();
   formData.set("file", file);
 
-  const response = await fetch("/api/media", {
-    method: "POST",
-    body: formData,
-  });
+  const response = await apiFetch(
+    "/media",
+    {
+      method: "POST",
+      body: formData,
+    },
+    getToken,
+  );
 
   const body = await response.json().catch(() => null);
 
@@ -180,6 +186,7 @@ export function PrForm({
   ...props
 }: ComponentPropsWithoutRef<"div">) {
   const { push } = useRouter();
+  const { getToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaAttachmentIdRef = useRef<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
@@ -213,24 +220,28 @@ export function PrForm({
           mediaAttachmentId = mediaAttachmentIdRef.current;
         } else {
           toast.loading("Uploading media attachment...", { id: toastId });
-          const mediaAttachment = await uploadMedia(selectedMedia);
+          const mediaAttachment = await uploadMedia(selectedMedia, getToken);
           mediaAttachmentId = mediaAttachment.id;
           mediaAttachmentIdRef.current = mediaAttachmentId;
         }
       }
 
-      const response = await fetch("/api/pr", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await apiFetch(
+        "/pr",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: values.url,
+            context: values.context,
+            mediaAttachmentId,
+            xPostLength: values.xPostLength,
+          }),
         },
-        body: JSON.stringify({
-          url: values.url,
-          context: values.context,
-          mediaAttachmentId,
-          xPostLength: values.xPostLength,
-        }),
-      });
+        getToken,
+      );
 
       const data = await readProgressStream(response, (message) => {
         toast.loading(message, { id: toastId });
