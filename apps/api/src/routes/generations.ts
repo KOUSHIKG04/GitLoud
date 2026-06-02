@@ -27,7 +27,134 @@ const generatedContentSelect = {
   beginnerSummary: true,
 } as const;
 
-export const generationRoutes = new Hono()
+export const generationRoutes: Hono = new Hono()
+  .get("/", async (context) => {
+    const userId = await getAuthenticatedUserId(context.req.raw);
+
+    if (!userId) {
+      return context.json({ error: "Unauthorized" }, 401);
+    }
+
+    const page = Math.max(
+      Number.parseInt(context.req.query("page") ?? "1", 10) || 1,
+      1,
+    );
+    const pageSize = 10;
+    const skip = (page - 1) * pageSize;
+    const legacyDate = parseHistoryDate(context.req.query("date"));
+    const rangeStart =
+      parseHistoryDate(context.req.query("from")) ?? legacyDate;
+    const rangeEnd =
+      parseHistoryDate(context.req.query("to")) ?? legacyDate ?? rangeStart;
+    const exclusiveRangeEnd = rangeEnd ? addDays(rangeEnd, 1) : undefined;
+    const createdAtFilter =
+      rangeStart && exclusiveRangeEnd
+        ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
+        : undefined;
+
+    const generations = await db.generatedContent.findMany({
+      where: {
+        userId,
+        AND: [
+          {
+            OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
+          },
+          ...(createdAtFilter ? [createdAtFilter] : []),
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        sourceType: true,
+        createdAt: true,
+        pullRequest: {
+          select: {
+            title: true,
+            owner: true,
+            repo: true,
+            url: true,
+          },
+        },
+        commit: {
+          select: {
+            message: true,
+            owner: true,
+            repo: true,
+            url: true,
+          },
+        },
+        _count: {
+          select: {
+            mediaAttachments: true,
+          },
+        },
+      },
+      skip,
+      take: pageSize + 1,
+    });
+    const hasNextPage = generations.length > pageSize;
+    const visibleGenerations = generations.slice(0, pageSize);
+
+    return context.json({
+      page,
+      pageSize,
+      hasNextPage,
+      generations: visibleGenerations.map((generation) => ({
+        id: generation.id,
+        sourceType: generation.sourceType,
+        createdAt: generation.createdAt.toISOString(),
+        pullRequest: generation.pullRequest,
+        commit: generation.commit,
+        mediaAttachmentCount: generation._count.mediaAttachments,
+      })),
+    });
+  })
+  .get("/:id", async (context) => {
+    const userId = await getAuthenticatedUserId(context.req.raw);
+
+    if (!userId) {
+      return context.json({ error: "Unauthorized" }, 401);
+    }
+
+    const id = context.req.param("id");
+    const generation = await db.generatedContent.findFirst({
+      where: { id, userId },
+      include: {
+        pullRequest: true,
+        commit: true,
+        mediaAttachments: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            secureUrl: true,
+            resourceType: true,
+            fileName: true,
+            mimeType: true,
+            bytes: true,
+            width: true,
+            height: true,
+            duration: true,
+          },
+        },
+      },
+    });
+
+    if (!generation) {
+      return context.json({ error: "Generated content was not found" }, 404);
+    }
+
+    return context.json({
+      generation: {
+        ...generation,
+        createdAt: generation.createdAt.toISOString(),
+        updatedAt: generation.updatedAt.toISOString(),
+        pullRequest: generation.pullRequest
+          ? serializeSource(generation.pullRequest)
+          : null,
+        commit: generation.commit ? serializeSource(generation.commit) : null,
+      },
+    });
+  })
   .delete("/:id", async (context) => {
     const userId = await getAuthenticatedUserId(context.req.raw);
 
@@ -288,4 +415,39 @@ async function getStoredXPostLength(generationId: string, userId: string) {
   `;
 
   return rows[0]?.xPostLength ?? "STANDARD";
+}
+
+function parseHistoryDate(value: string | undefined) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return undefined;
+  }
+
+  const year = Number(value.slice(0, 4));
+  const month = Number(value.slice(5, 7));
+  const day = Number(value.slice(8, 10));
+  const date = new Date(year, month - 1, day);
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return undefined;
+  }
+
+  return date;
+}
+
+function addDays(date: Date, days: number) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function serializeSource<T extends { createdAt: Date; updatedAt: Date }>(
+  source: T,
+) {
+  return {
+    ...source,
+    createdAt: source.createdAt.toISOString(),
+    updatedAt: source.updatedAt.toISOString(),
+  };
 }
