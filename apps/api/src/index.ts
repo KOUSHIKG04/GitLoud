@@ -1,8 +1,10 @@
 import { serve } from "@hono/node-server";
-import { app } from "@/app";
-import { getPort } from "@/env";
+import { getPort, loadRuntimeEnv } from "@/env";
+
+loadRuntimeEnv();
 
 const port = getPort(process.env.PORT);
+const { app } = await import("@/app");
 
 serve(
   {

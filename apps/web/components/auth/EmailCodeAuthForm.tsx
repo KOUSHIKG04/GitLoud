@@ -1,6 +1,6 @@
 "use client";
 
-import { GoogleIcon } from "@/assest/social-icons";
+import { GoogleIcon } from "@/assets/social-icons";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
 import {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SsoCallbackClient } from "./sso-callback-client";
+import { SsoCallbackClient } from "./_components/sso-callback-client";
 
 export const metadata: Metadata = {
   title: "Completing sign in",

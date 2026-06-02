@@ -1,4 +1,3 @@
-import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
 import { Button } from "@repo/ui/components/button";
 import {
@@ -11,9 +10,9 @@ import {
 } from "@repo/ui/components/pagination";
 import Link from "next/link";
 import { ChevronRight, ExternalLink, Paperclip, Plus } from "lucide-react";
-import { DeleteGenerationButton } from "./delete-generation-button";
-import { HistoryDatePicker } from "./history-date-picker";
-import { getAuthenticatedUserId } from "@/lib/session";
+import { DeleteGenerationButton } from "./_components/delete-generation-button";
+import { HistoryDatePicker } from "./_components/history-date-picker";
+import { getGenerationHistory } from "@/lib/generations-api";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -41,66 +40,17 @@ export default async function HistoryPage({
     to: toParam,
   } = await searchParams;
   const page = Math.max(Number.parseInt(pageParam ?? "1", 10) || 1, 1);
-  const pageSize = 10;
-  const skip = (page - 1) * pageSize;
   const legacyDate = parseHistoryDate(legacyDateParam);
   const rangeStart = parseHistoryDate(fromParam) ?? legacyDate;
   const rangeEnd = parseHistoryDate(toParam) ?? legacyDate ?? rangeStart;
-  const exclusiveRangeEnd = rangeEnd ? addDays(rangeEnd, 1) : undefined;
-  const createdAtFilter =
-    rangeStart && exclusiveRangeEnd
-      ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
-      : undefined;
-
-  const userId = await getAuthenticatedUserId();
-
-  const generations = userId
-    ? await db.generatedContent.findMany({
-        where: {
-          userId,
-          AND: [
-            {
-              OR: [
-                { pullRequestId: { not: null } },
-                { commitId: { not: null } },
-              ],
-            },
-            ...(createdAtFilter ? [createdAtFilter] : []),
-          ],
-        },
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          sourceType: true,
-          createdAt: true,
-          pullRequest: {
-            select: {
-              title: true,
-              owner: true,
-              repo: true,
-              url: true,
-            },
-          },
-          commit: {
-            select: {
-              message: true,
-              owner: true,
-              repo: true,
-              url: true,
-            },
-          },
-          _count: {
-            select: {
-              mediaAttachments: true,
-            },
-          },
-        },
-        skip,
-        take: pageSize + 1,
-      })
-    : [];
-  const hasNextPage = generations.length > pageSize;
-  const visibleGenerations = generations.slice(0, pageSize);
+  const history = await getGenerationHistory({
+    date: legacyDateParam,
+    from: fromParam,
+    page: pageParam,
+    to: toParam,
+  });
+  const hasNextPage = history.hasNextPage;
+  const visibleGenerations = history.generations;
 
   return (
     <main className="min-h-screen">
@@ -111,7 +61,9 @@ export default async function HistoryPage({
           <div>
             <p className="text-sm font-semibold flex items-center gap-2">
               Dashboard <ChevronRight />
-              <span className="text-2xl font-semibold tracking-tight">History</span>
+              <span className="text-2xl font-semibold tracking-tight">
+                History
+              </span>
             </p>
           </div>
 
@@ -171,11 +123,13 @@ export default async function HistoryPage({
                         </h2>
 
                         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                          <span>{generation.createdAt.toLocaleString()}</span>
+                          <span>
+                            {new Date(generation.createdAt).toLocaleString()}
+                          </span>
                           <span className="inline-flex items-center gap-1.5 border bg-background px-2 py-1">
                             <Paperclip className="size-3.5" />
-                            {generation._count.mediaAttachments > 0
-                              ? `${generation._count.mediaAttachments} file attached`
+                            {generation.mediaAttachmentCount > 0
+                              ? `${generation.mediaAttachmentCount} file attached`
                               : "No file attached"}
                           </span>
                         </div>
@@ -301,10 +255,6 @@ function parseHistoryDate(value: string | undefined) {
   }
 
   return date;
-}
-
-function addDays(date: Date, days: number) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
 }
 
 function formatHistoryDate(date: Date) {
