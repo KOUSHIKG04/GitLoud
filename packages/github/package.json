@@ -7,12 +7,16 @@
     "./fetch-pr": "./src/fetch-pr.ts",
     "./fetch-commit": "./src/fetch-commit.ts"
   },
+  "scripts": {
+    "build": "tsc && tsc-alias -p tsconfig.json --resolve-full-paths"
+  },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
     "@repo/shared": "*"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
+    "tsc-alias": "^1.8.16",
     "typescript": "5.9.2"
   }
 }

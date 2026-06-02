@@ -7,7 +7,7 @@
     "./generate-content": "./src/generate-content.ts"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && tsc-alias -p tsconfig.json --resolve-full-paths"
   },
   "dependencies": {
     "@google/genai": "^1.34.0",
@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
+    "tsc-alias": "^1.8.16",
     "typescript": "5.9.2"
   }
 }
