@@ -16,6 +16,8 @@
   <p>
     <a href="#features"><strong>Features</strong></a>
     &middot;
+    <a href="#architecture"><strong>Architecture</strong></a>
+    &middot;
     <a href="#tech-stack"><strong>Tech Stack</strong></a>
     &middot;
     <a href="#local-development"><strong>Run Locally</strong></a>
@@ -27,6 +29,7 @@
     <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
     <img alt="React" src="https://img.shields.io/badge/React-19-149ECA?style=for-the-badge&logo=react&logoColor=white" />
     <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+    <img alt="Hono" src="https://img.shields.io/badge/Hono-API-E36002?style=for-the-badge&logo=hono&logoColor=white" />
     <img alt="Prisma" src="https://img.shields.io/badge/Prisma-7-2D3748?style=for-the-badge&logo=prisma&logoColor=white" />
     <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-ready-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" />
   </p>
@@ -36,18 +39,33 @@
 
 ## Overview
 
-GitLoud is built for developers who ship useful work but do not want to rewrite the
-same GitHub context for every platform. Submit a public pull request or commit URL,
-and the app produces structured content from real GitHub metadata and code changes.
+GitLoud is built for developers who ship useful work but do not want to rewrite
+the same GitHub context for every platform. Submit a public pull request or
+commit URL, and the app produces structured content from real GitHub metadata
+and code changes.
 
-The product combines a protected dashboard, saved generation history, optional media
-attachments, AI-powered writing, and PostgreSQL-backed persistence in a Turborepo
-workspace. The product now uses a separate Hono API app so the web app and the
-Electron app can share the same backend routes instead of duplicating server logic.
+The project is a Turborepo workspace with a standalone Hono API, a Next.js web
+app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
+The separated backend is the source of truth for generation, media, profile, and
+history workflows so web and desktop clients can call the same API.
 
 ## Demo
 
 https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
+
+## Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Repository Structure](#repository-structure)
+- [API Routes](#api-routes)
+- [Environment Variables](#environment-variables)
+- [Local Development](#local-development)
+- [Docker](#docker)
+- [Database](#database)
+- [Quality Checks](#quality-checks)
+- [Deployment](#deployment)
+- [Security Notes](#security-notes)
 
 ## Features
 
@@ -59,30 +77,60 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
     </td>
     <td width="50%">
       <h3>Platform-ready output</h3>
-      <p>Create short summaries, technical notes, beginner explanations, changelog entries, portfolio bullets, and social posts, including Standard X and X Premium post lengths.</p>
+      <p>Create summaries, technical notes, beginner explanations, changelog entries, portfolio bullets, and social posts.</p>
     </td>
   </tr>
   <tr>
+    <td width="50%">
+      <h3>Standard and Premium X posts</h3>
+      <p>Choose Standard X or X Premium post length and keep that preference during regeneration.</p>
+    </td>
     <td width="50%">
       <h3>Authenticated dashboard</h3>
-      <p>Clerk protects the dashboard, saved generations, detail pages, regeneration actions, and profile sync flow.</p>
-    </td>
-    <td width="50%">
-      <h3>Saved history</h3>
-      <p>Reopen previous generations, copy content, regenerate output with saved preferences, and delete records that are no longer needed.</p>
+      <p>Clerk protects dashboard pages, saved generations, detail pages, regeneration actions, and profile sync.</p>
     </td>
   </tr>
   <tr>
+    <td width="50%">
+      <h3>Saved history</h3>
+      <p>Reopen previous generations, copy content, regenerate output with saved preferences, and delete records.</p>
+    </td>
     <td width="50%">
       <h3>Media attachments</h3>
       <p>Upload optional images or videos through Cloudinary and keep hosted media metadata with generated content.</p>
     </td>
+  </tr>
+  <tr>
     <td width="50%">
-      <h3>Production-minded workflow</h3>
-      <p>Validate GitHub URLs, detect PRs versus commits, apply rate limits, parse AI output with shared schemas, persist records through Prisma, and reuse matching generations safely.</p>
+      <h3>Shared backend API</h3>
+      <p>The standalone Hono API serves the web app today and is ready for Electron and future clients.</p>
+    </td>
+    <td width="50%">
+      <h3>Retention cleanup</h3>
+      <p>The API attempts cleanup of generations older than 7 days once per day while requests are being served.</p>
     </td>
   </tr>
 </table>
+
+## Architecture
+
+```txt
+Browser / Electron / future clients
+        |
+        | Clerk bearer token
+        v
+Standalone Hono API (apps/api)
+        |
+        +-- GitHub fetchers (packages/github)
+        +-- AI generation (packages/ai)
+        +-- Shared schemas/types (packages/shared)
+        +-- Prisma/PostgreSQL (packages/db)
+        +-- Cloudinary media upload
+```
+
+The web app no longer owns the backend business logic. It calls the standalone
+API through `NEXT_PUBLIC_API_URL`, which keeps the same backend available to the
+Electron app and future clients.
 
 ## Tech Stack
 
@@ -122,6 +170,16 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
         <sub><strong>Hono API</strong></sub>
       </td>
       <td align="center" width="120">
+        <img src="https://cdn.simpleicons.org/nodedotjs/339933" width="36" height="36" alt="Node.js" />
+        <br />
+        <sub><strong>Node.js</strong></sub>
+      </td>
+      <td align="center" width="120">
+        <img src="https://cdn.simpleicons.org/esbuild/FFCF00" width="36" height="36" alt="esbuild" />
+        <br />
+        <sub><strong>esbuild</strong></sub>
+      </td>
+      <td align="center" width="120">
         <img src="https://cdn.simpleicons.org/clerk/6C47FF" width="36" height="36" alt="Clerk" />
         <br />
         <sub><strong>Clerk</strong></sub>
@@ -131,6 +189,8 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
         <br />
         <sub><strong>Prisma 7</strong></sub>
       </td>
+    </tr>
+    <tr>
       <td align="center" width="120">
         <img src="https://cdn.simpleicons.org/postgresql/4169E1" width="36" height="36" alt="PostgreSQL" />
         <br />
@@ -144,10 +204,8 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
       <td align="center" width="120">
         <img src="https://cdn.simpleicons.org/github/181717" width="36" height="36" alt="GitHub" />
         <br />
-        <sub><strong>Octokit</strong></sub>
+        <sub><strong>GitHub</strong></sub>
       </td>
-    </tr>
-    <tr>
       <td align="center" width="120">
         <img src="https://cdn.simpleicons.org/cloudinary/3448C5" width="36" height="36" alt="Cloudinary" />
         <br />
@@ -158,6 +216,8 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
         <br />
         <sub><strong>Zod</strong></sub>
       </td>
+    </tr>
+    <tr>
       <td align="center" width="120">
         <img src="https://cdn.simpleicons.org/reacthookform/EC5990" width="36" height="36" alt="React Hook Form" />
         <br />
@@ -187,92 +247,95 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
   </table>
 </div>
 
-## Workspace
+## Repository Structure
 
 ```txt
 apps/
   api/                  Standalone Hono backend API
-  web/                  Production Next.js application
+  web/                  Next.js web application
   electron/             Electron desktop workspace
   mobile/               Expo mobile workspace
   docs/                 Documentation/example workspace
 
 packages/
-  ai/                   Gemini prompt and generation logic
-  db/                   Prisma schema, generated client, and database access
+  ai/                   Prompting and AI generation logic
+  db/                   Prisma schema, generated client, and DB access
   github/               GitHub PR and commit fetchers
   shared/               Shared Zod schemas and domain types
-  ui/                   Shared UI package
+  ui/                   Shared UI components
   eslint-config/        Shared ESLint config
   typescript-config/    Shared TypeScript config
 ```
 
-The web app keeps route files inside `apps/web/app`. Shared web UI lives in
-`apps/web/components`, shared web helpers live in `apps/web/lib`, and route-only
-helpers live in colocated `_components` folders.
+Web structure:
 
-## Product Routes
+```txt
+apps/web/app/           Next.js routes and route-only files
+apps/web/components/    Shared web UI components
+apps/web/lib/           Shared web helpers and API clients
+apps/web/assets/        Web UI assets
+```
+
+Route-only components are colocated in `_components` folders inside the route
+that owns them.
+
+## Web Routes
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Marketing/home page |
+| `/` | Home page and generator entry |
 | `/examples` | Example generated content |
 | `/dashboard` | Authenticated generation dashboard |
 | `/dashboard/history` | Authenticated generation history |
 | `/dashboard/generations/:id` | Authenticated generation detail |
-| `/sign-in` | Custom sign-in page |
-| `/sign-up` | Custom sign-up page |
+| `/sign-in` | Sign-in page |
+| `/sign-up` | Sign-up page |
+| `/sso-callback` | Clerk SSO callback |
 | `/privacy` | Privacy policy |
 | `/terms` | Terms page |
 
+Protected dashboard routes are enforced by Clerk middleware in
+`apps/web/proxy.ts`.
+
 ## API Routes
 
-The backend API is served by `apps/api` and defaults to:
+The API runs from `apps/api` and defaults to:
 
 ```txt
 http://localhost:4000
 ```
 
+Current active routes:
+
 | Method | Route | Purpose |
 | --- | --- | --- |
-| `GET` | `/health` | API health check |
+| `GET` | `/` | API metadata |
+| `GET` | `/health` | Health check |
+| `POST` | `/profile/sync` | Sync authenticated Clerk profile |
 | `POST` | `/pr` | Generate content from a PR or commit URL |
-| `POST` | `/media` | Upload media attachment metadata/assets |
+| `POST` | `/media` | Upload a media attachment |
 | `GET` | `/generations` | Read saved generation history |
-| `GET` | `/generations/:id` | Read a saved generation |
-| `DELETE` | `/generations/:id` | Delete a saved generation |
+| `GET` | `/generations/:id` | Read one saved generation |
+| `DELETE` | `/generations/:id` | Delete one saved generation |
 | `POST` | `/generations/:id/regenerate` | Regenerate saved content |
-| `POST` | `/profile/sync` | Sync authenticated user profile |
-| `POST` | `/jobs/delete-old-generations` | Delete generations older than the retention window |
 
-The same routes are also available under `/v1/*`. Browser and Electron clients call
-the API with a Clerk bearer token. Protected dashboard routes are enforced in
-`apps/web/proxy.ts` with Clerk middleware.
-
-## Required
-
-Before running GitLoud locally, make sure these are available:
-
-- Node.js `20.9` or newer
-- npm `10.9.7` or compatible
-- PostgreSQL database
-- Clerk application
-- Google Gemini API key
-- GitHub token
-- Cloudinary account, if media uploads are enabled
+The API expects protected requests to include a Clerk bearer token. CORS is
+controlled by `API_ALLOWED_ORIGINS`. Localhost defaults are allowed only outside
+production; in production, configured origins are authoritative.
 
 ## Environment Variables
 
-Create `.env.local` in the repository root for local development. Configure production
-variables in your hosting provider settings.
+Create a root `.env.local` for local development. Configure production values in
+the hosting provider dashboard.
 
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
 
+PORT=4000
+API_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
+
 NEXT_PUBLIC_API_URL="http://localhost:4000"
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-API_ALLOWED_ORIGINS="http://localhost:3000,http://localhost:5173"
-PORT=4000
 
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="..."
 CLERK_SECRET_KEY="..."
@@ -282,34 +345,28 @@ GEMINI_MODEL="gemini-2.5-flash"
 
 GITHUB_TOKEN="..."
 
-NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-
 CLOUDINARY_CLOUD_NAME="..."
 CLOUDINARY_API_KEY="..."
 CLOUDINARY_API_SECRET="..."
-
-CRON_SECRET="..."
 ```
 
-For production, set public URLs to deployed domains:
+Production example:
 
 ```bash
-NEXT_PUBLIC_SITE_URL="https://your-domain.com"
-NEXT_PUBLIC_API_URL="https://your-api-domain.com"
-API_ALLOWED_ORIGINS="https://your-domain.com"
+NEXT_PUBLIC_SITE_URL="https://gitloud-web.vercel.app"
+NEXT_PUBLIC_API_URL="https://gitloud.onrender.com"
+API_ALLOWED_ORIGINS="https://gitloud-web.vercel.app"
+NODE_ENV="production"
 ```
 
-`NEXT_PUBLIC_API_BASE_URL` was used by the old Next.js API route setup. The current
-web app uses `NEXT_PUBLIC_API_URL` and calls the standalone Hono API.
+Notes:
 
-For managed PostgreSQL providers such as Neon, Supabase, or Railway, keep SSL enabled
-when the provider requires it. When running the API inside Docker against a local
-PostgreSQL server, use `host.docker.internal` instead of `localhost` in
-`DATABASE_URL`.
-
-The database package loads environment files from root `.env.local`, root `.env`,
-and `packages/db/.env` in that order. Because dotenv keeps existing values by
-default, earlier files take precedence.
+- `NEXT_PUBLIC_API_BASE_URL` belonged to the old Next.js API route setup. The
+  current web app uses `NEXT_PUBLIC_API_URL`.
+- If you run the API in Docker and connect to a database on the host machine, use
+  `host.docker.internal` instead of `localhost` in `DATABASE_URL`.
+- Keep secret values in environment variables only. Do not commit `.env.local`,
+  `.env`, or `.env.docker`.
 
 ## Local Development
 
@@ -325,33 +382,31 @@ Generate the Prisma client:
 npm --workspace @repo/db run db:generate
 ```
 
-Start the web app:
+Run the web app:
 
 ```bash
 npm run web
 ```
 
-Start the standalone backend API:
+Run the API:
 
 ```bash
 npm run api
 ```
 
-Open the app at:
+Open:
 
 ```txt
-http://localhost:3000
+Web: http://localhost:3000
+API: http://localhost:4000/health
 ```
 
-Open the API health check at:
+For local development, `npm run api` loads root `.env.local`, root `.env`,
+`packages/db/.env`, and `apps/api/.env` when those files exist.
 
-```txt
-http://localhost:4000/health
-```
+## Docker
 
-### Run The API With Docker
-
-Build the backend image from the repository root:
+Build the API image from the repository root:
 
 ```bash
 docker build -f apps/api/Dockerfile -t gitloud-api .
@@ -360,117 +415,138 @@ docker build -f apps/api/Dockerfile -t gitloud-api .
 Run the API container:
 
 ```bash
-docker run --rm -p 4000:4000 --env-file .env.local gitloud-api
+docker run --rm -p 4000:4000 --env-file .env.docker gitloud-api
 ```
 
-The Docker image uses a multi-stage build. The builder stage installs dependencies
-and builds the API; the runner stage starts the compiled API with plain Node.
+The API Dockerfile uses a multi-stage build:
+
+1. Builder stage installs dependencies and builds shared packages plus the API.
+2. The API is bundled with esbuild for Node.
+3. Runner stage copies only the built API output and starts it with plain Node.
+
+The image installs `openssl` and `ca-certificates` because Prisma/PostgreSQL and
+managed databases commonly require TLS support.
 
 ## Database
 
-The Prisma schema lives at `packages/db/prisma/schema.prisma`.
+The Prisma schema lives at:
 
-Saved generations persist the selected X post length (`STANDARD` or `PREMIUM`) so
-regeneration keeps the same X output style. Standard and Premium generations are
-stored as separate reusable records for the same source/context.
+```txt
+packages/db/prisma/schema.prisma
+```
+
+Common commands:
 
 ```bash
-# Generate the Prisma client
 npm --workspace @repo/db run db:generate
-
-# Apply committed migrations to an existing database
-npx prisma migrate deploy --config packages/db/prisma.config.ts
-
-# Push schema changes during early development
 npm --workspace @repo/db run db:push
-
-# Open Prisma Studio
 npm --workspace @repo/db run db:studio
 ```
+
+For production migrations, use Prisma migrate deploy with the repo Prisma config:
+
+```bash
+npx prisma migrate deploy --config packages/db/prisma.config.ts
+```
+
+Generation retention is currently handled by lazy API cleanup. The API attempts
+to remove generations older than 7 days once per day while the process is serving
+requests.
 
 ## Commands
 
 | Command | Description |
 | --- | --- |
-| `npm run dev` | Run all development servers through Turbo |
+| `npm run dev` | Run all dev servers through Turbo |
 | `npm run web` | Run only the web app |
-| `npm run api` | Run only the Hono backend API |
-| `npm run desktop` | Run the Electron desktop app |
-| `npm run desktop:build` | Build the Electron desktop app |
+| `npm run api` | Run only the standalone API |
+| `npm run desktop` | Run the Electron app |
+| `npm run desktop:build` | Build the Electron app |
 | `npm run mobile` | Run the mobile workspace |
 | `npm run lint` | Lint all workspaces |
 | `npm run check-types` | Type-check all workspaces |
 | `npm run build` | Build all workspaces |
 | `npm --workspace web run build` | Build only the web app |
-| `npm --workspace api run build` | Build only the backend API |
+| `npm --workspace web run doctor` | Run React Doctor for the web app |
+| `npm --workspace api run build` | Build only the API |
 | `npm run format` | Format source files |
 
-## Deployment
+## Quality Checks
 
-GitLoud is split into a web frontend and a backend API:
-
-- `apps/web` deploys to Vercel.
-- `apps/api` deploys separately, for example on Render, Railway, Fly.io, or a Docker host.
-
-Recommended production services:
-
-- Vercel for the Next.js app
-- Render/Railway/Fly/Docker hosting for the Hono API
-- Managed PostgreSQL for the database
-- Clerk for authentication
-- Google Gemini for AI generation
-- GitHub token or future GitHub App credentials
-- Cloudinary for media uploads
-
-Before deploying:
-
-1. Deploy the API and set server secrets such as `DATABASE_URL`, `CLERK_SECRET_KEY`, `GITHUB_TOKEN`, `GEMINI_API_KEY`, and Cloudinary credentials.
-2. Set `API_ALLOWED_ORIGINS` on the API to include the Vercel web domain.
-3. Set `NEXT_PUBLIC_API_URL` in Vercel to the deployed API URL.
-4. Set `NEXT_PUBLIC_SITE_URL` in Vercel to the production web domain.
-5. Confirm Clerk redirect URLs include the production domain.
-6. Confirm Cloudinary credentials are set if uploads are enabled.
-7. Confirm the database allows connections from the API deployment environment.
-8. Run lint, type checks, and production builds locally or in CI.
-
-Production verification:
+Run these before opening a PR or deploying:
 
 ```bash
 npm run lint
 npm run check-types
 npm run build
+npm --workspace web run doctor
 ```
+
+`apps/web/doctor.config.json` disables React Doctor dead-code analysis because
+the current Next.js route and alias graph causes false positives for files that
+are actually used. It also ignores the Fast Refresh component-export warning for
+Next metadata image routes, where Next requires named metadata exports.
+
+## Deployment
+
+GitLoud deploys as two services:
+
+- `apps/web` on Vercel.
+- `apps/api` on Render, Railway, Fly.io, or another Node/Docker-compatible host.
+
+Recommended setup:
+
+1. Deploy the API first.
+2. Set API secrets: `DATABASE_URL`, `CLERK_SECRET_KEY`, `GITHUB_TOKEN`,
+   `GEMINI_API_KEY`, and Cloudinary credentials.
+3. Set `NODE_ENV=production` on the API.
+4. Set `API_ALLOWED_ORIGINS` on the API to the deployed web origin.
+5. Deploy the web app to Vercel.
+6. Set `NEXT_PUBLIC_API_URL` in Vercel to the deployed API URL.
+7. Set `NEXT_PUBLIC_SITE_URL` in Vercel to the deployed web URL.
+8. Confirm Clerk redirect URLs include the deployed web domain.
+9. Confirm the database accepts connections from the API host.
+10. Run production verification checks.
+
+Production verification:
+
+```bash
+npm --workspace api run build
+npm --workspace web run build
+npm --workspace web run doctor
+```
+
+Free API hosting can cold start. The web app includes a delayed backend toast so
+users get feedback when an API request takes longer than expected.
 
 ## Security Notes
 
-- Dashboard and generation APIs are protected by Clerk middleware.
-- The standalone API verifies Clerk bearer tokens before protected backend work.
-- Users can only access their own saved generations.
-- GitHub inputs are validated and limited to public PR/commit URLs.
-- AI output is parsed through shared Zod schemas.
-- Media uploads are stored as metadata and are not sent as AI input.
-- X post length preferences are stored with generations and reused during regeneration.
-- Secrets must never be committed. Keep them in local `.env.local`, Docker env files, and deployment environment variables.
-- If secrets are exposed, rotate them at the provider before continuing.
+- Keep all secrets out of Git.
+- Rotate provider secrets if they were exposed in a dashboard, terminal, or logs.
+- Clerk protects dashboard pages and API requests.
+- API CORS uses exact normalized origins in production.
+- Users can access only their own saved generations.
+- GitHub input is limited to supported public PR and commit URLs.
+- AI output is parsed and validated with shared Zod schemas.
+- Media uploads are handled separately and stored as attachment metadata.
 
 ## Current Scope
 
-GitLoud currently supports manual generation from public GitHub PRs and commits,
-with Standard X and X Premium post length selection. The backend API is separated
-from the web app so the same service can be reused by Electron and future clients.
-Private repository support, GitHub App installation, webhook ingestion, background
-queues, and advanced content editing are future expansion areas.
+GitLoud currently focuses on manual generation from public GitHub PRs and commits.
+The standalone API is in place for web and Electron reuse. Private repository
+support, GitHub App installation, webhook ingestion, background queues, and
+advanced editing are future expansion areas.
 
 ## Roadmap
 
 - Private repository support through a GitHub App
 - Editable saved generations
-- Draft and version history
-- Repository-level history filters
+- Draft/version history
+- Repository-level filters
 - Background generation jobs
 - Webhook-triggered generation
 - Export to Markdown, JSON, and plain text
-- Sentry monitoring and structured production logging
+- Production monitoring and structured logging
 - Mobile app support
 
 ## License
