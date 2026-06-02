@@ -8,7 +8,7 @@ import { ChevronLeft, History, Home, LayoutDashboard } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { AppLogo } from "@/assest/AppLogo";
+import { AppLogo } from "@/assets/AppLogo";
 
 export function Header() {
   const pathname = usePathname();

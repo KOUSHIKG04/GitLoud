@@ -1,12 +1,10 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
-import { getAllowedOrigins } from "@/env";
+import { getAllowedOrigins, isAllowedOrigin, normalizeOrigin } from "@/env";
 import { scheduleLazyCleanup } from "@/lib/lazy-cleanup";
 import { generationRoutes } from "@/routes/generations";
 import { healthRoutes } from "@/routes/health";
-import { jobRoutes } from "@/routes/jobs";
 import { mediaRoutes } from "@/routes/media";
 import { prRoutes } from "@/routes/pr";
 import { profileRoutes } from "@/routes/profile";
@@ -18,26 +16,22 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
 
   const app = new Hono();
 
+  app.use("*", async (context, next) => {
+    setCorsHeaders(context, allowedOrigins);
+
+    if (context.req.method === "OPTIONS") {
+      return context.body(null, 204);
+    }
+
+    await next();
+    setCorsHeaders(context, allowedOrigins);
+  });
+
   app.use("*", logger());
   app.use("*", async (_context, next) => {
     scheduleLazyCleanup();
     await next();
   });
-  app.use(
-    "*",
-    cors({
-      origin: (origin) => {
-        if (!origin) {
-          return undefined;
-        }
-
-        return allowedOrigins.includes(origin) ? origin : undefined;
-      },
-      credentials: true,
-      allowHeaders: ["Authorization", "Content-Type"],
-      allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    }),
-  );
 
   app.get("/", (context) => {
     return context.json({
@@ -48,17 +42,10 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
   });
 
   app.route("/health", healthRoutes);
-  app.route("/v1/health", healthRoutes);
-  app.route("/jobs", jobRoutes);
-  app.route("/v1/jobs", jobRoutes);
   app.route("/profile", profileRoutes);
-  app.route("/v1/profile", profileRoutes);
   app.route("/pr", prRoutes);
-  app.route("/v1/pr", prRoutes);
   app.route("/media", mediaRoutes);
-  app.route("/v1/media", mediaRoutes);
   app.route("/generations", generationRoutes);
-  app.route("/v1/generations", generationRoutes);
 
   app.notFound((context) => {
     return context.json({ error: "Not found" }, 404);
@@ -78,3 +65,24 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
 }
 
 export const app = createApp();
+
+function setCorsHeaders(
+  context: Parameters<Parameters<Hono["use"]>[1]>[0],
+  allowedOrigins: string[],
+) {
+  const origin = context.req.header("origin");
+
+  if (!origin || !isAllowedOrigin(origin, allowedOrigins)) {
+    return;
+  }
+
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  context.header("Access-Control-Allow-Origin", normalizedOrigin);
+  context.header("Access-Control-Allow-Credentials", "true");
+  context.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
+  context.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+  );
+}

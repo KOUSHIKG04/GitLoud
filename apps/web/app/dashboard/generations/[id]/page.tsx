@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
-import { db } from "@repo/db/client";
 import { Header } from "@/components/Header";
-import { getAuthenticatedUserId } from "@/lib/session";
-import { GenerationDetailClient } from "./generation-detail-client";
-import { AttachedMediaSection } from "./attached-media-section";
+import { getGenerationDetail } from "@/lib/generations-api";
+import { GenerationDetailClient } from "./_components/generation-detail-client";
+import { AttachedMediaSection } from "./_components/attached-media-section";
 import {
   CalendarDays,
   ChevronRight,
@@ -37,36 +36,8 @@ export default async function GenerationDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const [{ id }, userId] = await Promise.all([
-    params,
-    getAuthenticatedUserId(),
-  ]);
-
-  if (!userId) {
-    notFound();
-  }
-
-  const generation = await db.generatedContent.findFirst({
-    where: { id, userId },
-    include: {
-      pullRequest: true,
-      commit: true,
-      mediaAttachments: {
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          secureUrl: true,
-          resourceType: true,
-          fileName: true,
-          mimeType: true,
-          bytes: true,
-          width: true,
-          height: true,
-          duration: true,
-        },
-      },
-    },
-  });
+  const { id } = await params;
+  const generation = await getGenerationDetail(id);
 
   if (!generation) {
     notFound();
@@ -81,7 +52,7 @@ export default async function GenerationDetailPage({
   const title =
     generation.sourceType === "PULL_REQUEST" && generation.pullRequest
       ? generation.pullRequest.title
-      : generation.commit?.message.split("\n")[0];
+      : (generation.commit?.message ?? "").split("\n")[0];
 
   const sourceLabel =
     generation.sourceType === "PULL_REQUEST" ? "Pull Request" : "Commit";
@@ -159,7 +130,7 @@ export default async function GenerationDetailPage({
                   value={source.author}
                 />
               ) : null}
-              {"state" in source ? (
+              {"state" in source && source.state ? (
                 <SourceMeta
                   icon={<CircleDot className="size-4" />}
                   label="State"
@@ -174,7 +145,9 @@ export default async function GenerationDetailPage({
             </div>
           </div>
 
-          <AttachedMediaSection mediaAttachments={generation.mediaAttachments} />
+          <AttachedMediaSection
+            mediaAttachments={generation.mediaAttachments}
+          />
         </section>
 
         <GenerationDetailClient
@@ -258,6 +231,6 @@ function SourceMeta({
   );
 }
 
-function formatSourceDate(value: Date) {
-  return sourceDateFormatter.format(value);
+function formatSourceDate(value: string) {
+  return sourceDateFormatter.format(new Date(value));
 }

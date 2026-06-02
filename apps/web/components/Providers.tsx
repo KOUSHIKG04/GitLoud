@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { ThemeProvider } from "@/theme-provider";
+import { ThemeProvider } from "@/lib/theme-provider";
 
 type Theme = "light" | "dark" | "system";
 

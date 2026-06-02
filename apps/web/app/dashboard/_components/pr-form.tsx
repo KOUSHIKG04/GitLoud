@@ -1,0 +1,228 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { useAuth } from "@clerk/nextjs";
+import { Input } from "@repo/ui/components/input";
+import { ChevronRight, Info } from "lucide-react";
+import {
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ComponentPropsWithoutRef,
+} from "react";
+import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api-client";
+import { startBackendDelayToast } from "@/lib/api-delay-toast";
+import { PrFormFooter } from "./pr-form-footer";
+import { readProgressStream, uploadMedia, wait } from "./pr-form-generation";
+import { formSchema, type FormValues } from "./pr-form.schema";
+import { getMediaValidationError, onInvalid } from "./pr-form-validation";
+
+export function PrForm({
+  className,
+  ...props
+}: ComponentPropsWithoutRef<"div">) {
+  const { push } = useRouter();
+  const { getToken } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaAttachmentIdRef = useRef<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      url: "",
+      context: "",
+      xPostLength: "standard",
+    },
+  });
+  const xPostLength = watch("xPostLength");
+  const isPremiumXPost = xPostLength === "premium";
+
+  async function generate(values: FormValues) {
+    const toastId = toast.loading("Fetching GitHub item...");
+    const clearBackendDelayToast = startBackendDelayToast(toastId);
+    const minimumLoaderTime = wait(2500);
+
+    try {
+      let mediaAttachmentId: string | undefined;
+
+      if (selectedMedia) {
+        if (mediaAttachmentIdRef.current) {
+          mediaAttachmentId = mediaAttachmentIdRef.current;
+        } else {
+          toast.loading("Uploading media attachment...", { id: toastId });
+          const mediaAttachment = await uploadMedia(selectedMedia, getToken);
+          mediaAttachmentId = mediaAttachment.id;
+          mediaAttachmentIdRef.current = mediaAttachmentId;
+        }
+      }
+
+      const response = await apiFetch(
+        "/pr",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: values.url,
+            context: values.context,
+            mediaAttachmentId,
+            xPostLength: values.xPostLength,
+          }),
+        },
+        getToken,
+      );
+
+      const data = await readProgressStream(response, (message) => {
+        toast.loading(message, { id: toastId });
+      });
+
+      await minimumLoaderTime;
+
+      toast.success("Content generated successfully", {
+        id: toastId,
+      });
+
+      push(`/dashboard/generations/${data.generatedContentId}`);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Something went wrong";
+
+      toast.error(message, {
+        id: toastId,
+        duration: 7000,
+        action: {
+          label: "Retry",
+          onClick: () => {
+            void generate(values);
+          },
+        },
+      });
+    } finally {
+      clearBackendDelayToast();
+    }
+  }
+
+  function onMediaChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0] ?? null;
+
+    if (!file) {
+      setSelectedMedia(null);
+      mediaAttachmentIdRef.current = null;
+      return;
+    }
+
+    const validationError = getMediaValidationError(file);
+
+    if (validationError) {
+      toast.error(validationError, { duration: 7000 });
+      event.target.value = "";
+      return;
+    }
+
+    setSelectedMedia(file);
+  }
+
+  function clearSelectedMedia() {
+    setSelectedMedia(null);
+    mediaAttachmentIdRef.current = null;
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
+  async function onSubmit(values: FormValues) {
+    await generate(values);
+  }
+
+  return (
+    <div
+      {...props}
+      className={["w-full space-y-6", className].filter(Boolean).join(" ")}
+    >
+      <div className="border bg-card text-card-foreground shadow-sm">
+        <form
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
+          className="flex flex-col"
+        >
+          <div className="space-y-6 p-4 sm:p-6">
+            <div className="space-y-2">
+              <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
+                <p className="my-1 gap-1 text-md leading-5 text-foreground flex items-center">
+                  <ChevronRight size={10} className="hidden sm:block" /> Paste a
+                  Github pull request or commit link.
+                </p>
+              </div>
+
+              <div className="relative">
+                <Input
+                  id="pr-url"
+                  type="url"
+                  placeholder=""
+                  disabled={isSubmitting}
+                  className={
+                    errors.url
+                      ? "border-destructive rounded-none pr-9 placeholder:text-xs focus-visible:ring-1"
+                      : "rounded-none bg-background pr-9 placeholder:text-xs focus-visible:ring-1"
+                  }
+                  {...register("url")}
+                />
+                <span
+                  title="Supported links: https://github.com/owner/repo/pull/123 or https://github.com/owner/repo/commit/abc123"
+                  aria-label="Supported link types"
+                  className="absolute right-3 top-1/2 flex -translate-y-1/2 animate-pulse text-black drop-shadow-[0_0_8px_rgba(0,0,0,0.45)] dark:text-white dark:drop-shadow-[0_0_8px_rgba(255,255,255,0.75)]"
+                >
+                  <Info className="size-4" aria-hidden="true" />
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
+                <p className="gap-1 text-[13px] leading-5 text-muted-foreground flex items-center">
+                  Extra context: Add tone, audience, or what you learned.
+                </p>
+              </div>
+
+              <div className="relative">
+                <ChevronRight
+                  className="absolute left-3 top-3 text-muted-foreground"
+                  size={14}
+                />
+                <textarea
+                  id="context"
+                  placeholder='Add tone, audience, or what you learned (e.g., "I learned this today explain it as a learning update")'
+                  disabled={isSubmitting}
+                  className="custom-scrollbar min-h-36 w-full resize-y border border-input bg-background pl-8 pr-3 py-2 text-sm leading-6 text-foreground placeholder:text-muted-foreground placeholder:text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  {...register("context")}
+                />
+              </div>
+            </div>
+          </div>
+
+          <PrFormFooter
+            clearSelectedMedia={clearSelectedMedia}
+            fileInputRef={fileInputRef}
+            isPremiumXPost={isPremiumXPost}
+            isSubmitting={isSubmitting}
+            onMediaChange={onMediaChange}
+            registerXPostLength={register("xPostLength")}
+            selectedMedia={selectedMedia}
+            setValue={setValue}
+          />
+        </form>
+      </div>
+    </div>
+  );
+}

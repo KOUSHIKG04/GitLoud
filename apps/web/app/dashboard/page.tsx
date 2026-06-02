@@ -1,7 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { PrForm } from "@/dashboard/pr-form";
-import { getCurrentUserId } from "@/lib/session";
+import { PrForm } from "./_components/pr-form";
+import { syncProfile } from "@/lib/generations-api";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  await getCurrentUserId();
+  await syncProfile();
 
   return (
     <main className="min-h-screen flex flex-col">
