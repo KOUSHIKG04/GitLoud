@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Renders the authenticated generation history page with date filtering.
+ */
 export default async function HistoryPage({
   searchParams,
 }: {
@@ -99,7 +102,7 @@ export default async function HistoryPage({
                   generation.sourceType === "PULL_REQUEST" &&
                   generation.pullRequest
                     ? generation.pullRequest.title
-                    : generation.commit?.message.split("\n")[0];
+                    : (generation.commit?.message ?? "").split("\n")[0];
 
                 return (
                   <article
@@ -186,6 +189,9 @@ export default async function HistoryPage({
   );
 }
 
+/**
+ * Renders previous/current/next pagination controls for history results.
+ */
 function HistoryPagination({
   from,
   page,
@@ -236,6 +242,9 @@ function HistoryPagination({
   );
 }
 
+/**
+ * Parses a YYYY-MM-DD date parameter into a valid local Date.
+ */
 function parseHistoryDate(value: string | undefined) {
   if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return undefined;
@@ -257,6 +266,9 @@ function parseHistoryDate(value: string | undefined) {
   return date;
 }
 
+/**
+ * Formats a date for history query parameters.
+ */
 function formatHistoryDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -265,6 +277,9 @@ function formatHistoryDate(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
+/**
+ * Builds a history page URL while preserving active date filters.
+ */
 function getHistoryPageHref(
   page: number,
   from: string | undefined,
@@ -283,6 +298,9 @@ function getHistoryPageHref(
   return `/dashboard/history?${params.toString()}`;
 }
 
+/**
+ * Renders the GitHub mark used by the external link button.
+ */
 function GitHubIcon() {
   return (
     <svg

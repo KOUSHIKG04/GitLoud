@@ -9,6 +9,9 @@ import { mediaRoutes } from "@/routes/media";
 import { prRoutes } from "@/routes/pr";
 import { profileRoutes } from "@/routes/profile";
 
+/**
+ * Creates the Hono API app with shared middleware and route registration.
+ */
 export function createApp(options?: { allowedOrigins?: string[] }) {
   const allowedOrigins =
     options?.allowedOrigins ??
@@ -66,6 +69,9 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
 
 export const app = createApp();
 
+/**
+ * Applies CORS headers when the request origin is explicitly allowed.
+ */
 function setCorsHeaders(
   context: Parameters<Parameters<Hono["use"]>[1]>[0],
   allowedOrigins: string[],
@@ -79,6 +85,7 @@ function setCorsHeaders(
   const normalizedOrigin = normalizeOrigin(origin);
 
   context.header("Access-Control-Allow-Origin", normalizedOrigin);
+  context.header("Vary", "Origin", { append: true });
   context.header("Access-Control-Allow-Credentials", "true");
   context.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
   context.header(
