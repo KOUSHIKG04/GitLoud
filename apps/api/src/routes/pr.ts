@@ -23,6 +23,8 @@ import { getCurrentUserId } from "@/lib/auth";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { persistentRateLimit } from "@/lib/rate-limit";
+import { getGitHubTokenForRepo } from "@/lib/github-app";
+import { getUserFeatures } from "@/lib/features";
 
 const requestBodySchema = z.object({
   url: githubPrOrCommitUrlSchema,
@@ -103,6 +105,12 @@ export const prRoutes = new Hono().post("/", async (context) => {
     if (urlType === "pull-request") {
       const { owner, repo, number } = parseGithubPullRequestUrl(url);
 
+      const features = await getUserFeatures(appUserId);
+
+      const githubToken = features.canUsePrivateRepos
+        ? await getGitHubTokenForRepo({ userId: appUserId, owner, repo })
+        : process.env.GITHUB_TOKEN;
+
       if (!Number.isInteger(number) || number <= 0) {
         send({ type: "error", message: "Enter a valid GitHub PR URL" });
         return;
@@ -117,7 +125,7 @@ export const prRoutes = new Hono().post("/", async (context) => {
         owner,
         repo,
         number,
-        githubToken: process.env.GITHUB_TOKEN,
+        githubToken,
       });
 
       const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
@@ -172,7 +180,7 @@ export const prRoutes = new Hono().post("/", async (context) => {
         owner,
         repo,
         number,
-        githubToken: process.env.GITHUB_TOKEN,
+        githubToken,
       });
 
       send({
@@ -285,6 +293,11 @@ export const prRoutes = new Hono().post("/", async (context) => {
 
     if (urlType === "commit") {
       const { owner, repo, sha } = parseGithubCommitUrl(url);
+      const features = await getUserFeatures(appUserId);
+
+      const githubToken = features.canUsePrivateRepos
+        ? await getGitHubTokenForRepo({ userId: appUserId, owner, repo })
+        : process.env.GITHUB_TOKEN;
 
       send({
         type: "progress",
@@ -295,7 +308,7 @@ export const prRoutes = new Hono().post("/", async (context) => {
         owner,
         repo,
         sha,
-        githubToken: process.env.GITHUB_TOKEN,
+        githubToken,
       });
 
       const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`

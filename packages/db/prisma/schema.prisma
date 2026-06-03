@@ -20,13 +20,15 @@ model User {
   image         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  plan          UserPlan @default(FREE)
 
-  pullRequests     PullRequest[]
-  commits          Commit[]
-  generatedContent GeneratedContent[]
-  mediaAttachments MediaAttachment[]
-  sessions         Session[]
-  accounts         Account[]
+  pullRequests        PullRequest[]
+  commits             Commit[]
+  generatedContent    GeneratedContent[]
+  mediaAttachments    MediaAttachment[]
+  sessions            Session[]
+  accounts            Account[]
+  githubInstallations GitHubInstallation[]
 }
 
 model Session {
@@ -198,6 +200,36 @@ model MediaAttachment {
   @@index([generatedContentId, generatedContentUserId])
 }
 
+model GitHubInstallation {
+  id                  String   @id @default(cuid())
+  installationId      BigInt   @unique
+  accountLogin        String
+  accountType         String
+  repositorySelection String
+  userId              String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repositories GitHubInstallationRepository[]
+
+  @@index([userId])
+  @@index([accountLogin])
+}
+
+model GitHubInstallationRepository {
+  id             String @id @default(cuid())
+  installationId BigInt
+  owner          String
+  repo           String
+  repoId         BigInt?
+
+  installation GitHubInstallation @relation(fields: [installationId], references: [installationId], onDelete: Cascade)
+
+  @@unique([installationId, owner, repo])
+  @@index([owner, repo])
+}
+
 model RateLimitBucket {
   key      String   @id
   count    Int
@@ -215,4 +247,10 @@ enum GeneratedSourceType {
 enum XPostLength {
   STANDARD
   PREMIUM
+}
+
+enum UserPlan {
+  FREE
+  PRO
+  TEAM
 }

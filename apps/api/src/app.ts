@@ -8,6 +8,7 @@ import { healthRoutes } from "@/routes/health";
 import { mediaRoutes } from "@/routes/media";
 import { prRoutes } from "@/routes/pr";
 import { profileRoutes } from "@/routes/profile";
+import { githubRoutes } from "@/routes/github";
 
 /**
  * Creates the Hono API app with shared middleware and route registration.
@@ -46,9 +47,10 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
 
   app.route("/health", healthRoutes);
   app.route("/profile", profileRoutes);
-  app.route("/pr", prRoutes);
   app.route("/media", mediaRoutes);
   app.route("/generations", generationRoutes);
+  app.route("/pr", prRoutes);
+  app.route("/github", githubRoutes);
 
   app.notFound((context) => {
     return context.json({ error: "Not found" }, 404);
