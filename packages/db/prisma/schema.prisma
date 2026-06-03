@@ -21,6 +21,11 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   plan          UserPlan @default(FREE)
+  planExpiresAt DateTime?
+
+  billingProvider          BillingProvider?
+  razorpayOrderId          String?
+  razorpayPaymentId        String?
 
   pullRequests        PullRequest[]
   commits             Commit[]
@@ -29,6 +34,8 @@ model User {
   sessions            Session[]
   accounts            Account[]
   githubInstallations GitHubInstallation[]
+  aiCredentials       UserAiCredential[]
+
 }
 
 model Session {
@@ -230,6 +237,23 @@ model GitHubInstallationRepository {
   @@index([owner, repo])
 }
 
+model UserAiCredential {
+  id        String   @id @default(cuid())
+  userId    String
+  provider  AiProvider
+  apiKeyEnc String
+  apiKeyIv  String
+  apiKeyTag String
+  model     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
 model RateLimitBucket {
   key      String   @id
   count    Int
@@ -253,4 +277,16 @@ enum UserPlan {
   FREE
   PRO
   TEAM
+}
+
+enum AiProvider {
+  GEMINI
+  OPENAI
+  ANTHROPIC
+  OPENROUTER
+}
+
+enum BillingProvider {
+  RAZORPAY
+  MANUAL
 }

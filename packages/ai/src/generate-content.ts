@@ -111,6 +111,9 @@ type ContextBudget = (typeof CONTEXT_BUDGETS)[number];
 type GenerationOptions = {
   xPostLength?: "standard" | "premium";
   onProgress?: (message: string) => void;
+  aiProvider?: "gemini" | "openai" | "anthropic" | "openrouter";
+  aiApiKey?: string;
+  aiModel?: string;
 };
 
 type OpenRouterChatCompletionResponse = {
@@ -125,6 +128,19 @@ type OpenRouterChatCompletionResponse = {
   }>;
 };
 
+type OpenAiChatCompletionResponse = OpenRouterChatCompletionResponse;
+
+type AnthropicMessagesResponse = {
+  error?: {
+    message?: string;
+    type?: string;
+  };
+  content?: Array<{
+    type?: string;
+    text?: string;
+  }>;
+};
+
 const FALLBACK_REDUCED_CONTENT_NOTICE =
   "Reduced due to fallback generation. Try regenerating later for full content.";
 
@@ -133,6 +149,43 @@ const fallbackGeneratedContentSchema = generatedContentSchema.pick({
   tweet: true,
   beginnerSummary: true,
 });
+
+const chatProviderResponseSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    shortSummary: { type: "string" },
+    technicalSummary: { type: "string" },
+    features: {
+      type: "array",
+      items: { type: "string" },
+    },
+    techUsed: {
+      type: "array",
+      items: { type: "string" },
+    },
+    tweet: { type: "string" },
+    linkedInPost: { type: "string" },
+    redditPost: { type: "string" },
+    discordPost: { type: "string" },
+    portfolioBullet: { type: "string" },
+    changelogEntry: { type: "string" },
+    beginnerSummary: { type: "string" },
+  },
+  required: [
+    "shortSummary",
+    "technicalSummary",
+    "features",
+    "techUsed",
+    "tweet",
+    "linkedInPost",
+    "redditPost",
+    "discordPost",
+    "portfolioBullet",
+    "changelogEntry",
+    "beginnerSummary",
+  ],
+} as const;
 
 const SOURCE_FILE_EXTENSIONS = [
   ".ts",
@@ -240,8 +293,9 @@ const DEFAULT_OPENROUTER_FALLBACK_MODELS = [
   "openrouter/free",
 ];
 
-function getModelFallbacks() {
-  const preferredModel = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+function getModelFallbacks(options?: GenerationOptions) {
+  const preferredModel =
+    options?.aiModel ?? process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
   return [preferredModel, ...FALLBACK_MODELS].filter(
     (model, index, models) => models.indexOf(model) === index,
@@ -332,12 +386,16 @@ function sanitizeGeneratedContent(content: GeneratedContent): GeneratedContent {
   };
 }
 
-async function generateWithRetry(ai: GoogleGenAI, contentVariants: string[]) {
+async function generateWithRetry(
+  ai: GoogleGenAI,
+  contentVariants: string[],
+  options?: GenerationOptions,
+) {
   let lastError: unknown;
   let retryCount = 0;
   const deadline = Date.now() + TOTAL_GENERATION_TIMEOUT_MS;
 
-  for (const model of getModelFallbacks()) {
+  for (const model of getModelFallbacks(options)) {
     for (let attempt = 1; attempt <= MAX_GENERATION_ATTEMPTS; attempt += 1) {
       if (Date.now() > deadline) {
         throw new Error("Global generation timeout exceeded");
@@ -382,10 +440,7 @@ async function generateWithRetry(ai: GoogleGenAI, contentVariants: string[]) {
 }
 
 function buildReducedFallbackContent(
-  content: Pick<
-    GeneratedContent,
-    "shortSummary" | "tweet" | "beginnerSummary"
-  >,
+  content: Pick<GeneratedContent, "shortSummary" | "tweet" | "beginnerSummary">,
 ): GeneratedContent {
   return {
     shortSummary: content.shortSummary,
@@ -453,7 +508,8 @@ async function generateWithOpenRouter(
           );
         }
 
-        const data = (await response.json()) as OpenRouterChatCompletionResponse;
+        const data =
+          (await response.json()) as OpenRouterChatCompletionResponse;
 
         if (data.error) {
           throw new Error(
@@ -467,10 +523,9 @@ async function generateWithOpenRouter(
 
         if (!text) {
           throw new Error(
-            `OpenRouter returned an empty response: ${JSON.stringify(data).slice(
-              0,
-              2000,
-            )}`,
+            `OpenRouter returned an empty response: ${JSON.stringify(
+              data,
+            ).slice(0, 2000)}`,
           );
         }
 
@@ -479,7 +534,9 @@ async function generateWithOpenRouter(
         try {
           parsed = JSON.parse(text);
         } catch {
-          throw new Error(`OpenRouter returned invalid JSON: ${text.slice(0, 2000)}`);
+          throw new Error(
+            `OpenRouter returned invalid JSON: ${text.slice(0, 2000)}`,
+          );
         }
 
         const result = fallbackGeneratedContentSchema.safeParse(parsed);
@@ -564,16 +621,208 @@ async function requestOpenRouter(
               tweet: { type: "string" },
               beginnerSummary: { type: "string" },
             },
-            required: [
-              "shortSummary",
-              "tweet",
-              "beginnerSummary",
-            ],
+            required: ["shortSummary", "tweet", "beginnerSummary"],
           },
         },
       },
     }),
   });
+}
+
+async function generateWithCustomProvider(
+  contentVariants: string[],
+  options: GenerationOptions,
+): Promise<GeneratedContent> {
+  if (!options.aiProvider || !options.aiApiKey) {
+    throw new Error("Custom AI provider and API key are required");
+  }
+
+  const contents = contentVariants[0];
+
+  if (!contents) {
+    throw new Error("No content variants available for generation");
+  }
+
+  switch (options.aiProvider) {
+    case "gemini": {
+      const ai = new GoogleGenAI({
+        apiKey: options.aiApiKey,
+      });
+      const response = await generateWithRetry(ai, contentVariants, options);
+
+      if (!response.text) {
+        throw new Error("model returned an empty response");
+      }
+
+      return sanitizeGeneratedContent(
+        generatedContentSchema.parse(JSON.parse(response.text)),
+      );
+    }
+    case "openai":
+      return generateWithOpenAi(contents, options);
+    case "anthropic":
+      return generateWithAnthropic(contents, options);
+    case "openrouter":
+      return generateFullContentWithOpenRouter(contents, options);
+    default:
+      throw new Error("Unsupported custom AI provider");
+  }
+}
+
+async function generateWithOpenAi(
+  contents: string,
+  options: GenerationOptions,
+): Promise<GeneratedContent> {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${options.aiApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: options.aiModel ?? "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: getFullJsonSystemPrompt(),
+        },
+        {
+          role: "user",
+          content: contents,
+        },
+      ],
+      temperature: 0.1,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "generated_content",
+          strict: true,
+          schema: chatProviderResponseSchema,
+        },
+      },
+    }),
+  });
+
+  const data = (await response.json()) as OpenAiChatCompletionResponse;
+
+  if (!response.ok || data.error) {
+    throw new Error(
+      data.error?.message ?? `OpenAI failed with ${response.status}`,
+    );
+  }
+
+  return parseGeneratedProviderText(data.choices?.[0]?.message?.content);
+}
+
+async function generateWithAnthropic(
+  contents: string,
+  options: GenerationOptions,
+): Promise<GeneratedContent> {
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": options.aiApiKey ?? "",
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: options.aiModel ?? "claude-3-5-haiku-latest",
+      max_tokens: 4000,
+      temperature: 0.1,
+      system: getFullJsonSystemPrompt(),
+      messages: [
+        {
+          role: "user",
+          content: contents,
+        },
+      ],
+    }),
+  });
+
+  const data = (await response.json()) as AnthropicMessagesResponse;
+
+  if (!response.ok || data.error) {
+    throw new Error(
+      data.error?.message ?? `Anthropic failed with ${response.status}`,
+    );
+  }
+
+  return parseGeneratedProviderText(
+    data.content?.find((content) => content.type === "text")?.text,
+  );
+}
+
+async function generateFullContentWithOpenRouter(
+  contents: string,
+  options: GenerationOptions,
+): Promise<GeneratedContent> {
+  const response = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${options.aiApiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer":
+          process.env.OPENROUTER_SITE_URL?.trim() ?? "http://localhost:3000",
+        "X-Title": process.env.OPENROUTER_APP_NAME?.trim() ?? "GitLoud",
+      },
+      body: JSON.stringify({
+        model: options.aiModel ?? "openai/gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: getFullJsonSystemPrompt(),
+          },
+          {
+            role: "user",
+            content: contents,
+          },
+        ],
+        temperature: 0.1,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "generated_content",
+            strict: true,
+            schema: chatProviderResponseSchema,
+          },
+        },
+      }),
+    },
+  );
+
+  const data = (await response.json()) as OpenRouterChatCompletionResponse;
+
+  if (!response.ok || data.error) {
+    throw new Error(
+      data.error?.message ?? `OpenRouter failed with ${response.status}`,
+    );
+  }
+
+  return parseGeneratedProviderText(data.choices?.[0]?.message?.content);
+}
+
+function getFullJsonSystemPrompt() {
+  return `Return only a valid JSON object matching the requested schema.
+Do not wrap the object in markdown or code fences.
+Do not include explanations outside JSON.
+All fields are required.`;
+}
+
+function parseGeneratedProviderText(text: string | undefined) {
+  if (!text) {
+    throw new Error("AI provider returned an empty response");
+  }
+
+  const cleanedText = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "");
+
+  return sanitizeGeneratedContent(
+    generatedContentSchema.parse(JSON.parse(cleanedText)),
+  );
 }
 
 function buildGenerationPrompt(input: string) {
@@ -600,22 +849,28 @@ async function generateContent(
   inputs: string[],
   options?: GenerationOptions,
 ): Promise<GeneratedContent> {
-  if (!process.env.GEMINI_API_KEY) {
+  const contentVariants = inputs.map(buildGenerationPrompt);
+
+  if (options?.aiProvider && options.aiApiKey) {
+    return generateWithCustomProvider(contentVariants, options);
+  }
+
+  const geminiApiKey = process.env.GEMINI_API_KEY;
+
+  if (!geminiApiKey) {
     throw new Error("GEMINI_API_KEY is missing");
   }
 
   const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey: geminiApiKey,
   });
-
-  const contentVariants = inputs.map(buildGenerationPrompt);
 
   try {
     options?.onProgress?.("Trying initial generation...");
 
     // throw { status: 429 }; -> used for testing falbacks models
 
-    const response = await generateWithRetry(ai, contentVariants);
+    const response = await generateWithRetry(ai, contentVariants, options);
 
     if (!response.text) {
       throw new Error("model returned an empty response");
@@ -629,7 +884,9 @@ async function generateContent(
       throw error;
     }
 
-    options?.onProgress?.("Gemini is busy. Switching to free fallback model...");
+    options?.onProgress?.(
+      "Gemini is busy. Switching to free fallback model...",
+    );
 
     return sanitizeGeneratedContent(
       await generateWithOpenRouter(contentVariants, options?.onProgress),

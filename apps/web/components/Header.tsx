@@ -4,7 +4,13 @@ import { ThemeToggle } from "@/components/ToggleThemeBtn";
 import { Button } from "@repo/ui/components/button";
 import { UserProfileMenu } from "@/components/UserProfileMenu";
 import { HomeLink } from "@/components/HomeLink";
-import { ChevronLeft, History, Home, LayoutDashboard } from "lucide-react";
+import {
+  ChevronLeft,
+  History,
+  Home,
+  LayoutDashboard,
+  Settings,
+} from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -62,7 +68,7 @@ export function Header() {
           <span>GitLoud</span>
         </HomeLink>
       </div>
-      
+
       <div className="flex items-center gap-3">
         {isLoaded && !isSignedIn ? (
           <>
@@ -158,6 +164,19 @@ export function Header() {
             >
               <Link href="/dashboard/history">
                 <History className="size-4" />
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              size="icon-sm"
+              className="size-8 rounded-none p-0 shadow-xs border border-border"
+              aria-label="Go to settings"
+              title="Go to settings"
+            >
+              <Link href="/dashboard/settings">
+                <Settings className="size-4" />
               </Link>
             </Button>
 

@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>GitLoud Razorpay Integration Report</title>
+    <style>
+      body {
+        color: #172033;
+        font-family: Arial, sans-serif;
+        line-height: 1.55;
+        margin: 44px;
+      }
+
+      h1 {
+        color: #101828;
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+
+      h2 {
+        border-bottom: 1px solid #d7dce5;
+        color: #1f2937;
+        font-size: 18px;
+        margin-top: 28px;
+        padding-bottom: 6px;
+      }
+
+      p,
+      li {
+        font-size: 14px;
+      }
+
+      ul {
+        padding-left: 22px;
+      }
+
+      .meta {
+        color: #667085;
+        font-size: 13px;
+        margin-bottom: 24px;
+      }
+
+      .box {
+        background: #f6f8fb;
+        border: 1px solid #d7dce5;
+        border-radius: 8px;
+        margin-top: 12px;
+        padding: 14px 16px;
+      }
+
+      code {
+        background: #eef2f6;
+        border-radius: 4px;
+        padding: 2px 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>GitLoud Razorpay Payment Integration</h1>
+    <p class="meta">Simple implementation report - June 3, 2026</p>
+
+    <h2>Goal</h2>
+    <p>
+      The goal was to add payment support so users can upgrade to Pro. Pro unlocks
+      paid features like private repository generation and custom AI API keys.
+    </p>
+
+    <h2>Why Razorpay</h2>
+    <p>
+      Stripe was removed because it is not the right option for the current India
+      setup. Razorpay was integrated first because it provides test keys and can be
+      switched to live keys later.
+    </p>
+
+    <h2>Payment Flow</h2>
+    <div class="box">
+      <p><code>User clicks Pro -> API creates Razorpay order -> Razorpay Checkout opens -> payment succeeds -> backend verifies signature -> user becomes PRO</code></p>
+    </div>
+
+    <h2>Main Backend Changes</h2>
+    <ul>
+      <li>Added Razorpay dependency to the API app.</li>
+      <li>Added billing routes for status, order creation, payment verification, and webhook handling.</li>
+      <li>Mounted billing routes in the API app.</li>
+      <li>Verified Razorpay payment signatures on the backend.</li>
+      <li>Updated the user plan to <code>PRO</code> after successful verification.</li>
+      <li>Stored Razorpay order and payment ids for tracking.</li>
+    </ul>
+
+    <h2>Database Changes</h2>
+    <ul>
+      <li>Added billing provider field.</li>
+      <li>Added plan expiry field.</li>
+      <li>Added Razorpay order id field.</li>
+      <li>Added Razorpay payment id field.</li>
+      <li>Added billing provider enum with Razorpay support.</li>
+    </ul>
+
+    <h2>Frontend Changes</h2>
+    <ul>
+      <li>Added Pro pricing card on the landing page.</li>
+      <li>Added Razorpay checkout button through the billing action component.</li>
+      <li>Loaded Razorpay Checkout script in the browser only when needed.</li>
+      <li>Sent successful payment details back to the backend for verification.</li>
+      <li>Removed Stripe UI and code completely.</li>
+    </ul>
+
+    <h2>Environment Variables</h2>
+    <ul>
+      <li><code>RAZORPAY_KEY_ID</code> - public key id from Razorpay dashboard.</li>
+      <li><code>RAZORPAY_KEY_SECRET</code> - secret key used only on backend.</li>
+      <li><code>RAZORPAY_PRO_AMOUNT_INR_PAISE</code> - Pro plan amount in paise.</li>
+      <li><code>RAZORPAY_CURRENCY</code> - normally INR.</li>
+      <li><code>RAZORPAY_WEBHOOK_SECRET</code> - optional for webhook verification.</li>
+    </ul>
+
+    <h2>Testing</h2>
+    <p>
+      Razorpay test mode was used first. In test mode, the same code path works like
+      production, but no real money is charged. Later, live mode can be enabled by
+      replacing test keys with live Razorpay keys.
+    </p>
+
+    <h2>Security Rules Followed</h2>
+    <ul>
+      <li>The Razorpay secret key stays only on the backend.</li>
+      <li>The frontend never decides the final paid status by itself.</li>
+      <li>The backend verifies the Razorpay signature before upgrading the user.</li>
+      <li>Payment ids are stored for debugging and support.</li>
+    </ul>
+
+    <h2>Final Result</h2>
+    <p>
+      Razorpay test checkout works. After payment verification, the user is upgraded
+      to Pro and can use paid features such as private repository generation and
+      custom AI API keys.
+    </p>
+  </body>
+</html>

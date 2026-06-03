@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>GitLoud Private Repository Integration Report</title>
+    <style>
+      body {
+        color: #172033;
+        font-family: Arial, sans-serif;
+        line-height: 1.55;
+        margin: 44px;
+      }
+
+      h1 {
+        color: #101828;
+        font-size: 30px;
+        margin-bottom: 8px;
+      }
+
+      h2 {
+        border-bottom: 1px solid #d7dce5;
+        color: #1f2937;
+        font-size: 18px;
+        margin-top: 28px;
+        padding-bottom: 6px;
+      }
+
+      p,
+      li {
+        font-size: 14px;
+      }
+
+      ul {
+        padding-left: 22px;
+      }
+
+      .meta {
+        color: #667085;
+        font-size: 13px;
+        margin-bottom: 24px;
+      }
+
+      .box {
+        background: #f6f8fb;
+        border: 1px solid #d7dce5;
+        border-radius: 8px;
+        margin-top: 12px;
+        padding: 14px 16px;
+      }
+
+      code {
+        background: #eef2f6;
+        border-radius: 4px;
+        padding: 2px 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>GitLoud Private Repository Integration</h1>
+    <p class="meta">Simple implementation report - June 3, 2026</p>
+
+    <h2>Goal</h2>
+    <p>
+      GitLoud originally worked mainly for public GitHub repositories. The goal was
+      to support private PR and commit generation without asking users for personal
+      access tokens and without using one global GitHub token for everyone.
+    </p>
+
+    <h2>Problem In The Old Flow</h2>
+    <div class="box">
+      <p>The old flow was:</p>
+      <p><code>web form -> POST /pr -> GitHub fetchers -> Octokit with GITHUB_TOKEN</code></p>
+    </div>
+    <ul>
+      <li>Public repositories worked.</li>
+      <li>Private repositories failed with GitHub 404.</li>
+      <li>The code had a direct block that rejected private repositories.</li>
+      <li>There was no database table to store GitHub App installations.</li>
+    </ul>
+
+    <h2>Solution Used</h2>
+    <p>
+      We integrated a GitHub App installation model. A user installs the GitLoud
+      GitHub App on selected repositories. The backend stores only the installation
+      information, then creates a short-lived installation access token whenever it
+      needs to read a private PR or commit.
+    </p>
+
+    <h2>Main Backend Changes</h2>
+    <ul>
+      <li>Added GitHub App helper code to create installation tokens.</li>
+      <li>Added routes for GitHub install URL, callback, installation list, sync, and delete.</li>
+      <li>Stored GitHub installations in the database.</li>
+      <li>Synced selected repositories into the database after callback/update.</li>
+      <li>Changed PR/commit generation to use the installation token for matching private repos.</li>
+      <li>Kept the global GitHub token only as a public repository fallback.</li>
+      <li>Removed the old hard block that rejected private repositories.</li>
+    </ul>
+
+    <h2>Database Changes</h2>
+    <ul>
+      <li>Added a user plan field so private repo support can be limited to Pro users.</li>
+      <li>Added <code>GitHubInstallation</code> to store installation id and account details.</li>
+      <li>Added <code>GitHubInstallationRepository</code> to store selected repository access.</li>
+    </ul>
+
+    <h2>Frontend Changes</h2>
+    <ul>
+      <li>Added a Settings page.</li>
+      <li>Added GitHub connection UI.</li>
+      <li>Added Connect GitHub and Sync repositories actions.</li>
+      <li>Added dropdown view for installed/selected repositories.</li>
+      <li>Added delete buttons beside repositories to remove stored local access mapping.</li>
+    </ul>
+
+    <h2>Security Rules Followed</h2>
+    <ul>
+      <li>No user personal access tokens are stored.</li>
+      <li>No GitHub tokens are sent to the browser.</li>
+      <li>Installation access tokens are short-lived and generated on the backend.</li>
+      <li>The database stores installation ids and repo mapping, not temporary access tokens.</li>
+      <li>Private repo support is allowed only for Pro users.</li>
+    </ul>
+
+    <h2>Final Result</h2>
+    <p>
+      Private repository PR/commit generation now works through the GitHub App. The
+      user installs the app, GitLoud syncs repository access, and generation uses a
+      backend-only installation token.
+    </p>
+  </body>
+</html>

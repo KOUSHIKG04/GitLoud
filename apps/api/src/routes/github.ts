@@ -98,6 +98,44 @@ githubRoutes.get("/callback", async (context) => {
   }
 });
 
+githubRoutes.get("/installations", async (context) => {
+  const userId = await getCurrentUserId(context.req.raw);
+
+  if (!userId) {
+    return context.json({ error: "Unauthorized" }, 401);
+  }
+
+  const features = await getUserFeatures(userId);
+  const installations = await db.gitHubInstallation.findMany({
+    where: { userId },
+    orderBy: { updatedAt: "desc" },
+    include: {
+      repositories: {
+        orderBy: [{ owner: "asc" }, { repo: "asc" }],
+      },
+    },
+  });
+
+  return context.json({
+    plan: features.plan,
+    canUsePrivateRepos: features.canUsePrivateRepos,
+    installations: installations.map((installation) => ({
+      id: installation.id,
+      installationId: installation.installationId.toString(),
+      accountLogin: installation.accountLogin,
+      accountType: installation.accountType,
+      repositorySelection: installation.repositorySelection,
+      updatedAt: installation.updatedAt.toISOString(),
+      repositories: installation.repositories.map((repository) => ({
+        id: repository.id,
+        owner: repository.owner,
+        repo: repository.repo,
+        repoId: repository.repoId?.toString() ?? null,
+      })),
+    })),
+  });
+});
+
 githubRoutes.post("/sync-installation", async (context) => {
   const userId = await getCurrentUserId(context.req.raw);
 
@@ -134,3 +172,50 @@ githubRoutes.post("/sync-installation", async (context) => {
 
   return context.json({ synced });
 });
+
+githubRoutes.delete("/installations/:id", async (context) => {
+  const userId = await getCurrentUserId(context.req.raw);
+
+  if (!userId) {
+    return context.json({ error: "Unauthorized" }, 401);
+  }
+
+  const id = context.req.param("id");
+
+  await db.gitHubInstallation.deleteMany({
+    where: { id, userId },
+  });
+
+  return context.json({ ok: true });
+});
+
+githubRoutes.delete(
+  "/installations/:installationId/repositories/:repositoryId",
+  async (context) => {
+    const userId = await getCurrentUserId(context.req.raw);
+
+    if (!userId) {
+      return context.json({ error: "Unauthorized" }, 401);
+    }
+
+    const installationId = context.req.param("installationId");
+    const repositoryId = context.req.param("repositoryId");
+    const installation = await db.gitHubInstallation.findFirst({
+      where: { id: installationId, userId },
+      select: { installationId: true },
+    });
+
+    if (!installation) {
+      return context.json({ error: "GitHub installation not found" }, 404);
+    }
+
+    await db.gitHubInstallationRepository.deleteMany({
+      where: {
+        id: repositoryId,
+        installationId: installation.installationId,
+      },
+    });
+
+    return context.json({ ok: true });
+  },
+);

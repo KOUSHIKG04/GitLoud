@@ -8,6 +8,9 @@ import { fetchPullRequest } from "@repo/github/fetch-pr";
 import type { GeneratedContent } from "@repo/shared/generated-content";
 import { Hono } from "hono";
 import { getAuthenticatedUserId } from "@/lib/auth";
+import { getAiGenerationOptionsForUser } from "@/lib/ai-credentials";
+import { getUserFeatures } from "@/lib/features";
+import { getGitHubTokenForRepo } from "@/lib/github-app";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { persistentRateLimit } from "@/lib/rate-limit";
@@ -281,6 +284,8 @@ export const generationRoutes: Hono = new Hono()
       }
 
       const xPostLength = await getStoredXPostLength(generation.id, userId);
+      const features = await getUserFeatures(userId);
+      const aiGenerationOptions = await getAiGenerationOptionsForUser(userId);
 
       if (generation.sourceType === "PULL_REQUEST") {
         if (!generation.pullRequest) {
@@ -294,7 +299,13 @@ export const generationRoutes: Hono = new Hono()
           owner: generation.pullRequest.owner,
           repo: generation.pullRequest.repo,
           number: generation.pullRequest.number,
-          githubToken: process.env.GITHUB_TOKEN,
+          githubToken: features.canUsePrivateRepos
+            ? await getGitHubTokenForRepo({
+                userId,
+                owner: generation.pullRequest.owner,
+                repo: generation.pullRequest.repo,
+              })
+            : process.env.GITHUB_TOKEN,
         });
 
         const generatedContent = await generateContentFromPullRequest(
@@ -302,6 +313,7 @@ export const generationRoutes: Hono = new Hono()
           undefined,
           {
             xPostLength: getGenerationXPostLength(xPostLength),
+            ...aiGenerationOptions,
           },
         );
 
@@ -338,7 +350,13 @@ export const generationRoutes: Hono = new Hono()
           owner: generation.commit.owner,
           repo: generation.commit.repo,
           sha: generation.commit.sha,
-          githubToken: process.env.GITHUB_TOKEN,
+          githubToken: features.canUsePrivateRepos
+            ? await getGitHubTokenForRepo({
+                userId,
+                owner: generation.commit.owner,
+                repo: generation.commit.repo,
+              })
+            : process.env.GITHUB_TOKEN,
         });
 
         const generatedContent = await generateContentFromCommit(
@@ -346,6 +364,7 @@ export const generationRoutes: Hono = new Hono()
           undefined,
           {
             xPostLength: getGenerationXPostLength(xPostLength),
+            ...aiGenerationOptions,
           },
         );
 
