@@ -7,6 +7,9 @@ const defaultAllowedOrigins = [
   "http://localhost:5173",
 ];
 
+/**
+ * Loads local env files for manual Node runs before importing env-dependent code.
+ */
 export function loadRuntimeEnv() {
   for (const envFile of [
     "../../../.env.local",
@@ -22,6 +25,9 @@ export function loadRuntimeEnv() {
   }
 }
 
+/**
+ * Resolves the API port, falling back to 4000 when the value is missing or invalid.
+ */
 export function getPort(value: string | undefined) {
   if (!value) {
     return 4000;
@@ -36,6 +42,9 @@ export function getPort(value: string | undefined) {
   return parsedPort;
 }
 
+/**
+ * Returns configured CORS origins, with local defaults only outside production.
+ */
 export function getAllowedOrigins(value: string | undefined) {
   const configuredOrigins = value
     ? value
@@ -43,20 +52,31 @@ export function getAllowedOrigins(value: string | undefined) {
         .map((origin) => normalizeOrigin(origin))
         .filter(Boolean)
     : [];
-  const origins = [...defaultAllowedOrigins, ...configuredOrigins];
+  const origins =
+    process.env.NODE_ENV === "production"
+      ? configuredOrigins
+      : [...defaultAllowedOrigins, ...configuredOrigins];
 
   return [...new Set(origins)];
 }
 
+/**
+ * Normalizes an origin value for exact CORS allow-list comparisons.
+ */
 export function normalizeOrigin(origin: string) {
   return origin.trim().replace(/\/+$/, "");
 }
 
+/**
+ * Checks whether an origin is allowed by the configured CORS allow-list.
+ */
 export function isAllowedOrigin(origin: string, allowedOrigins: string[]) {
   const normalizedOrigin = normalizeOrigin(origin);
+  const isLocalDevelopmentOrigin =
+    process.env.NODE_ENV !== "production" &&
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin);
 
   return (
-    allowedOrigins.includes(normalizedOrigin) ||
-    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin)
+    allowedOrigins.includes(normalizedOrigin) || isLocalDevelopmentOrigin
   );
 }

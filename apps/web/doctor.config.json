@@ -1,0 +1,12 @@
+{
+  "$schema": "https://react.doctor/schema/config.json",
+  "deadCode": false,
+  "ignore": {
+    "overrides": [
+      {
+        "files": ["app/opengraph-image.tsx", "app/twitter-image.tsx"],
+        "rules": ["react-doctor/only-export-components"]
+      }
+    ]
+  }
+}

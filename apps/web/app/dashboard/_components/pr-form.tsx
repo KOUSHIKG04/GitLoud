@@ -20,6 +20,9 @@ import { readProgressStream, uploadMedia, wait } from "./pr-form-generation";
 import { formSchema, type FormValues } from "./pr-form.schema";
 import { getMediaValidationError, onInvalid } from "./pr-form-validation";
 
+/**
+ * Renders the PR generation form and coordinates media upload before generation.
+ */
 export function PrForm({
   className,
   ...props
@@ -47,6 +50,9 @@ export function PrForm({
   const xPostLength = watch("xPostLength");
   const isPremiumXPost = xPostLength === "premium";
 
+  /**
+   * Generates content for the submitted GitHub URL and optional media attachment.
+   */
   async function generate(values: FormValues) {
     const toastId = toast.loading("Fetching GitHub item...");
     const clearBackendDelayToast = startBackendDelayToast(toastId);
@@ -113,6 +119,9 @@ export function PrForm({
     }
   }
 
+  /**
+   * Tracks the selected media file and clears any cached upload when it changes.
+   */
   function onMediaChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
 
@@ -127,12 +136,17 @@ export function PrForm({
     if (validationError) {
       toast.error(validationError, { duration: 7000 });
       event.target.value = "";
+      mediaAttachmentIdRef.current = null;
       return;
     }
 
+    mediaAttachmentIdRef.current = null;
     setSelectedMedia(file);
   }
 
+  /**
+   * Clears the selected media file and any uploaded attachment reference.
+   */
   function clearSelectedMedia() {
     setSelectedMedia(null);
     mediaAttachmentIdRef.current = null;
@@ -142,6 +156,9 @@ export function PrForm({
     }
   }
 
+  /**
+   * Handles validated form submission.
+   */
   async function onSubmit(values: FormValues) {
     await generate(values);
   }
