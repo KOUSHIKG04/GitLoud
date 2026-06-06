@@ -21,7 +21,7 @@ const examples = [
 
 export function ContentExamplesSection() {
   return (
-    <section className="bg-background px-4 py-8 sm:px-6 lg:px-20 lg:py-12">
+    <section className="px-4 py-8 sm:px-6 lg:px-20 lg:py-12">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="max-w-5xl space-y-3">
           <p className="text-sm font-semibold">EXAMPLES</p>

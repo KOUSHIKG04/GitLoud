@@ -16,7 +16,7 @@ export default async function DashboardPage() {
   await syncProfile();
 
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="relative isolate min-h-screen flex flex-col">
       <Header />
 
       <div className="flex flex-1 items-center justify-center px-4 pt-6 pb-6 sm:px-8">
