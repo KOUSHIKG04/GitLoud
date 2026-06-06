@@ -49,10 +49,6 @@ app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
 The separated backend is the source of truth for generation, media, profile, and
 history workflows so web and desktop clients can call the same API.
 
-## Demo
-
-https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
-
 ## Contents
 
 - [Features](#features)
@@ -63,7 +59,6 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
 - [Local Development](#local-development)
 - [Docker](#docker)
 - [Database](#database)
-- [Quality Checks](#quality-checks)
 - [Deployment](#deployment)
 - [Security Notes](#security-notes)
 
@@ -471,22 +466,6 @@ requests.
 | `npm --workspace api run build` | Build only the API |
 | `npm run format` | Format source files |
 
-## Quality Checks
-
-Run these before opening a PR or deploying:
-
-```bash
-npm run lint
-npm run check-types
-npm run build
-npm --workspace web run doctor
-```
-
-`apps/web/doctor.config.json` disables React Doctor dead-code analysis because
-the current Next.js route and alias graph causes false positives for files that
-are actually used. It also ignores the Fast Refresh component-export warning for
-Next metadata image routes, where Next requires named metadata exports.
-
 ## Deployment
 
 GitLoud deploys as two services:
@@ -529,13 +508,6 @@ users get feedback when an API request takes longer than expected.
 - GitHub input is limited to supported public PR and commit URLs.
 - AI output is parsed and validated with shared Zod schemas.
 - Media uploads are handled separately and stored as attachment metadata.
-
-## Current Scope
-
-GitLoud currently focuses on manual generation from public GitHub PRs and commits.
-The standalone API is in place for web and Electron reuse. Private repository
-support, GitHub App installation, webhook ingestion, background queues, and
-advanced editing are future expansion areas.
 
 ## Roadmap
 

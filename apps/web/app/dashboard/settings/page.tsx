@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { syncProfile } from "@/lib/generations-api";
 import { SettingsClient } from "./settings-client";
 
 export const metadata: Metadata = {
@@ -12,9 +11,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function SettingsPage() {
-  await syncProfile();
-
+export default function SettingsPage() {
   return (
     <main className="flex min-h-screen flex-col">
       <Header />

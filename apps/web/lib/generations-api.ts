@@ -75,14 +75,6 @@ type GenerationSource = {
   shortSha?: string;
 };
 
-export async function syncProfile() {
-  const response = await serverApiFetch("/profile/sync", { method: "POST" });
-
-  if (!response.ok) {
-    throw new Error("Could not sync profile");
-  }
-}
-
 export async function getGenerationHistory(params: {
   date?: string;
   from?: string;
