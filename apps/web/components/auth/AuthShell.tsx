@@ -10,7 +10,7 @@ export function AuthShell({
   title: string;
 }) {
   return (
-    <main className="auth-shell min-h-screen bg-background">
+    <main className="auth-shell min-h-screen">
       <Header />
 
       <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl gap-8 px-4 py-10 md:grid-cols-[0.9fr_1.1fr] md:items-center lg:px-8">

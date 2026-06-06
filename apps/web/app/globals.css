@@ -1,2 +1,113 @@
 @import "@repo/ui/globals.css"; @source "../../../packages/ui/src";
- 
+
+@keyframes gitloud-wake {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.gitloud-status-word {
+  animation: gitloud-roll-word 4.8s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+  inset: 0;
+  opacity: 0;
+  position: absolute;
+  text-align: center;
+  transform: translateY(1.25rem);
+  will-change: opacity, transform;
+}
+
+.gitloud-status-word:nth-child(2) {
+  animation-delay: 1.6s;
+}
+
+.gitloud-status-word:nth-child(3) {
+  animation-delay: 3.2s;
+}
+
+@keyframes gitloud-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-0.35rem);
+  }
+}
+
+@keyframes gitloud-loader-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.gitloud-page-enter {
+  animation: gitloud-page-enter 900ms ease-out both;
+}
+
+@keyframes gitloud-page-enter {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes gitloud-roll-word {
+  0% {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+
+  10%,
+  26% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  36%,
+  100% {
+    opacity: 0;
+    transform: translateY(-1.25rem);
+  }
+}
+
+@keyframes liquid-ether-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(12%, -8%, 0) scale(1.18);
+  }
+}
+
+@keyframes liquid-ether-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  50% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(1.16);
+  }
+}

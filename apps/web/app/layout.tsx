@@ -5,6 +5,7 @@ import { Toaster } from "@repo/ui/components/sonner";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { cookies } from "next/headers";
+import { LiquidEther } from "@repo/ui/components/liquid-ether";
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
@@ -111,10 +112,14 @@ export default async function RootLayout({
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
-      <body className={`${geistMono.variable} pt-18`} suppressHydrationWarning>
+      <body
+        className={`${geistMono.variable} relative isolate min-h-dvh bg-background pt-18`}
+        suppressHydrationWarning
+      >
+        <LiquidEther className="fixed inset-0 z-0 opacity-70" />
         <ClerkProvider>
           <Providers initialTheme={initialTheme}>
-            {children}
+            <div className="relative z-10">{children}</div>
             <Toaster />
           </Providers>
         </ClerkProvider>

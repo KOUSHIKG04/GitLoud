@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ThemeProvider } from "@/lib/theme-provider";
+import { BackendWakeScreen } from "@/components/BackendWakeScreen";
 
 type Theme = "light" | "dark" | "system";
 
@@ -14,6 +15,7 @@ type Theme = "light" | "dark" | "system";
  * @param props.initialTheme - The default theme to inject.
  * @returns Wrapped component hierarchy.
  */
+
 export function Providers({
   children,
   initialTheme,
@@ -25,7 +27,10 @@ export function Providers({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider initialTheme={initialTheme}>{children}</ThemeProvider>
+      <ThemeProvider initialTheme={initialTheme}>
+        <BackendWakeScreen />
+        {children}
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
