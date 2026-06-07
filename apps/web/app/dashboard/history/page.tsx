@@ -15,7 +15,7 @@ import { HistoryDatePicker } from "./_components/history-date-picker";
 import { getGenerationHistory } from "@/lib/generations-api";
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { RouteLoadingScreen } from "@/components/RouteLoadingScreen";
+import { HistoryLoading } from "./_components/history-loading";
 
 export const metadata: Metadata = {
   title: "History",
@@ -72,7 +72,7 @@ export default async function HistoryPage({
           </div>
         </div>
 
-        <Suspense fallback={<RouteLoadingScreen label="LOADING HISTORY" />}>
+        <Suspense fallback={<HistoryLoading />}>
           <HistoryList
             date={legacyDateParam}
             from={fromParam}
