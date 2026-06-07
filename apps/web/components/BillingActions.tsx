@@ -74,6 +74,20 @@ export function BillingActions() {
         modal: {
           ondismiss: () => setIsLoading(false),
         },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay via UPI",
+                instruments: [{ method: "upi" }],
+              },
+            },
+            sequence: ["block.upi"],
+            preferences: {
+              show_default_blocks: true,
+            },
+          },
+        },
       });
 
       checkout.open();
