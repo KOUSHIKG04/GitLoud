@@ -101,7 +101,7 @@ export function BackendWakeScreen() {
           </div>
         </div>
 
-        <div className="relative mt-3 flex h-16 min-w-80 items-center justify-center overflow-hidden font-mono text-3xl font-semibold text-foreground sm:h-20 sm:min-w-88 sm:text-4xl">
+        <div className="relative mt-3 flex h-14 w-full max-w-72 items-center justify-center overflow-hidden font-mono text-[clamp(1.35rem,8vw,2.25rem)] font-semibold text-foreground sm:h-20 sm:max-w-88 sm:text-4xl">
           <span className="gitloud-status-word">Frontend ...</span>
           <span className="gitloud-status-word">API ...</span>
           <span className="gitloud-status-word">Backend ...</span>
