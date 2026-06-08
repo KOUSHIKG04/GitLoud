@@ -50,18 +50,30 @@ app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
 The separated backend is the source of truth for generation, media, profile, and
 history workflows so web and desktop clients can call the same API.
 
+## Demo
+
+https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
+
 ## Contents
 
+- [Overview](#overview)
+- [Demo](#demo)
+- [Contents](#contents)
 - [Features](#features)
 - [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
 - [Repository Structure](#repository-structure)
+- [Web Routes](#web-routes)
 - [API Routes](#api-routes)
 - [Environment Variables](#environment-variables)
 - [Local Development](#local-development)
 - [Docker](#docker)
 - [Database](#database)
+- [Commands](#commands)
 - [Deployment](#deployment)
 - [Security Notes](#security-notes)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## Features
 
