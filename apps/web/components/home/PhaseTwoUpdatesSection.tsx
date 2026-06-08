@@ -3,8 +3,8 @@
 import { LazyMotion, domAnimation, m } from "framer-motion";
 
 const updates = [
-  "Private repositories",
   "GitHub App access",
+  "Private repositories",
   "Edit and save",
   "Version history",
   "Sentry monitoring",
@@ -23,9 +23,9 @@ export function PhaseTwoUpdatesSection() {
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <div className="grid gap-4 lg:grid-cols-[0.7fr_1.1fr] lg:items-end">
           <div className="space-y-3">
-            <p className="text-sm font-semibold">PHASE 2 UPDATES</p>
+            <p className="text-sm font-semibold">PRO WORKFLOWS</p>
             <h2 className="relative inline-block max-w-md text-xl font-semibold tracking-tight text-muted-foreground sm:text-2xl">
-              Private repo support soon!
+              Private repo support is live
               <LazyMotion features={domAnimation}>
                 <m.span
                   aria-hidden="true"
@@ -45,16 +45,16 @@ export function PhaseTwoUpdatesSection() {
                     repeatDelay: 0.4,
                   }}
                 >
-                  Private repo support soon!
+                  Private repo support is live
                 </m.span>
               </LazyMotion>
             </h2>
           </div>
 
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-            GitLoud currently supports public GitHub links. Phase 2 starts with
-            private repository access through GitHub App permissions, then adds
-            editing, saved drafts, monitoring, automation, and mobile workflows.
+            GitLoud supports public GitHub links and selected private
+            repositories through GitHub App permissions. Next up: editing, saved
+            drafts, monitoring, automation, and mobile workflows.
           </p>
         </div>
 

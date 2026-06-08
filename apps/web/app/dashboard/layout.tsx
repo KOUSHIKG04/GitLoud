@@ -1,4 +1,5 @@
 import { ProfileSync } from "@/components/auth/ProfileSync";
+import { DashboardShell } from "./_components/dashboard-shell";
 
 export default function DashboardLayout({
   children,
@@ -8,7 +9,7 @@ export default function DashboardLayout({
   return (
     <>
       <ProfileSync />
-      {children}
+      <DashboardShell>{children}</DashboardShell>
     </>
   );
 }

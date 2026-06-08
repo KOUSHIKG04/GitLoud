@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Providers } from "@/components/Providers";
 import { Toaster } from "@repo/ui/components/sonner";
+import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { cookies } from "next/headers";
@@ -113,13 +114,15 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className={`${geistMono.variable} relative isolate min-h-dvh bg-background pt-18`}
+        className={`${geistMono.variable} relative isolate h-dvh overflow-hidden bg-background`}
         suppressHydrationWarning
       >
         <LiquidEther className="fixed inset-0 z-0 opacity-70" />
         <ClerkProvider>
           <Providers initialTheme={initialTheme}>
-            <div className="relative z-10">{children}</div>
+            <ScrollArea id="app-scroll-area" className="relative z-10 h-dvh">
+              {children}
+            </ScrollArea>
             <Toaster />
           </Providers>
         </ClerkProvider>

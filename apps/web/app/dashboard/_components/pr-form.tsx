@@ -171,9 +171,9 @@ export function PrForm({
       <div className="border bg-card text-card-foreground shadow-sm">
         <form
           onSubmit={handleSubmit(onSubmit, onInvalid)}
-          className="flex flex-col"
+          className="flex min-h-[29rem] flex-col"
         >
-          <div className="space-y-6 p-4 sm:p-6">
+          <div className="flex-1 space-y-6 p-4 sm:p-6">
             <div className="space-y-2">
               <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
                 <p className="my-1 gap-1 text-md leading-5 text-foreground flex items-center">

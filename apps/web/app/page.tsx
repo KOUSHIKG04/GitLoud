@@ -116,7 +116,10 @@ export default function Home() {
 
 function PricingSection() {
   return (
-    <section className="bg-muted/20 px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
+    <section
+      id="pricing"
+      className="px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-34"
+    >
       <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <div className="space-y-4">
           <p className="text-sm font-semibold">PRICING</p>

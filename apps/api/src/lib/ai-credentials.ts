@@ -1,16 +1,12 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { db } from "@repo/db/client";
+import {
+  AI_PROVIDERS,
+  type AiProvider,
+} from "@repo/shared/ai-credentials";
 import { getUserFeatures } from "@/lib/features";
 
 const ALGORITHM = "aes-256-gcm";
-const SUPPORTED_PROVIDERS = [
-  "gemini",
-  "openai",
-  "anthropic",
-  "openrouter",
-] as const;
-
-export type SupportedAiProvider = (typeof SUPPORTED_PROVIDERS)[number];
 type DbAiProvider = "GEMINI" | "OPENAI" | "ANTHROPIC" | "OPENROUTER";
 
 type EncryptedValue = {
@@ -122,9 +118,9 @@ export async function getAiGenerationOptionsForUser(userId: string) {
 }
 
 export function normalizeProvider(provider: string) {
-  const normalized = provider.trim().toLowerCase() as SupportedAiProvider;
+  const normalized = provider.trim().toLowerCase() as AiProvider;
 
-  if (!SUPPORTED_PROVIDERS.includes(normalized)) {
+  if (!AI_PROVIDERS.includes(normalized)) {
     throw new Error("Unsupported AI provider.");
   }
 
@@ -132,27 +128,27 @@ export function normalizeProvider(provider: string) {
 }
 
 export function getSupportedAiProviders() {
-  return [...SUPPORTED_PROVIDERS];
+  return [...AI_PROVIDERS];
 }
 
-function toDbProvider(provider: SupportedAiProvider): DbAiProvider {
+function toDbProvider(provider: AiProvider): DbAiProvider {
   const providerMap = {
     gemini: "GEMINI",
     openai: "OPENAI",
     anthropic: "ANTHROPIC",
     openrouter: "OPENROUTER",
-  } satisfies Record<SupportedAiProvider, DbAiProvider>;
+  } satisfies Record<AiProvider, DbAiProvider>;
 
   return providerMap[provider];
 }
 
-function serializeProvider(provider: string): SupportedAiProvider {
+function serializeProvider(provider: string): AiProvider {
   const providerMap = {
     GEMINI: "gemini",
     OPENAI: "openai",
     ANTHROPIC: "anthropic",
     OPENROUTER: "openrouter",
-  } satisfies Record<DbAiProvider, SupportedAiProvider>;
+  } satisfies Record<DbAiProvider, AiProvider>;
 
   const serialized = providerMap[provider as DbAiProvider];
 

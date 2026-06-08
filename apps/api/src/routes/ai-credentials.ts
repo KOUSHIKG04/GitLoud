@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
+import { AI_PROVIDERS } from "@repo/shared/ai-credentials";
 import {
   deleteAiCredential,
   getSupportedAiProviders,
@@ -11,7 +12,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { getUserFeatures } from "@/lib/features";
 
 const saveCredentialSchema = z.object({
-  provider: z.enum(["gemini", "openai", "anthropic", "openrouter"]),
+  provider: z.enum(AI_PROVIDERS),
   apiKey: z.string().trim().min(16),
   model: z.string().trim().optional(),
 });

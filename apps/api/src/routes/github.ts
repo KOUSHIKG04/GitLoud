@@ -1,13 +1,25 @@
 import { Hono } from "hono";
+import type {
+  GitHubActivityResponse,
+  GitHubInstallationsResponse,
+} from "@repo/shared/github-app";
 import { db } from "@repo/db/client";
+import { Octokit } from "@octokit/rest";
 import { getCurrentUserId } from "@/lib/auth";
 import {
+  createRepositoryReadToken,
   createAppOctokit,
   syncInstallationRepositories,
 } from "@/lib/github-app";
 import { getUserFeatures } from "@/lib/features";
+import {
+  createGitHubInstallState,
+  verifyGitHubInstallState,
+} from "@/lib/github-install-state";
+import { logger } from "@/lib/logger";
 
 export const githubRoutes = new Hono();
+const githubActivityPageSize = 20;
 
 githubRoutes.get("/install-url", async (context) => {
   const userId = await getCurrentUserId(context.req.raw);
@@ -33,21 +45,44 @@ githubRoutes.get("/install-url", async (context) => {
 
   const url = new URL(`https://github.com/apps/${appName}/installations/new`);
 
-  // Later: replace this with signed state.
-  url.searchParams.set("state", userId);
+  try {
+    url.searchParams.set("state", createGitHubInstallState(userId));
+  } catch (error) {
+    logger.error("GitHub installation state configuration failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return context.json(
+      {
+        error:
+          "GitHub App state signing is not configured. Set GITHUB_APP_STATE_SECRET.",
+      },
+      500,
+    );
+  }
 
   return context.json({ url: url.toString() });
 });
 
 githubRoutes.get("/callback", async (context) => {
+  const installationId = context.req.query("installation_id");
+  const state = context.req.query("state");
+
+  if (!installationId || !state) {
+    return context.json({ error: "Missing installation_id or state" }, 400);
+  }
+
+  let userId: string;
+  let numericInstallationId: bigint;
+
   try {
-    const installationId = context.req.query("installation_id");
-    const userId = context.req.query("state");
+    numericInstallationId = parseInstallationId(installationId);
+    userId = verifyGitHubInstallState(state).userId;
+  } catch {
+    return context.json({ error: "Invalid GitHub installation callback" }, 400);
+  }
 
-    if (!installationId || !userId) {
-      return context.json({ error: "Missing installation_id or state" }, 400);
-    }
-
+  try {
     const octokit = createAppOctokit();
 
     const installation = await octokit.apps.getInstallation({
@@ -62,13 +97,29 @@ githubRoutes.get("/callback", async (context) => {
 
     const accountLogin = "login" in account ? account.login : account.slug;
     const accountType = "type" in account ? account.type : "Enterprise";
+    const existingInstallation = await db.gitHubInstallation.findUnique({
+      where: { installationId: numericInstallationId },
+      select: { userId: true },
+    });
+
+    if (existingInstallation && existingInstallation.userId !== userId) {
+      logger.warn("GitHub installation ownership conflict", {
+        installationId,
+        requestedUserId: userId,
+      });
+
+      return context.json(
+        { error: "This GitHub installation is already connected." },
+        409,
+      );
+    }
 
     await db.gitHubInstallation.upsert({
       where: {
-        installationId: BigInt(installationId),
+        installationId: numericInstallationId,
       },
       create: {
-        installationId: BigInt(installationId),
+        installationId: numericInstallationId,
         userId,
         accountLogin,
         accountType,
@@ -82,16 +133,19 @@ githubRoutes.get("/callback", async (context) => {
       },
     });
 
-    await syncInstallationRepositories(BigInt(installationId));
+    await syncInstallationRepositories(numericInstallationId);
 
-    return context.redirect("http://localhost:3000/dashboard?github=connected");
+    return context.redirect(
+      `${getWebAppUrl()}/dashboard/settings/github-app?github=connected`,
+    );
   } catch (error) {
-    console.error("GitHub callback failed", error);
+    logger.error("GitHub callback failed", {
+      error: error instanceof Error ? error.message : String(error),
+    });
 
     return context.json(
       {
         error: "GitHub callback failed",
-        message: error instanceof Error ? error.message : String(error),
       },
       500,
     );
@@ -116,7 +170,7 @@ githubRoutes.get("/installations", async (context) => {
     },
   });
 
-  return context.json({
+  const response = {
     plan: features.plan,
     canUsePrivateRepos: features.canUsePrivateRepos,
     installations: installations.map((installation) => ({
@@ -132,8 +186,131 @@ githubRoutes.get("/installations", async (context) => {
         repo: repository.repo,
         repoId: repository.repoId?.toString() ?? null,
       })),
+      manageUrl: getGitHubInstallationManageUrl({
+        accountLogin: installation.accountLogin,
+        accountType: installation.accountType,
+        installationId: installation.installationId,
+      }),
     })),
+  } satisfies GitHubInstallationsResponse;
+
+  return context.json(response);
+});
+
+githubRoutes.get("/activity", async (context) => {
+  const userId = await getCurrentUserId(context.req.raw);
+
+  if (!userId) {
+    return context.json({ error: "Unauthorized" }, 401);
+  }
+
+  const features = await getUserFeatures(userId);
+
+  if (!features.canUsePrivateRepos) {
+    return context.json(
+      { error: "GitHub activity browser is available on the Pro plan." },
+      402,
+    );
+  }
+
+  const repositoryId = context.req.query("repositoryId");
+  const type = context.req.query("type") ?? "pull-requests";
+
+  if (!repositoryId) {
+    return context.json({ error: "repositoryId is required" }, 400);
+  }
+
+  if (type !== "pull-requests" && type !== "commits") {
+    return context.json({ error: "Unsupported activity type" }, 400);
+  }
+
+  const repository = await db.gitHubInstallationRepository.findFirst({
+    where: {
+      id: repositoryId,
+      installation: { userId },
+    },
+    select: {
+      owner: true,
+      repo: true,
+      installationId: true,
+    },
   });
+
+  if (!repository) {
+    return context.json({ error: "Repository was not found" }, 404);
+  }
+
+  const token = await createRepositoryReadToken({
+    installationId: repository.installationId,
+    repo: repository.repo,
+  });
+  const octokit = new Octokit({ auth: token });
+
+  if (type === "pull-requests") {
+    const pullRequests = await octokit.pulls.list({
+      owner: repository.owner,
+      repo: repository.repo,
+      state: "all",
+      sort: "updated",
+      direction: "desc",
+      per_page: githubActivityPageSize,
+    });
+
+    const response = {
+      repository: {
+        owner: repository.owner,
+        repo: repository.repo,
+      },
+      type,
+      items: pullRequests.data.map((pullRequest) => ({
+        id: `pr-${pullRequest.id}`,
+        sourceType: "pull-request",
+        title: pullRequest.title,
+        subtitle: `#${pullRequest.number} ${pullRequest.state}`,
+        author: pullRequest.user?.login ?? null,
+        updatedAt: pullRequest.updated_at,
+        url: pullRequest.html_url,
+      })),
+    } satisfies GitHubActivityResponse & {
+      repository: { owner: string; repo: string };
+      type: "pull-requests";
+    };
+
+    return context.json(response);
+  }
+
+  const commits = await octokit.repos.listCommits({
+    owner: repository.owner,
+    repo: repository.repo,
+    per_page: githubActivityPageSize,
+  });
+
+  const response = {
+    repository: {
+      owner: repository.owner,
+      repo: repository.repo,
+    },
+    type,
+    items: commits.data.map((commit) => ({
+      id: `commit-${commit.sha}`,
+      sourceType: "commit",
+      title: commit.commit.message.split("\n")[0] || commit.sha.slice(0, 7),
+      subtitle: commit.sha.slice(0, 7),
+      author:
+        commit.author?.login ??
+        commit.commit.author?.name ??
+        commit.commit.committer?.name ??
+        null,
+      updatedAt:
+        commit.commit.author?.date ?? commit.commit.committer?.date ?? null,
+      url: commit.html_url,
+    })),
+  } satisfies GitHubActivityResponse & {
+    repository: { owner: string; repo: string };
+    type: "commits";
+  };
+
+  return context.json(response);
 });
 
 githubRoutes.post("/sync-installation", async (context) => {
@@ -181,41 +358,87 @@ githubRoutes.delete("/installations/:id", async (context) => {
   }
 
   const id = context.req.param("id");
-
-  await db.gitHubInstallation.deleteMany({
+  const installation = await db.gitHubInstallation.findFirst({
     where: { id, userId },
+    select: { installationId: true },
+  });
+
+  if (!installation) {
+    return context.json({ error: "GitHub installation not found" }, 404);
+  }
+
+  try {
+    const octokit = createAppOctokit();
+
+    await octokit.apps.deleteInstallation({
+      installation_id: Number(installation.installationId),
+    });
+  } catch (error) {
+    const status = getHttpStatus(error);
+
+    if (status !== 404) {
+      logger.error("GitHub installation uninstall failed", {
+        installationId: installation.installationId.toString(),
+        userId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      return context.json(
+        { error: "Could not uninstall the GitHub App. Try again." },
+        502,
+      );
+    }
+  }
+
+  await db.gitHubInstallation.delete({
+    where: { id },
   });
 
   return context.json({ ok: true });
 });
 
-githubRoutes.delete(
-  "/installations/:installationId/repositories/:repositoryId",
-  async (context) => {
-    const userId = await getCurrentUserId(context.req.raw);
+function getWebAppUrl() {
+  const configuredUrl = process.env.WEB_APP_URL?.trim().replace(/\/+$/, "");
 
-    if (!userId) {
-      return context.json({ error: "Unauthorized" }, 401);
-    }
+  if (configuredUrl) {
+    return configuredUrl;
+  }
 
-    const installationId = context.req.param("installationId");
-    const repositoryId = context.req.param("repositoryId");
-    const installation = await db.gitHubInstallation.findFirst({
-      where: { id: installationId, userId },
-      select: { installationId: true },
-    });
+  if (process.env.NODE_ENV !== "production") {
+    return "http://localhost:3000";
+  }
 
-    if (!installation) {
-      return context.json({ error: "GitHub installation not found" }, 404);
-    }
+  throw new Error("WEB_APP_URL is missing");
+}
 
-    await db.gitHubInstallationRepository.deleteMany({
-      where: {
-        id: repositoryId,
-        installationId: installation.installationId,
-      },
-    });
+function getGitHubInstallationManageUrl({
+  accountLogin,
+  accountType,
+  installationId,
+}: {
+  accountLogin: string;
+  accountType: string;
+  installationId: bigint;
+}) {
+  if (accountType.toLowerCase() === "organization") {
+    return `https://github.com/organizations/${encodeURIComponent(accountLogin)}/settings/installations/${installationId}`;
+  }
 
-    return context.json({ ok: true });
-  },
-);
+  return `https://github.com/settings/installations/${installationId}`;
+}
+
+function getHttpStatus(error: unknown) {
+  if (typeof error !== "object" || error === null || !("status" in error)) {
+    return undefined;
+  }
+
+  return typeof error.status === "number" ? error.status : undefined;
+}
+
+function parseInstallationId(value: string) {
+  if (!/^\d+$/.test(value)) {
+    throw new Error("Invalid installation id");
+  }
+
+  return BigInt(value);
+}

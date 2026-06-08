@@ -21,7 +21,7 @@ export function AuthShell({
           </h1>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
             Generate summaries, changelog entries, portfolio bullets, and
-            share-ready posts from public GitHub pull requests and commits.
+            share-ready posts from GitHub pull requests and commits.
           </p>
         </div>
 

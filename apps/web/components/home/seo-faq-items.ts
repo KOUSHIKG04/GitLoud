@@ -12,7 +12,7 @@ export const seoFaqItems = [
   {
     question: "Does GitLoud support private repositories?",
     answer:
-      "Phase 1 supports public repositories. Private repository support is planned first in Phase 2 through explicit GitHub App permissions.",
+      "Yes. Pro users can connect selected private repositories through the GitLoud GitHub App. GitLoud uses short-lived, server-side installation tokens for private PR and commit generation.",
   },
   {
     question: "What content formats does GitLoud create?",

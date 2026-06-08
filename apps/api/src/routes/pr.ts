@@ -23,7 +23,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { persistentRateLimit } from "@/lib/rate-limit";
-import { getGitHubTokenForRepo } from "@/lib/github-app";
+import { getGitHubTokenForRepo, getPublicGitHubToken } from "@/lib/github-app";
 import { getUserFeatures } from "@/lib/features";
 import { getAiGenerationOptionsForUser } from "@/lib/ai-credentials";
 
@@ -109,8 +109,9 @@ export const prRoutes = new Hono().post("/", async (context) => {
       const features = await getUserFeatures(appUserId);
 
       const githubToken = features.canUsePrivateRepos
-        ? await getGitHubTokenForRepo({ userId: appUserId, owner, repo })
-        : process.env.GITHUB_TOKEN;
+        ? ((await getGitHubTokenForRepo({ userId: appUserId, owner, repo })) ??
+          getPublicGitHubToken())
+        : getPublicGitHubToken();
 
       if (!Number.isInteger(number) || number <= 0) {
         send({ type: "error", message: "Enter a valid GitHub PR URL" });
@@ -301,8 +302,9 @@ export const prRoutes = new Hono().post("/", async (context) => {
       const features = await getUserFeatures(appUserId);
 
       const githubToken = features.canUsePrivateRepos
-        ? await getGitHubTokenForRepo({ userId: appUserId, owner, repo })
-        : process.env.GITHUB_TOKEN;
+        ? ((await getGitHubTokenForRepo({ userId: appUserId, owner, repo })) ??
+          getPublicGitHubToken())
+        : getPublicGitHubToken();
 
       send({
         type: "progress",

@@ -9,7 +9,9 @@
     "./pull-request": "./src/pull-request.ts",
     "./pr-cleanup": "./src/pr-cleanup.ts",
     "./generated-content": "./src/generated-content.ts",
-    "./commit": "./src/commit.ts"
+    "./commit": "./src/commit.ts",
+    "./github-app": "./src/github-app.ts",
+    "./ai-credentials": "./src/ai-credentials.ts"
   },
   "scripts": {
     "build": "tsc && tsc-alias -p tsconfig.json --resolve-full-paths",

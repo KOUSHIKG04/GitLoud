@@ -1,5 +1,5 @@
-import { RouteLoadingScreen } from "@/components/RouteLoadingScreen";
+import { DashboardLoading } from "./_components/dashboard-loading";
 
 export default function Loading() {
-  return <RouteLoadingScreen label="LOADING DASHBOARD" />;
+  return <DashboardLoading label="Loading dashboard" />;
 }

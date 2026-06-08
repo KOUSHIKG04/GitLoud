@@ -14,8 +14,15 @@ import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
+import { cn } from "@repo/ui/lib/utils";
 
-export function UserProfileMenu() {
+export function UserProfileMenu({
+  className,
+  showLabel = false,
+}: {
+  className?: string;
+  showLabel?: boolean;
+}) {
   const { push, refresh } = useRouter();
   const { signOut } = useClerk();
   const { user } = useUser();
@@ -50,13 +57,25 @@ export function UserProfileMenu() {
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          className="flex size-[31px] items-center justify-center border border-border bg-background p-0 rounded-none outline-none ring-offset-background transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className={cn(
+            "flex size-[31px] items-center justify-center rounded-none border border-border bg-background p-0 outline-none ring-offset-background transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            showLabel && "h-9 w-full justify-start gap-2 px-2",
+            className,
+          )}
           aria-label="Open user menu"
           title="Open user menu"
         >
-          <span className="flex size-full items-center justify-center bg-card text-xs font-semibold uppercase text-card-foreground">
+          <span
+            className={cn(
+              "flex size-full items-center justify-center bg-card text-xs font-semibold uppercase text-card-foreground",
+              showLabel && "size-6 shrink-0",
+            )}
+          >
             {initials}
           </span>
+          {showLabel ? (
+            <span className="truncate text-sm font-medium">Profile</span>
+          ) : null}
         </Button>
       </DropdownMenuTrigger>
 

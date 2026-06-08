@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { Header } from "@/components/Header";
+import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
 import { getGenerationDetail } from "@/lib/generations-api";
 import { GenerationDetailClient } from "./_components/generation-detail-client";
 import { AttachedMediaSection } from "./_components/attached-media-section";
@@ -8,7 +8,6 @@ import {
   ChevronRight,
   CircleDot,
   FileDiff,
-  GitCommit,
   GitPullRequest,
   Minus,
   Plus,
@@ -66,10 +65,8 @@ export default async function GenerationDetailPage({
       : generation.commit?.shortSha;
 
   return (
-    <main className="relative isolate min-h-screen">
-      <Header />
-
-      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
+    <main className="relative isolate min-h-[calc(100dvh-3.5rem)]">
+      <section className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-6 pt-0">
         <div className="space-y-2">
           <p className="text-md flex gap-2 font-semibold text-muted-foreground">
             {sourceLabel.toUpperCase()}
@@ -112,7 +109,7 @@ export default async function GenerationDetailPage({
                     generation.sourceType === "PULL_REQUEST" ? (
                       <GitPullRequest className="size-4" />
                     ) : (
-                      <GitCommit className="size-4" />
+                      <CommitBranchIcon className="size-4" />
                     )
                   }
                   label={

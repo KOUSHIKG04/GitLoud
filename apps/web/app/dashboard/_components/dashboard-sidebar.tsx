@@ -1,0 +1,200 @@
+"use client";
+
+import { AppLogo } from "@/assets/AppLogo";
+import { ThemeToggle } from "@/components/ToggleThemeBtn";
+import { UserProfileMenu } from "@/components/UserProfileMenu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@repo/ui/components/sidebar";
+import { ChevronDown, Home, LayoutDashboard, Settings } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import {
+  dashboardOptions,
+  secondaryNavigationItems,
+  settingsOptions,
+  type DashboardSidebarItem,
+} from "./dashboard-navigation";
+import { SidebarResizeHandle } from "./sidebar-resize-handle";
+
+export function DashboardSidebar({
+  onResize,
+}: {
+  onResize: (width: number) => void;
+}) {
+  const pathname = usePathname();
+  const [dashboardOpen, setDashboardOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(true);
+  const isDashboardActive =
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/github-activity") ||
+    pathname.startsWith("/dashboard/generations");
+  const isSettingsActive = pathname.startsWith("/dashboard/settings");
+
+  return (
+    <Sidebar
+      collapsible="icon"
+      className="border-border/70 [&_[data-sidebar=group-action]]:rounded-none [&_[data-sidebar=group-label]]:rounded-none [&_[data-sidebar=menu-action]]:rounded-none [&_[data-sidebar=menu-button]]:rounded-none [&_[data-sidebar=menu-sub-button]]:rounded-none"
+    >
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild size="lg" tooltip="GitLoud">
+              <Link href="/dashboard">
+                <span className="flex size-8 shrink-0 items-center justify-center bg-transparent">
+                  <AppLogo className="size-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold">GitLoud</span>
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent className="gap-0">
+        <SidebarGroup className="pb-0">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Landing Page">
+                  <Link href="/">
+                    <Home />
+                    <span>Landing Page</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="pt-1">
+          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={isDashboardActive}
+                  tooltip="Dashboard"
+                  onClick={() => setDashboardOpen((open) => !open)}
+                  className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
+                >
+                  <LayoutDashboard />
+                  <span>Dashboard</span>
+                  <ChevronDown
+                    className={[
+                      "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
+                      dashboardOpen ? "rotate-180" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  />
+                </SidebarMenuButton>
+                {dashboardOpen ? (
+                  <DashboardOptionsSubmenu
+                    items={dashboardOptions}
+                    pathname={pathname}
+                  />
+                ) : null}
+              </SidebarMenuItem>
+
+              {secondaryNavigationItems.map((item) => {
+                const Icon = item.icon;
+
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={item.isActive(pathname)}
+                      tooltip={item.label}
+                    >
+                      <Link href={item.href}>
+                        <Icon />
+                        <span>{item.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={isSettingsActive}
+                  tooltip="Settings"
+                  onClick={() => setSettingsOpen((open) => !open)}
+                  className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
+                >
+                  <Settings />
+                  <span>Settings</span>
+                  <ChevronDown
+                    className={[
+                      "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
+                      settingsOpen ? "rotate-180" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  />
+                </SidebarMenuButton>
+                {settingsOpen ? (
+                  <DashboardOptionsSubmenu
+                    items={settingsOptions}
+                    pathname={pathname}
+                  />
+                ) : null}
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+
+      <SidebarFooter>
+        <div className="flex w-full items-center gap-2 group-data-[collapsible=icon]:flex-col">
+          <ThemeToggle className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none" />
+          <UserProfileMenu className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none" />
+        </div>
+      </SidebarFooter>
+      <SidebarResizeHandle onResize={onResize} />
+    </Sidebar>
+  );
+}
+
+function DashboardOptionsSubmenu({
+  items,
+  pathname,
+}: {
+  items: DashboardSidebarItem[];
+  pathname: string;
+}) {
+  return (
+    <SidebarMenuSub className="mt-1">
+      {items.map((item) => {
+        const Icon = item.icon;
+
+        return (
+          <SidebarMenuSubItem key={item.href}>
+            <SidebarMenuSubButton asChild isActive={item.isActive(pathname)}>
+              <Link href={item.href}>
+                <Icon />
+                <span>{item.label}</span>
+              </Link>
+            </SidebarMenuSubButton>
+          </SidebarMenuSubItem>
+        );
+      })}
+    </SidebarMenuSub>
+  );
+}

@@ -44,6 +44,9 @@ export default function TermsPage() {
                 You are responsible for activity under your account and for
                 keeping your authentication provider secure. Do not use GitLoud
                 to process content you do not have permission to use.
+                Organization owners should ensure they are allowed to connect a
+                GitHub App to selected private repositories before enabling
+                private repository generation.
               </p>
             </section>
 
@@ -54,7 +57,10 @@ export default function TermsPage() {
               <p>
                 GitLoud helps generate summaries, posts, and related developer
                 content. You are responsible for reviewing generated output
-                before publishing or relying on it.
+                before publishing or relying on it. Private repository
+                generation may process PR or commit metadata and code diff
+                context through GitLoud&apos;s backend and the configured AI
+                provider.
               </p>
             </section>
 
@@ -64,8 +70,8 @@ export default function TermsPage() {
               </h2>
               <p>
                 GitLoud may change, pause, or discontinue features as the
-                product evolves. Continued use after changes means you accept the
-                updated terms.
+                product evolves. Continued use after changes means you accept
+                the updated terms.
               </p>
             </section>
           </div>

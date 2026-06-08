@@ -29,7 +29,7 @@ export function ContentExamplesSection() {
             Examples of developer content GitLoud can generate
           </h2>
           <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-            GitLoud turns public GitHub pull requests and commits into practical
+            GitLoud turns GitHub pull requests and commits into practical
             summaries, changelog notes, portfolio bullets, and social posts.
           </p>
         </div>

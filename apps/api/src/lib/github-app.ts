@@ -2,6 +2,12 @@ import { createAppAuth } from "@octokit/auth-app";
 import { Octokit } from "@octokit/rest";
 import { db } from "@repo/db/client";
 
+const repositoryReadPermissions = {
+  contents: "read",
+  metadata: "read",
+  pull_requests: "read",
+} as const;
+
 function getPrivateKey() {
   const key = process.env.GITHUB_APP_PRIVATE_KEY;
 
@@ -25,12 +31,20 @@ function getAppAuth() {
   });
 }
 
-export async function createInstallationToken(installationId: bigint) {
+export async function createInstallationToken(
+  installationId: bigint,
+  options: {
+    permissions?: Record<string, "read">;
+    repositoryNames?: string[];
+  } = {},
+) {
   const auth = getAppAuth();
 
   const installationAuth = await auth({
     type: "installation",
     installationId: Number(installationId),
+    permissions: options.permissions,
+    repositoryNames: options.repositoryNames,
   });
 
   return installationAuth.token;
@@ -91,10 +105,26 @@ export async function getGitHubTokenForRepo({
   });
 
   if (!installation) {
-    return process.env.GITHUB_TOKEN;
+    return undefined;
   }
 
-  return createInstallationToken(installation.installationId);
+  return createInstallationToken(installation.installationId, {
+    permissions: repositoryReadPermissions,
+    repositoryNames: [repo],
+  });
+}
+
+export async function createRepositoryReadToken({
+  installationId,
+  repo,
+}: {
+  installationId: bigint;
+  repo: string;
+}) {
+  return createInstallationToken(installationId, {
+    permissions: repositoryReadPermissions,
+    repositoryNames: [repo],
+  });
 }
 
 export function createAppOctokit(): Octokit {
@@ -110,7 +140,9 @@ export function createAppOctokit(): Octokit {
 }
 
 export async function syncInstallationRepositories(installationId: bigint) {
-  const token = await createInstallationToken(installationId);
+  const token = await createInstallationToken(installationId, {
+    permissions: { metadata: "read" },
+  });
 
   const octokit = new Octokit({
     auth: token,
@@ -142,4 +174,8 @@ export async function syncInstallationRepositories(installationId: bigint) {
   });
 
   return repositories.length;
+}
+
+export function getPublicGitHubToken() {
+  return process.env.GITHUB_PUBLIC_TOKEN || undefined;
 }

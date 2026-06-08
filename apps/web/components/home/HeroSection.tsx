@@ -1,13 +1,13 @@
-import {
-  MotionItem,
-  MotionStagger,
-} from "@/components/LandingMotion";
+import { MotionItem, MotionStagger } from "@/components/LandingMotion";
 import { ScrollToGeneratorButton } from "@/components/ScrollToGeneratorButton";
 
 export function HeroSection() {
   return (
     <section className="relative flex min-h-[86dvh] items-center justify-center px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
-      <div className="mx-auto w-full max-w-sm text-center sm:max-w-2xl lg:max-w-4xl">
+      <div
+        id="hero"
+        className="mx-auto w-full max-w-sm scroll-mt-24 text-center sm:max-w-2xl lg:max-w-4xl"
+      >
         <MotionStagger>
           <MotionItem>
             <p className="mb-5 border inline-flex items-center gap-2  bg-background/60 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm">
@@ -24,8 +24,9 @@ export function HeroSection() {
 
           <MotionItem>
             <p className="mt-4 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-lg">
-              Drop a public GitHub PR or commit link. Generate summaries,
-              changelogs, and dev-ready posts instantly.
+              Drop a GitHub PR or commit link. Public repos work instantly, and
+              Pro users can connect selected private repos through the GitHub
+              App.
             </p>
           </MotionItem>
 
