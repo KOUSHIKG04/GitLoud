@@ -6,7 +6,7 @@ import { ScrollToGeneratorButton } from "@/components/ScrollToGeneratorButton";
 
 export function HeroSection() {
   return (
-    <section className="relative flex min-h-[68dvh] items-center justify-center px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+    <section className="relative flex min-h-[86dvh] items-center justify-center px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
       <div className="mx-auto w-full max-w-sm text-center sm:max-w-2xl lg:max-w-4xl">
         <MotionStagger>
           <MotionItem>
@@ -18,7 +18,7 @@ export function HeroSection() {
 
           <MotionItem>
             <p className="text-balance mt-4 sm:mt-5 text-3xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Ship it. <span className="text-chart-2">Make noise.</span>
+              Ship it. <span className="text-primary">Make noise.</span>
             </p>
           </MotionItem>
 

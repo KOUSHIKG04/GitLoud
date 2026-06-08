@@ -66,7 +66,7 @@ export default async function GenerationDetailPage({
       : generation.commit?.shortSha;
 
   return (
-    <main className="min-h-screen">
+    <main className="relative isolate min-h-screen">
       <Header />
 
       <section className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">

@@ -91,7 +91,7 @@ const faqStructuredData = {
  */
 export default function Home() {
   return (
-    <main className="min-h-dvh flex flex-col overflow-x-hidden">
+    <main className="relative isolate min-h-dvh flex flex-col overflow-x-hidden">
       <AuthToast />
       <ProfileSync />
 

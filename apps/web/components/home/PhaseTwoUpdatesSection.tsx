@@ -19,7 +19,7 @@ const scrollingUpdates = updates.flatMap((label) => [
 
 export function PhaseTwoUpdatesSection() {
   return (
-    <section className="overflow-hidden bg-background px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
+    <section className="overflow-hidden px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <div className="grid gap-4 lg:grid-cols-[0.7fr_1.1fr] lg:items-end">
           <div className="space-y-3">
@@ -58,7 +58,7 @@ export function PhaseTwoUpdatesSection() {
           </p>
         </div>
 
-        <div className="bg-background py-5">
+        <div className="py-5">
           <LazyMotion features={domAnimation}>
             <m.div
               animate={{ x: ["0%", "-50%"] }}

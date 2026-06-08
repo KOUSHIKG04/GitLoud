@@ -14,6 +14,8 @@ import { DeleteGenerationButton } from "./_components/delete-generation-button";
 import { HistoryDatePicker } from "./_components/history-date-picker";
 import { getGenerationHistory } from "@/lib/generations-api";
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { HistoryLoading } from "./_components/history-loading";
 
 export const metadata: Metadata = {
   title: "History",
@@ -42,21 +44,9 @@ export default async function HistoryPage({
     page: pageParam,
     to: toParam,
   } = await searchParams;
-  const page = Math.max(Number.parseInt(pageParam ?? "1", 10) || 1, 1);
-  const legacyDate = parseHistoryDate(legacyDateParam);
-  const rangeStart = parseHistoryDate(fromParam) ?? legacyDate;
-  const rangeEnd = parseHistoryDate(toParam) ?? legacyDate ?? rangeStart;
-  const history = await getGenerationHistory({
-    date: legacyDateParam,
-    from: fromParam,
-    page: pageParam,
-    to: toParam,
-  });
-  const hasNextPage = history.hasNextPage;
-  const visibleGenerations = history.generations;
 
   return (
-    <main className="min-h-screen">
+    <main className="relative isolate min-h-screen">
       <Header />
 
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-5xl flex-col gap-6 px-4 pt-12 pb-6 ">
@@ -82,110 +72,146 @@ export default async function HistoryPage({
           </div>
         </div>
 
-        <div className="flex-1">
-          {visibleGenerations.length === 0 ? (
-            <div className="border p-6 text-sm text-muted-foreground">
-              {page === 1
-                ? "NO GENERATIONS YET."
-                : "NO GENERATIONS YET ON THIS PAGE."}
-            </div>
-          ) : (
-            <div className="space-y-3.5">
-              {visibleGenerations.map((generation) => {
-                const source = generation.pullRequest ?? generation.commit;
+        <Suspense fallback={<HistoryLoading />}>
+          <HistoryList
+            date={legacyDateParam}
+            from={fromParam}
+            page={pageParam}
+            to={toParam}
+          />
+        </Suspense>
+      </section>
+    </main>
+  );
+}
 
-                if (!source) {
-                  return null;
-                }
+async function HistoryList({
+  date: legacyDateParam,
+  from: fromParam,
+  page: pageParam,
+  to: toParam,
+}: {
+  date?: string;
+  from?: string;
+  page?: string;
+  to?: string;
+}) {
+  const page = Math.max(Number.parseInt(pageParam ?? "1", 10) || 1, 1);
+  const legacyDate = parseHistoryDate(legacyDateParam);
+  const rangeStart = parseHistoryDate(fromParam) ?? legacyDate;
+  const rangeEnd = parseHistoryDate(toParam) ?? legacyDate ?? rangeStart;
+  const history = await getGenerationHistory({
+    date: legacyDateParam,
+    from: fromParam,
+    page: pageParam,
+    to: toParam,
+  });
+  const hasNextPage = history.hasNextPage;
+  const visibleGenerations = history.generations;
 
-                const title =
-                  generation.sourceType === "PULL_REQUEST" &&
-                  generation.pullRequest
-                    ? generation.pullRequest.title
-                    : (generation.commit?.message ?? "").split("\n")[0];
+  return (
+    <>
+      <div className="flex-1">
+        {visibleGenerations.length === 0 ? (
+          <div className="border p-6 text-sm text-muted-foreground">
+            {page === 1
+              ? "NO GENERATIONS YET."
+              : "NO GENERATIONS YET ON THIS PAGE."}
+          </div>
+        ) : (
+          <div className="space-y-3.5">
+            {visibleGenerations.map((generation) => {
+              const source = generation.pullRequest ?? generation.commit;
 
-                return (
-                  <article
-                    key={generation.id}
-                    className="border bg-card text-card-foreground transition-colors hover:bg-muted/40"
-                  >
-                    <div className="grid gap-4 p-5 md:grid-cols-[5fr_1fr] md:items-start">
-                      <Link
-                        href={`/dashboard/generations/${generation.id}`}
-                        className="min-w-0 space-y-1.5"
+              if (!source) {
+                return null;
+              }
+
+              const title =
+                generation.sourceType === "PULL_REQUEST" &&
+                generation.pullRequest
+                  ? generation.pullRequest.title
+                  : (generation.commit?.message ?? "").split("\n")[0];
+
+              return (
+                <article
+                  key={generation.id}
+                  className="border bg-card text-card-foreground transition-colors hover:bg-muted/40"
+                >
+                  <div className="grid gap-4 p-5 md:grid-cols-[5fr_1fr] md:items-start">
+                    <Link
+                      href={`/dashboard/generations/${generation.id}`}
+                      className="min-w-0 space-y-1.5"
+                    >
+                      <p className="text-sm text-muted-foreground">
+                        {generation.sourceType === "PULL_REQUEST"
+                          ? "Pull Request"
+                          : "Commit"}{" "}
+                        - {source.owner}/{source.repo}
+                      </p>
+
+                      <h2 className="break-words text-lg font-semibold leading-7">
+                        {title}
+                      </h2>
+
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <span>
+                          {new Date(generation.createdAt).toLocaleString()}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 border bg-background px-2 py-1">
+                          <Paperclip className="size-3.5" />
+                          {generation.mediaAttachmentCount > 0
+                            ? `${generation.mediaAttachmentCount} file attached`
+                            : "No file attached"}
+                        </span>
+                      </div>
+                    </Link>
+
+                    <div className="flex flex-wrap gap-2 md:justify-end">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/dashboard/generations/${generation.id}`}>
+                          <ExternalLink className="size-4" />
+                          Open
+                        </Link>
+                      </Button>
+
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon-sm"
+                        aria-label="Open on GitHub"
+                        title="Open on GitHub"
                       >
-                        <p className="text-sm text-muted-foreground">
-                          {generation.sourceType === "PULL_REQUEST"
-                            ? "Pull Request"
-                            : "Commit"}{" "}
-                          - {source.owner}/{source.repo}
-                        </p>
-
-                        <h2 className="break-words text-lg font-semibold leading-7">
-                          {title}
-                        </h2>
-
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                          <span>
-                            {new Date(generation.createdAt).toLocaleString()}
-                          </span>
-                          <span className="inline-flex items-center gap-1.5 border bg-background px-2 py-1">
-                            <Paperclip className="size-3.5" />
-                            {generation.mediaAttachmentCount > 0
-                              ? `${generation.mediaAttachmentCount} file attached`
-                              : "No file attached"}
-                          </span>
-                        </div>
-                      </Link>
-
-                      <div className="flex flex-wrap gap-2 md:justify-end">
-                        <Button asChild variant="outline" size="sm">
-                          <Link
-                            href={`/dashboard/generations/${generation.id}`}
-                          >
-                            <ExternalLink className="size-4" />
-                            Open
-                          </Link>
-                        </Button>
-
-                        <Button
-                          asChild
-                          variant="outline"
-                          size="icon-sm"
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noreferrer"
                           aria-label="Open on GitHub"
                           title="Open on GitHub"
                         >
-                          <a
-                            href={source.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label="Open on GitHub"
-                            title="Open on GitHub"
-                          >
-                            <GitHubIcon />
-                          </a>
-                        </Button>
+                          <GitHubIcon />
+                        </a>
+                      </Button>
 
-                        <DeleteGenerationButton generationId={generation.id} />
-                      </div>
+                      <DeleteGenerationButton generationId={generation.id} />
                     </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
-        <div className="pt-4">
-          <HistoryPagination
-            page={page}
-            hasNextPage={hasNextPage}
-            from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
-            to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
-          />
-        </div>
-      </section>
-    </main>
+      <div className="pt-4">
+        <HistoryPagination
+          page={page}
+          hasNextPage={hasNextPage}
+          from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
+          to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
+        />
+      </div>
+    </>
   );
 }
 
