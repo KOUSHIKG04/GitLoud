@@ -18,7 +18,14 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@repo/ui/components/sidebar";
-import { ChevronDown, Home, LayoutDashboard, Settings } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Home,
+  LayoutDashboard,
+  LockKeyhole,
+  Settings,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -29,6 +36,7 @@ import {
   type DashboardSidebarItem,
 } from "./dashboard-navigation";
 import { SidebarResizeHandle } from "./sidebar-resize-handle";
+import { useBillingPlan } from "../_hooks/use-billing-plan";
 
 export function DashboardSidebar({
   onResize,
@@ -36,6 +44,7 @@ export function DashboardSidebar({
   onResize: (width: number) => void;
 }) {
   const pathname = usePathname();
+  const isPro = useBillingPlan();
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const isDashboardActive =
@@ -52,7 +61,11 @@ export function DashboardSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild size="lg" tooltip="GitLoud">
+            <SidebarMenuButton
+              asChild
+              size="lg"
+              tooltip={getSidebarTooltip("GitLoud")}
+            >
               <Link href="/dashboard">
                 <span className="flex size-8 shrink-0 items-center justify-center bg-transparent">
                   <AppLogo className="size-5" />
@@ -71,7 +84,10 @@ export function DashboardSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Landing Page">
+                <SidebarMenuButton
+                  asChild
+                  tooltip={getSidebarTooltip("Landing Page")}
+                >
                   <Link href="/">
                     <Home />
                     <span>Landing Page</span>
@@ -89,12 +105,12 @@ export function DashboardSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={isDashboardActive}
-                  tooltip="Dashboard"
+                  tooltip={getSidebarTooltip("Get Generated")}
                   onClick={() => setDashboardOpen((open) => !open)}
                   className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
                 >
                   <LayoutDashboard />
-                  <span>Dashboard</span>
+                  <span>Get Generated</span>
                   <ChevronDown
                     className={[
                       "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
@@ -108,6 +124,7 @@ export function DashboardSidebar({
                   <DashboardOptionsSubmenu
                     items={dashboardOptions}
                     pathname={pathname}
+                    isPro={isPro}
                   />
                 ) : null}
               </SidebarMenuItem>
@@ -120,7 +137,7 @@ export function DashboardSidebar({
                     <SidebarMenuButton
                       asChild
                       isActive={item.isActive(pathname)}
-                      tooltip={item.label}
+                      tooltip={getSidebarTooltip(item.label)}
                     >
                       <Link href={item.href}>
                         <Icon />
@@ -130,41 +147,47 @@ export function DashboardSidebar({
                   </SidebarMenuItem>
                 );
               })}
-
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={isSettingsActive}
-                  tooltip="Settings"
-                  onClick={() => setSettingsOpen((open) => !open)}
-                  className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
-                >
-                  <Settings />
-                  <span>Settings</span>
-                  <ChevronDown
-                    className={[
-                      "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
-                      settingsOpen ? "rotate-180" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  />
-                </SidebarMenuButton>
-                {settingsOpen ? (
-                  <DashboardOptionsSubmenu
-                    items={settingsOptions}
-                    pathname={pathname}
-                  />
-                ) : null}
-              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem className="flex flex-col-reverse">
+            <SidebarMenuButton
+              isActive={isSettingsActive}
+              tooltip={getSidebarTooltip("Pro Settings")}
+              onClick={() => setSettingsOpen((open) => !open)}
+              className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
+            >
+              <Settings />
+              <span>Pro Settings</span>
+              <ChevronUp
+                className={[
+                  "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
+                  settingsOpen ? "" : "rotate-180",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              />
+            </SidebarMenuButton>
+            {settingsOpen ? (
+              <DashboardOptionsSubmenu
+                items={settingsOptions}
+                pathname={pathname}
+                isPro={isPro}
+                className="mb-1 mt-0"
+              />
+            ) : null}
+          </SidebarMenuItem>
+        </SidebarMenu>
         <div className="flex w-full items-center gap-2 group-data-[collapsible=icon]:flex-col">
           <ThemeToggle className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none" />
-          <UserProfileMenu className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none" />
+          <UserProfileMenu
+            accountMenu
+            className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none"
+          />
         </div>
       </SidebarFooter>
       <SidebarResizeHandle onResize={onResize} />
@@ -172,15 +195,27 @@ export function DashboardSidebar({
   );
 }
 
+function getSidebarTooltip(label: string) {
+  return {
+    children: label,
+    sideOffset: 8,
+    className: "rounded-none",
+  };
+}
+
 function DashboardOptionsSubmenu({
   items,
   pathname,
+  isPro,
+  className,
 }: {
   items: DashboardSidebarItem[];
   pathname: string;
+  isPro: boolean;
+  className?: string;
 }) {
   return (
-    <SidebarMenuSub className="mt-1">
+    <SidebarMenuSub className={className ?? "mt-1"}>
       {items.map((item) => {
         const Icon = item.icon;
 
@@ -190,6 +225,9 @@ function DashboardOptionsSubmenu({
               <Link href={item.href}>
                 <Icon />
                 <span>{item.label}</span>
+                {item.requiresPro && !isPro ? (
+                  <LockKeyhole className="ms-auto size-3" />
+                ) : null}
               </Link>
             </SidebarMenuSubButton>
           </SidebarMenuSubItem>

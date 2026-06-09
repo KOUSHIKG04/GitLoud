@@ -2,7 +2,12 @@
 
 import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
 import { Button } from "@repo/ui/components/button";
-import { ChevronRight, GitPullRequest, SquarePen, UserRound } from "lucide-react";
+import {
+  ChevronRight,
+  GitPullRequest,
+  SquarePen,
+  UserRound,
+} from "lucide-react";
 import type {
   GenerationStep,
   GitHubActivityItem,
@@ -75,9 +80,12 @@ export function GitHubActivityCustomizeStep({
 
       <div className="space-y-2">
         <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
-          <p className="flex items-center gap-1 text-[13px] leading-5 text-muted-foreground">
+          <label
+            htmlFor="github-activity-context"
+            className="flex items-center gap-1 text-[13px] leading-5 text-muted-foreground"
+          >
             Extra context: Add tone, audience, or what you learned.
-          </p>
+          </label>
         </div>
 
         <div className="relative">

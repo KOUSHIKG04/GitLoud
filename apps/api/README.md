@@ -15,6 +15,7 @@ The server defaults to `http://localhost:4000`.
 ```txt
 GET    /health
 POST   /profile/sync
+POST   /feedback
 POST   /media
 POST   /pr
 DELETE /generations/:id

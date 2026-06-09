@@ -8,6 +8,13 @@ export const MIN_SIDEBAR_WIDTH = 208;
 export const MAX_SIDEBAR_WIDTH = 384;
 export const SIDEBAR_WIDTH_STORAGE_KEY = "gitloud-sidebar-width";
 
+function startResize(event: PointerEvent<HTMLButtonElement>) {
+  event.preventDefault();
+  event.currentTarget.setPointerCapture(event.pointerId);
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+}
+
 export function SidebarResizeHandle({
   onResize,
 }: {
@@ -18,13 +25,6 @@ export function SidebarResizeHandle({
 
   if (isMobile || state === "collapsed") {
     return null;
-  }
-
-  function startResize(event: PointerEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
   }
 
   function resize(event: PointerEvent<HTMLButtonElement>) {

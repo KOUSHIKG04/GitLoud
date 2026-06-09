@@ -3,10 +3,7 @@
 import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
 import { Check, GitPullRequest, LoaderCircle } from "lucide-react";
 import { type UIEvent, useState } from "react";
-import type {
-  ActivityType,
-  GitHubActivityItem,
-} from "./github-activity-types";
+import type { ActivityType, GitHubActivityItem } from "./github-activity-types";
 
 const activityListScrollClass =
   "gitloud-activity-scroll h-[17rem] scroll-smooth overflow-y-auto pr-5";
@@ -66,16 +63,15 @@ export function GitHubActivitySelectionStep({
   return (
     <div className="h-[17rem] border bg-background">
       {loadingActivity ? (
-        <div
+        <output
           className="flex h-full items-center justify-center"
-          role="status"
           aria-label="Loading GitHub activity"
         >
           <LoaderCircle
             className="size-9 animate-spin text-primary sm:size-10"
             aria-hidden="true"
           />
-        </div>
+        </output>
       ) : items.length === 0 ? (
         <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
           No recent{" "}

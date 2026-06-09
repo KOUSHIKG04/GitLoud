@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { LazyMotionCursor } from "@/components/LazyMotionCursor";
 import { AuthToast } from "@/components/auth/AuthToast";
 import { GeneratorSection } from "@/components/home/GeneratorSection";
+import { FeedbackSection } from "@/components/home/FeedbackSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { SeoFaqSection } from "@/components/home/SeoFaqSection";
@@ -64,7 +65,7 @@ const structuredData = {
     {
       "@type": "Offer",
       name: "Pro",
-      price: "9",
+      price: "14",
       priceCurrency: "USD",
     },
   ],
@@ -109,6 +110,7 @@ export default function Home() {
       <HowItWorksSection />
       <PricingSection />
       <SeoFaqSection />
+      <FeedbackSection />
       <Footer />
     </main>
   );
@@ -150,9 +152,9 @@ function PricingSection() {
 
           <PricingPlan
             name="Pro"
-            price="$9"
+            price="$14"
             badge="Most useful"
-            description="For private work, heavier usage, and bring-your-own AI."
+            description="Per month for private work, heavier usage, and bring-your-own AI."
             cta="GO PRO"
             featured
             features={[

@@ -7,34 +7,15 @@ import {
 } from "@repo/ui/components/sidebar";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { type CSSProperties, type ReactNode } from "react";
+import { useDashboardSidebarWidth } from "../_hooks/use-dashboard-sidebar-width";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { getDashboardHeaderTitle } from "./dashboard-navigation";
-import {
-  DEFAULT_SIDEBAR_WIDTH,
-  MAX_SIDEBAR_WIDTH,
-  MIN_SIDEBAR_WIDTH,
-  SIDEBAR_WIDTH_STORAGE_KEY,
-} from "./sidebar-resize-handle";
 
 export function DashboardShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const { setSidebarWidth, sidebarWidth } = useDashboardSidebarWidth();
   const mobileHeaderTitle = getDashboardHeaderTitle(pathname);
-
-  useEffect(() => {
-    const storedWidth = Number(
-      window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY),
-    );
-
-    if (
-      Number.isFinite(storedWidth) &&
-      storedWidth >= MIN_SIDEBAR_WIDTH &&
-      storedWidth <= MAX_SIDEBAR_WIDTH
-    ) {
-      setSidebarWidth(storedWidth);
-    }
-  }, []);
 
   return (
     <TooltipProvider>

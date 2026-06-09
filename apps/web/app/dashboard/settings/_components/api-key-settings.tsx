@@ -1,11 +1,5 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
-import type {
-  AiCredential,
-  AiCredentialsResponse,
-  AiProvider,
-} from "@repo/shared/ai-credentials";
 import { Button } from "@repo/ui/components/button";
 import {
   DropdownMenu,
@@ -22,146 +16,38 @@ import {
   Settings,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { apiFetch } from "@/lib/api-client";
-import { getApiError } from "@/lib/api-response";
+import {
+  providerLabels,
+  useApiKeySettings,
+} from "../_hooks/use-api-key-settings";
 import { ProSettingLock } from "./pro-setting-lock";
 import { SettingsLoading } from "./settings-loading";
-
-const providerLabels = {
-  gemini: "Gemini",
-  anthropic: "Anthropic",
-  openai: "OpenAI",
-  openrouter: "OpenRouter",
-} satisfies Record<AiProvider, string>;
 
 const dropdownContentClass =
   "w-(--radix-dropdown-menu-trigger-width) max-h-none overflow-hidden rounded-none";
 
 export function ApiKeySettings() {
-  const { getToken } = useAuth();
-  const [data, setData] = useState<AiCredentialsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [apiKey, setApiKey] = useState("");
-  const [savingKey, setSavingKey] = useState(false);
-  const [selectedProvider, setSelectedProvider] =
-    useState<AiProvider>("gemini");
-  const [model, setModel] = useState("");
-
-  const selectedCredential = useMemo(
-    () =>
-      data?.credentials.find(
-        (credential) => credential.provider === selectedProvider,
-      ) ?? null,
-    [data, selectedProvider],
-  );
-
-  const loadSettings = useCallback(async () => {
-    setLoading(true);
-
-    try {
-      const response = await apiFetch("/ai-credentials", {}, getToken);
-      const value = (await response.json()) as
-        | AiCredentialsResponse
-        | { error?: string };
-
-      if (!response.ok) {
-        throw new Error(getApiError(value, "Could not load AI settings"));
-      }
-
-      setData(value as AiCredentialsResponse);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not load settings",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
-
-  async function saveAiKey() {
-    setSavingKey(true);
-
-    try {
-      const response = await apiFetch(
-        "/ai-credentials",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider: selectedProvider,
-            apiKey,
-            model: model || undefined,
-          }),
-        },
-        getToken,
-      );
-      const value = (await response.json()) as
-        | { credentials: AiCredential[] }
-        | { error?: string };
-
-      if (!response.ok) {
-        throw new Error(getApiError(value, "Could not save AI key"));
-      }
-
-      toast.success(`${providerLabels[selectedProvider]} key saved`);
-      setApiKey("");
-      setData((current) =>
-        current
-          ? {
-              ...current,
-              credentials: "credentials" in value ? value.credentials : [],
-            }
-          : current,
-      );
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not save AI key",
-      );
-    } finally {
-      setSavingKey(false);
-    }
-  }
-
-  async function deleteAiKey(provider: AiProvider) {
-    const response = await apiFetch(
-      `/ai-credentials/${provider}`,
-      { method: "DELETE" },
-      getToken,
-    );
-    const value = (await response.json()) as
-      | { credentials: AiCredential[] }
-      | { error?: string };
-
-    if (!response.ok) {
-      toast.error(getApiError(value, "Could not delete AI key"));
-      return;
-    }
-
-    toast.success(`${providerLabels[provider]} key deleted`);
-    setData((current) =>
-      current
-        ? {
-            ...current,
-            credentials: "credentials" in value ? value.credentials : [],
-          }
-        : current,
-    );
-  }
+  const {
+    apiKey,
+    data,
+    deleteAiKey,
+    loading,
+    model,
+    saveAiKey,
+    savingKey,
+    selectedCredential,
+    selectedProvider,
+    setApiKey,
+    setModel,
+    setSelectedProvider,
+  } = useApiKeySettings();
 
   if (loading) {
     return <SettingsLoading />;
   }
 
   if (!data?.canUseOwnAiKey) {
-    return (
-      <ProSettingLock description="Upgrade to save and use your own AI provider API key." />
-    );
+    return <ProSettingLock />;
   }
 
   return (

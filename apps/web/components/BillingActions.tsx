@@ -1,41 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { type ComponentProps, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
-import { IndianRupee, Loader2 } from "lucide-react";
+import { CircleDollarSign, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+import { cn } from "@repo/ui/lib/utils";
+import { PaymentsComingSoon } from "@/components/PaymentsComingSoon";
+import type {
+  RazorpayOrderResponse,
+  RazorpayPaymentVerification,
+} from "@repo/shared/billing";
 
-type RazorpayOrderResponse = {
-  keyId: string;
-  orderId: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  prefill: {
-    name?: string | null;
-    email?: string | null;
-  };
-  error?: string;
-};
-
-type RazorpaySuccessResponse = {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-};
-
-declare global {
-  interface Window {
-    Razorpay?: new (options: Record<string, unknown>) => {
-      open: () => void;
-    };
-  }
-}
-
-export function BillingActions() {
+export function BillingActions({
+  buttonLabel = "PAY WITH RAZORPAY",
+  buttonVariant = "default",
+  className,
+  showPaymentIcon = true,
+  redirectTo = "/dashboard/billing?payment=success",
+}: {
+  buttonLabel?: string;
+  buttonVariant?: ComponentProps<typeof Button>["variant"];
+  className?: string;
+  showPaymentIcon?: boolean;
+  redirectTo?: string;
+}) {
   const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -50,7 +40,9 @@ export function BillingActions() {
         { method: "POST" },
         getToken,
       );
-      const data = (await response.json()) as RazorpayOrderResponse;
+      const data = (await response.json()) as RazorpayOrderResponse & {
+        error?: string;
+      };
 
       if (!response.ok) {
         throw new Error(data.error ?? "Could not create Razorpay order");
@@ -68,28 +60,25 @@ export function BillingActions() {
         description: data.description,
         order_id: data.orderId,
         prefill: data.prefill,
-        handler: (payment: RazorpaySuccessResponse) => {
+        handler: (payment: RazorpayPaymentVerification) => {
           void verifyRazorpayPayment(payment);
         },
         modal: {
-          ondismiss: () => setIsLoading(false),
-        },
-        config: {
-          display: {
-            blocks: {
-              upi: {
-                name: "Pay via UPI",
-                instruments: [{ method: "upi" }],
-              },
-            },
-            sequence: ["block.upi"],
-            preferences: {
-              show_default_blocks: true,
-            },
+          ondismiss: () => {
+            setIsLoading(false);
+            toast.info("Payment cancelled");
           },
         },
       });
 
+      checkout.on("payment.failed", (response) => {
+        setIsLoading(false);
+        toast.error(
+          response.error?.description ??
+            response.error?.reason ??
+            "Payment failed. Please try another payment method.",
+        );
+      });
       checkout.open();
     } catch (error) {
       toast.error(
@@ -99,7 +88,7 @@ export function BillingActions() {
     }
   }
 
-  async function verifyRazorpayPayment(payment: RazorpaySuccessResponse) {
+  async function verifyRazorpayPayment(payment: RazorpayPaymentVerification) {
     try {
       const response = await apiFetch(
         "/billing/razorpay/verify",
@@ -117,7 +106,7 @@ export function BillingActions() {
       }
 
       toast.success("Pro is active");
-      window.location.href = "/dashboard/settings?billing=razorpay-success";
+      window.location.href = redirectTo;
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not verify payment",
@@ -128,19 +117,22 @@ export function BillingActions() {
   }
 
   return (
-    <div className="mt-6">
-      <Button
-        className="w-full"
-        disabled={isLoading}
-        onClick={startRazorpayCheckout}
-      >
-        {isLoading ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <IndianRupee className="size-4" />
-        )}
-        PAY WITH RAZORPAY
-      </Button>
+    <div className={cn("mt-6", className)}>
+      <PaymentsComingSoon>
+        <Button
+          className="w-full"
+          variant={buttonVariant}
+          disabled
+          onClick={startRazorpayCheckout}
+        >
+          {isLoading ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : showPaymentIcon ? (
+            <CircleDollarSign className="size-4" />
+          ) : null}
+          {buttonLabel}
+        </Button>
+      </PaymentsComingSoon>
     </div>
   );
 }

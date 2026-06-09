@@ -11,7 +11,8 @@
     "./generated-content": "./src/generated-content.ts",
     "./commit": "./src/commit.ts",
     "./github-app": "./src/github-app.ts",
-    "./ai-credentials": "./src/ai-credentials.ts"
+    "./ai-credentials": "./src/ai-credentials.ts",
+    "./billing": "./src/billing.ts"
   },
   "scripts": {
     "build": "tsc && tsc-alias -p tsconfig.json --resolve-full-paths",

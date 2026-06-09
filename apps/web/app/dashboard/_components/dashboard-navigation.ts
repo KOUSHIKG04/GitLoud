@@ -1,15 +1,12 @@
-import {
-  GitBranch,
-  History,
-  KeyRound,
-  LayoutDashboard,
-  type LucideIcon,
-} from "lucide-react";
+import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
+import type { ComponentType } from "react";
+import { GitBranch, History, KeyRound, LayoutDashboard } from "lucide-react";
 
 export type DashboardSidebarItem = {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: ComponentType<{ className?: string }>;
+  requiresPro?: boolean;
   isActive: (pathname: string) => boolean;
 };
 
@@ -24,14 +21,14 @@ export const dashboardOptions: DashboardSidebarItem[] = [
     label: "Paid",
     href: "/dashboard/github-activity",
     icon: GitBranch,
-    isActive: (pathname) =>
-      pathname.startsWith("/dashboard/github-activity"),
+    requiresPro: true,
+    isActive: (pathname) => pathname.startsWith("/dashboard/github-activity"),
   },
 ];
 
 export const secondaryNavigationItems: DashboardSidebarItem[] = [
   {
-    label: "History",
+    label: "Generation's",
     href: "/dashboard/history",
     icon: History,
     isActive: (pathname) => pathname.startsWith("/dashboard/history"),
@@ -42,7 +39,8 @@ export const settingsOptions: DashboardSidebarItem[] = [
   {
     label: "GitHub App",
     href: "/dashboard/settings/github-app",
-    icon: GitBranch,
+    icon: GithubIconIcon,
+    requiresPro: true,
     isActive: (pathname) =>
       pathname.startsWith("/dashboard/settings/github-app"),
   },
@@ -50,8 +48,8 @@ export const settingsOptions: DashboardSidebarItem[] = [
     label: "My API Key",
     href: "/dashboard/settings/api-key",
     icon: KeyRound,
-    isActive: (pathname) =>
-      pathname.startsWith("/dashboard/settings/api-key"),
+    requiresPro: true,
+    isActive: (pathname) => pathname.startsWith("/dashboard/settings/api-key"),
   },
 ];
 

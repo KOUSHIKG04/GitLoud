@@ -19,7 +19,7 @@ export default function PrivacyPage() {
   return (
     <main className="min-h-dvh text-foreground">
       <Header />
-      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
@@ -28,15 +28,15 @@ export default function PrivacyPage() {
             <h1 className="text-3xl font-semibold tracking-tight">
               Privacy Policy
             </h1>
-            <p className="text-sm leading-6 text-muted-foreground">
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
               GitLoud collects only the account and project information needed
               to provide authentication, generation history, and related product
               features.
             </p>
           </div>
 
-          <div className="space-y-6 text-sm leading-7 text-muted-foreground">
-            <section className="space-y-2">
+          <div className="grid gap-4 text-sm leading-7 text-muted-foreground md:grid-cols-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs">
               <h2 className="text-base font-semibold text-foreground">
                 Information We Use
               </h2>
@@ -44,12 +44,13 @@ export default function PrivacyPage() {
                 We may use your email address, display name, authentication
                 identifier, GitHub App installation metadata, selected
                 repository names, pull request or commit details, media
-                attachment metadata, and generated content history to operate
+                attachment metadata, generated content history, and feedback
+                messages with an optional contact email to operate and improve
                 GitLoud.
               </p>
             </section>
 
-            <section className="space-y-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs">
               <h2 className="text-base font-semibold text-foreground">
                 How It Is Used
               </h2>
@@ -64,7 +65,7 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            <section className="space-y-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs">
               <h2 className="text-base font-semibold text-foreground">
                 Third-Party Services
               </h2>
@@ -77,7 +78,7 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            <section className="space-y-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs">
               <h2 className="text-base font-semibold text-foreground">
                 Data Control
               </h2>
@@ -92,7 +93,7 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            <section className="space-y-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs md:col-span-2">
               <h2 className="text-base font-semibold text-foreground">
                 Compliance Status
               </h2>

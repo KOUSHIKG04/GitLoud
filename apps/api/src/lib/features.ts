@@ -7,14 +7,17 @@ export async function getUserFeatures(userId: string): Promise<{
 }> {
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { plan: true },
+    select: { plan: true, planExpiresAt: true },
   });
 
-  const plan = user?.plan ?? "FREE";
+  const plan =
+    user?.planExpiresAt && user.planExpiresAt <= new Date()
+      ? "FREE"
+      : (user?.plan ?? "FREE");
 
   return {
     plan,
-    canUsePrivateRepos: plan === "PRO" || plan === "TEAM",
-    canUseOwnAiKey: plan === "PRO" || plan === "TEAM",
+    canUsePrivateRepos: plan === "PRO",
+    canUseOwnAiKey: plan === "PRO",
   };
 }

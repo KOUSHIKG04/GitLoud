@@ -9,33 +9,33 @@ import Link from "next/link";
 import { AppLogo } from "@/assets/AppLogo";
 import type { MouseEvent } from "react";
 
+function scrollToLandingSection(
+  event: MouseEvent<HTMLAnchorElement>,
+  sectionId: string,
+) {
+  if (window.location.pathname !== "/") {
+    return;
+  }
+
+  event.preventDefault();
+
+  if (sectionId === "home") {
+    const appScrollViewport = document.querySelector<HTMLElement>(
+      "#app-scroll-area [data-slot='scroll-area-viewport']",
+    );
+
+    appScrollViewport?.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  document.getElementById(sectionId)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
 export function Header() {
   const { isLoaded, isSignedIn } = useUser();
-
-  function scrollToLandingSection(
-    event: MouseEvent<HTMLAnchorElement>,
-    sectionId: string,
-  ) {
-    if (window.location.pathname !== "/") {
-      return;
-    }
-
-    event.preventDefault();
-
-    if (sectionId === "home") {
-      const appScrollViewport = document.querySelector<HTMLElement>(
-        "#app-scroll-area [data-slot='scroll-area-viewport']",
-      );
-
-      appScrollViewport?.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-
-    document.getElementById(sectionId)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  }
 
   return (
     <>
@@ -76,6 +76,13 @@ export function Header() {
             className="transition-colors hover:text-foreground"
           >
             Examples
+          </Link>
+          <Link
+            href="/#feedback"
+            className="transition-colors hover:text-foreground"
+            onClick={(event) => scrollToLandingSection(event, "feedback")}
+          >
+            Feedback
           </Link>
         </nav>
 

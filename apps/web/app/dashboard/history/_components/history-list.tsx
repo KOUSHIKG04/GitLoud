@@ -9,9 +9,10 @@ import {
   PaginationPrevious,
 } from "@repo/ui/components/pagination";
 import { getGenerationHistory } from "@/lib/generations-api";
-import { ExternalLink, Paperclip } from "lucide-react";
+import { ExternalLink, Paperclip, Plus } from "lucide-react";
 import Link from "next/link";
 import { DeleteGenerationButton } from "./delete-generation-button";
+import { HistoryDatePicker } from "./history-date-picker";
 
 export async function HistoryList({
   date: legacyDateParam,
@@ -36,15 +37,37 @@ export async function HistoryList({
   });
   const hasNextPage = history.hasNextPage;
   const visibleGenerations = history.generations;
+  const hasActiveDateFilter = Boolean(legacyDateParam || fromParam || toParam);
+  const showHistoryActions =
+    visibleGenerations.length > 0 || hasActiveDateFilter;
 
   return (
     <>
+      {showHistoryActions ? (
+        <div className="flex flex-wrap justify-end gap-2">
+          <HistoryDatePicker />
+          {visibleGenerations.length > 0 ? (
+            <Button asChild>
+              <Link href="/dashboard">
+                <Plus className="size-4" />
+                New Generation
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="flex-1">
         {visibleGenerations.length === 0 ? (
-          <div className="h-screen p-6 text-lg text-muted-foreground bg-card flex items-center justify-around">
-            {page === 1
-              ? "NO GENERATIONS YET."
-              : "NO GENERATIONS YET ON THIS PAGE."}
+          <div className="flex min-h-[calc(100dvh-12rem)] items-center justify-center gap-1 p-6 text-lg text-muted-foreground">
+            <span>
+              {page === 1
+                ? "NO GENERATIONS YET!, Create a"
+                : "NO GENERATIONS YET ON THIS PAGE!."}
+            </span>
+            <Button asChild variant="link" className="px-1 text-lg underline">
+              <Link href="/dashboard">NEW GENERATION!</Link>
+            </Button>
           </div>
         ) : (
           <div className="space-y-3.5">
@@ -78,7 +101,7 @@ export async function HistoryList({
                         - {source.owner}/{source.repo}
                       </p>
 
-                      <h2 className="break-words text-lg font-semibold leading-7">
+                      <h2 className="wrap-break-word text-lg font-semibold leading-7">
                         {title}
                       </h2>
 
@@ -131,14 +154,16 @@ export async function HistoryList({
         )}
       </div>
 
-      <div className="pt-4">
-        <HistoryPagination
-          page={page}
-          hasNextPage={hasNextPage}
-          from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
-          to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
-        />
-      </div>
+      {visibleGenerations.length > 0 ? (
+        <div className="pt-4">
+          <HistoryPagination
+            page={page}
+            hasNextPage={hasNextPage}
+            from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
+            to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
+          />
+        </div>
+      ) : null}
     </>
   );
 }

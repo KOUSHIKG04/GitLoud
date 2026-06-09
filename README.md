@@ -289,18 +289,19 @@ that owns them.
 
 ## Web Routes
 
-| Route                        | Purpose                            |
-| ---------------------------- | ---------------------------------- |
-| `/`                          | Home page and generator entry      |
-| `/examples`                  | Example generated content          |
-| `/dashboard`                 | Authenticated generation dashboard |
-| `/dashboard/history`         | Authenticated generation history   |
-| `/dashboard/generations/:id` | Authenticated generation detail    |
-| `/sign-in`                   | Sign-in page                       |
-| `/sign-up`                   | Sign-up page                       |
-| `/sso-callback`              | Clerk SSO callback                 |
-| `/privacy`                   | Privacy policy                     |
-| `/terms`                     | Terms page                         |
+| Route                        | Purpose                                    |
+| ---------------------------- | ------------------------------------------ |
+| `/`                          | Home page and generator entry              |
+| `/examples`                  | Example generated content                  |
+| `/dashboard`                 | Authenticated generation dashboard         |
+| `/dashboard/history`         | Authenticated generation history           |
+| `/dashboard/billing`         | Plan, payment, and subscription management |
+| `/dashboard/generations/:id` | Authenticated generation detail            |
+| `/sign-in`                   | Sign-in page                               |
+| `/sign-up`                   | Sign-up page                               |
+| `/sso-callback`              | Clerk SSO callback                         |
+| `/privacy`                   | Privacy policy                             |
+| `/terms`                     | Terms page                                 |
 
 Protected dashboard routes are enforced by Clerk middleware in
 `apps/web/proxy.ts`.
@@ -315,23 +316,27 @@ http://localhost:4000
 
 Current active routes:
 
-| Method   | Route                         | Purpose                                                   |
-| -------- | ----------------------------- | --------------------------------------------------------- |
-| `GET`    | `/`                           | API metadata                                              |
-| `GET`    | `/health`                     | Health check                                              |
-| `POST`   | `/profile/sync`               | Sync authenticated Clerk profile                          |
-| `POST`   | `/pr`                         | Generate content from a PR or commit URL                  |
-| `POST`   | `/media`                      | Upload a media attachment                                 |
-| `GET`    | `/generations`                | Read saved generation history                             |
-| `GET`    | `/generations/:id`            | Read one saved generation                                 |
-| `DELETE` | `/generations/:id`            | Delete one saved generation                               |
-| `POST`   | `/generations/:id/regenerate` | Regenerate saved content                                  |
-| `GET`    | `/github/install-url`         | Create a signed GitHub App installation URL               |
-| `GET`    | `/github/callback`            | Complete GitHub App installation                          |
-| `GET`    | `/github/installations`       | List connected GitHub App installations                   |
-| `GET`    | `/github/activity`            | List recent PR or commit metadata for a synced repository |
-| `POST`   | `/github/sync-installation`   | Sync installation repository access                       |
-| `DELETE` | `/github/installations/:id`   | Uninstall a connected GitHub App installation             |
+| Method   | Route                                   | Purpose                                                   |
+| -------- | --------------------------------------- | --------------------------------------------------------- |
+| `GET`    | `/`                                     | API metadata                                              |
+| `GET`    | `/health`                               | Health check                                              |
+| `POST`   | `/profile/sync`                         | Sync authenticated Clerk profile                          |
+| `POST`   | `/pr`                                   | Generate content from a PR or commit URL                  |
+| `POST`   | `/media`                                | Upload a media attachment                                 |
+| `GET`    | `/generations`                          | Read saved generation history                             |
+| `GET`    | `/generations/:id`                      | Read one saved generation                                 |
+| `DELETE` | `/generations/:id`                      | Delete one saved generation                               |
+| `POST`   | `/generations/:id/regenerate`           | Regenerate saved content                                  |
+| `GET`    | `/github/install-url`                   | Create a signed GitHub App installation URL               |
+| `GET`    | `/github/callback`                      | Complete GitHub App installation                          |
+| `GET`    | `/github/installations`                 | List connected GitHub App installations                   |
+| `GET`    | `/github/activity`                      | List recent PR or commit metadata for a synced repository |
+| `POST`   | `/github/sync-installation`             | Sync installation repository access                       |
+| `DELETE` | `/github/installations/:id`             | Uninstall a connected GitHub App installation             |
+| `GET`    | `/billing/details`                      | Read plan, payment, and subscription status               |
+| `POST`   | `/billing/razorpay/subscription`        | Create a Razorpay auto-renewing subscription              |
+| `POST`   | `/billing/razorpay/subscription/verify` | Verify subscription checkout authentication               |
+| `POST`   | `/billing/razorpay/subscription/cancel` | Stop renewal after the current billing period             |
 
 The API expects protected requests to include a Clerk bearer token. CORS is
 controlled by `API_ALLOWED_ORIGINS`. Localhost defaults are allowed only outside
@@ -369,6 +374,14 @@ WEB_APP_URL="http://localhost:3000"
 CLOUDINARY_CLOUD_NAME="..."
 CLOUDINARY_API_KEY="..."
 CLOUDINARY_API_SECRET="..."
+
+RAZORPAY_KEY_ID="..."
+RAZORPAY_KEY_SECRET="..."
+RAZORPAY_WEBHOOK_SECRET="..."
+RAZORPAY_PRO_AMOUNT_MINOR="1400"
+RAZORPAY_CURRENCY="USD"
+RAZORPAY_PRO_PLAN_ID="plan_..."
+RAZORPAY_SUBSCRIPTION_TOTAL_COUNT="120"
 ```
 
 Production example:
@@ -390,6 +403,13 @@ Notes:
   `host.docker.internal` instead of `localhost` in `DATABASE_URL`.
 - Keep secret values in environment variables only. Do not commit `.env.local`,
   `.env`, or `.env.docker`.
+- Create the monthly Pro plan in the Razorpay Dashboard and set its ID as
+  `RAZORPAY_PRO_PLAN_ID`. The plan amount and currency must match the product
+  shown to users.
+- Configure the Razorpay webhook URL as
+  `<API_URL>/billing/razorpay/webhook`. Subscribe to `payment.captured` and the
+  subscription lifecycle events, including authenticated, activated, charged,
+  pending, halted, cancelled, completed, and expired.
 
 ## Local Development
 

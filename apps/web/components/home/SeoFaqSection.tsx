@@ -9,13 +9,13 @@ import { seoFaqItems } from "./seo-faq-items";
 export function SeoFaqSection() {
   return (
     <section className="px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
-      <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <div className="space-y-3">
           <p className="text-sm font-semibold sm:text-base">FAQ</p>
-          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+          <h2 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">
             GitHub PR summary generator for public code changes
           </h2>
-          <p className="max-w-xl text-base leading-7 text-muted-foreground">
+          <p className="max-w-2xl text-base leading-7 text-muted-foreground">
             Short answers for developers comparing GitHub PR summary tools,
             commit summary generators, and developer changelog generators.
           </p>
@@ -25,7 +25,7 @@ export function SeoFaqSection() {
           type="single"
           collapsible
           defaultValue={seoFaqItems[0].question}
-          className="grid gap-3.5"
+          className="grid min-w-0 gap-3.5"
         >
           {seoFaqItems.map((item) => (
             <AccordionItem

@@ -26,6 +26,9 @@ model User {
   billingProvider          BillingProvider?
   razorpayOrderId          String?
   razorpayPaymentId        String?
+  razorpaySubscriptionId   String?          @unique
+  subscriptionStatus       String?
+  subscriptionCancelAtEnd  Boolean          @default(false)
 
   pullRequests        PullRequest[]
   commits             Commit[]
@@ -263,6 +266,20 @@ model RateLimitBucket {
   @@index([resetAt])
 }
 
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  category  String
+  message   String
+  email     String?
+  pagePath  String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([category])
+  @@index([userId])
+}
+
 enum GeneratedSourceType {
   PULL_REQUEST
   COMMIT
@@ -276,7 +293,6 @@ enum XPostLength {
 enum UserPlan {
   FREE
   PRO
-  TEAM
 }
 
 enum AiProvider {
