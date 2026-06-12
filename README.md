@@ -90,8 +90,8 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
   </tr>
   <tr>
     <td width="50%">
-      <h3>Standard and Premium X posts</h3>
-      <p>Choose Standard X or X Premium post length and keep that preference during regeneration.</p>
+      <h3>Standard and long-form X posts</h3>
+      <p>Choose standard or long-form (X Premium format) post length and keep that preference during regeneration.</p>
     </td>
     <td width="50%">
       <h3>Authenticated dashboard</h3>
