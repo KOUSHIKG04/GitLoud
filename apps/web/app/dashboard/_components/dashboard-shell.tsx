@@ -38,7 +38,10 @@ export function DashboardShell({ children }: { children: ReactNode }) {
               </p>
             </div>
           </header>
-          <main className="min-h-[calc(100dvh-3.5rem)] [&_button]:rounded-none [&_input]:rounded-none [&_textarea]:rounded-none">
+          <main
+            data-dashboard-shell
+            className="min-h-[calc(100dvh-3.5rem)] [&[data-dashboard-shell]_button]:rounded-none [&[data-dashboard-shell]_input]:rounded-none [&[data-dashboard-shell]_textarea]:rounded-none"
+          >
             {children}
           </main>
         </SidebarInset>
