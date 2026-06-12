@@ -4,8 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { BackendWakeScreen } from "@/components/BackendWakeScreen";
-
-type Theme = "light" | "dark" | "system";
+import type { ThemeMode as Theme } from "@repo/shared/app-state";
 
 /**
  * Renders third-party provider contexts (QueryClient and Theme) around the application layout.

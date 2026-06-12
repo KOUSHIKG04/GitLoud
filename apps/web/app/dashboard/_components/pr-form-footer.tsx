@@ -128,7 +128,7 @@ function XPostLengthToggle({
       >
         <span
           className={[
-            "block size-3.5 rounded-full shadow-sm transition-transform",
+            "block size-3.5 rounded-none shadow-sm transition-transform",
             isPremiumXPost
               ? "translate-x-4 bg-background"
               : "translate-x-0 bg-foreground/70",

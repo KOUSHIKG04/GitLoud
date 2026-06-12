@@ -17,9 +17,9 @@ export function WhatGitLoudDoesSection() {
 
           <MotionItem>
             <p className="text-sm leading-6 text-muted-foreground sm:text-base">
-              GitLoud reads public GitHub pull requests and commits, summarizes
-              the technical work, and creates platform-ready content for sharing
-              progress.
+              GitLoud reads public GitHub pull requests and commits, plus
+              authorized private repository changes, summarizes the technical
+              work, and creates platform-ready content for sharing progress.
             </p>
           </MotionItem>
         </MotionViewportStagger>
@@ -28,7 +28,7 @@ export function WhatGitLoudDoesSection() {
           <MotionItem>
             <FeatureBlock
               title="Reads GitHub changes"
-              description="Fetches PR or commit metadata, changed files, stats, and text diffs from public repositories."
+              description="Fetches PR or commit metadata, changed files, stats, and text diffs from public or authorized private repositories."
             />
           </MotionItem>
           <MotionItem>

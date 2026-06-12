@@ -113,7 +113,6 @@ function MediaAttachmentItem({ media }: { media: ShareMediaAttachment }) {
                 alt={media.fileName}
                 fill
                 sizes="(min-width: 1024px) 36rem, calc(100vw - 4rem)"
-                unoptimized
                 className="object-contain"
               />
             )}

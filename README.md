@@ -8,9 +8,10 @@
   </p>
 
   <p>
-    GitLoud reads public GitHub work and transforms it into summaries, changelog notes,
-    beginner explanations, portfolio bullets, and share-ready posts for LinkedIn, X,
-    Reddit, and Discord.
+    GitLoud reads public GitHub work and authorized private repository changes,
+    then transforms them into summaries, changelog notes, beginner explanations,
+    portfolio bullets, and share-ready posts for LinkedIn, X, Reddit, and
+    Discord.
   </p>
 
   <p>
@@ -40,9 +41,9 @@
 ## Overview
 
 GitLoud is built for developers who ship useful work but do not want to rewrite
-the same GitHub context for every platform. Submit a public pull request or
-commit URL, and the app produces structured content from real GitHub metadata
-and code changes.
+the same GitHub context for every platform. Submit a pull request or commit URL,
+and the app produces structured content from real GitHub metadata and code
+changes.
 
 The project is a Turborepo workspace with a standalone Hono API, a Next.js web
 app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
@@ -55,17 +56,24 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
 
 ## Contents
 
+- [Overview](#overview)
+- [Demo](#demo)
+- [Contents](#contents)
 - [Features](#features)
 - [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
 - [Repository Structure](#repository-structure)
+- [Web Routes](#web-routes)
 - [API Routes](#api-routes)
 - [Environment Variables](#environment-variables)
 - [Local Development](#local-development)
 - [Docker](#docker)
 - [Database](#database)
-- [Quality Checks](#quality-checks)
+- [Commands](#commands)
 - [Deployment](#deployment)
 - [Security Notes](#security-notes)
+- [Roadmap](#roadmap)
+- [License](#license)
 
 ## Features
 
@@ -73,7 +81,7 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
   <tr>
     <td width="50%">
       <h3>GitHub-aware generation</h3>
-      <p>Submit a public pull request or commit URL and generate content from real repository metadata and code changes.</p>
+      <p>Submit a public or authorized private pull request or commit URL and generate content from real repository metadata and code changes.</p>
     </td>
     <td width="50%">
       <h3>Platform-ready output</h3>
@@ -82,8 +90,8 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
   </tr>
   <tr>
     <td width="50%">
-      <h3>Standard and Premium X posts</h3>
-      <p>Choose Standard X or X Premium post length and keep that preference during regeneration.</p>
+      <h3>Standard and long-form X posts</h3>
+      <p>Choose standard or long-form (X Premium format) post length and keep that preference during regeneration.</p>
     </td>
     <td width="50%">
       <h3>Authenticated dashboard</h3>
@@ -281,18 +289,20 @@ that owns them.
 
 ## Web Routes
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Home page and generator entry |
-| `/examples` | Example generated content |
-| `/dashboard` | Authenticated generation dashboard |
-| `/dashboard/history` | Authenticated generation history |
-| `/dashboard/generations/:id` | Authenticated generation detail |
-| `/sign-in` | Sign-in page |
-| `/sign-up` | Sign-up page |
-| `/sso-callback` | Clerk SSO callback |
-| `/privacy` | Privacy policy |
-| `/terms` | Terms page |
+| Route                        | Purpose                                    |
+| ---------------------------- | ------------------------------------------ |
+| `/`                          | Home page and generator entry              |
+| `/examples`                  | Example generated content                  |
+| `/dashboard`                 | Authenticated generation dashboard         |
+| `/dashboard/history`         | Authenticated generation history           |
+| `/dashboard/generations/:id` | Authenticated generation detail            |
+| `/dashboard/github-activity` | Generate from synced GitHub App activity   |
+| `/dashboard/settings`        | GitHub App and custom AI key settings      |
+| `/sign-in`                   | Sign-in page                               |
+| `/sign-up`                   | Sign-up page                               |
+| `/sso-callback`              | Clerk SSO callback                         |
+| `/privacy`                   | Privacy policy                             |
+| `/terms`                     | Terms page                                 |
 
 Protected dashboard routes are enforced by Clerk middleware in
 `apps/web/proxy.ts`.
@@ -307,17 +317,27 @@ http://localhost:4000
 
 Current active routes:
 
-| Method | Route | Purpose |
-| --- | --- | --- |
-| `GET` | `/` | API metadata |
-| `GET` | `/health` | Health check |
-| `POST` | `/profile/sync` | Sync authenticated Clerk profile |
-| `POST` | `/pr` | Generate content from a PR or commit URL |
-| `POST` | `/media` | Upload a media attachment |
-| `GET` | `/generations` | Read saved generation history |
-| `GET` | `/generations/:id` | Read one saved generation |
-| `DELETE` | `/generations/:id` | Delete one saved generation |
-| `POST` | `/generations/:id/regenerate` | Regenerate saved content |
+| Method   | Route                                   | Purpose                                                   |
+| -------- | --------------------------------------- | --------------------------------------------------------- |
+| `GET`    | `/`                                     | API metadata                                              |
+| `GET`    | `/health`                               | Health check                                              |
+| `POST`   | `/profile/sync`                         | Sync authenticated Clerk profile                          |
+| `POST`   | `/pr`                                   | Generate content from a PR or commit URL                  |
+| `POST`   | `/media`                                | Upload a media attachment                                 |
+| `GET`    | `/generations`                          | Read saved generation history                             |
+| `GET`    | `/generations/:id`                      | Read one saved generation                                 |
+| `DELETE` | `/generations/:id`                      | Delete one saved generation                               |
+| `POST`   | `/generations/:id/regenerate`           | Regenerate saved content                                  |
+| `GET`    | `/github/install-url`                   | Create a signed GitHub App installation URL               |
+| `GET`    | `/github/callback`                      | Complete GitHub App installation                          |
+| `GET`    | `/github/installations`                 | List connected GitHub App installations                   |
+| `GET`    | `/github/activity`                      | List recent PR or commit metadata for a synced repository |
+| `POST`   | `/github/sync-installation`             | Sync installation repository access                       |
+| `DELETE` | `/github/installations/:id`             | Uninstall a connected GitHub App installation             |
+| `GET`    | `/ai-credentials`                       | List supported AI providers and saved key previews        |
+| `POST`   | `/ai-credentials`                       | Save a custom AI provider key                             |
+| `DELETE` | `/ai-credentials/:provider`             | Delete a saved custom AI provider key                     |
+| `POST`   | `/feedback`                             | Submit product feedback                                   |
 
 The API expects protected requests to include a Clerk bearer token. CORS is
 controlled by `API_ALLOWED_ORIGINS`. Localhost defaults are allowed only outside
@@ -343,7 +363,14 @@ CLERK_SECRET_KEY="..."
 GEMINI_API_KEY="..."
 GEMINI_MODEL="gemini-2.5-flash"
 
-GITHUB_TOKEN="..."
+GITHUB_PUBLIC_TOKEN="..."
+GITHUB_APP_NAME="..."
+GITHUB_APP_ID="..."
+GITHUB_APP_PRIVATE_KEY="..."
+GITHUB_APP_CLIENT_ID="..."
+GITHUB_APP_CLIENT_SECRET="..."
+GITHUB_APP_STATE_SECRET="at-least-32-random-characters"
+WEB_APP_URL="http://localhost:3000"
 
 CLOUDINARY_CLOUD_NAME="..."
 CLOUDINARY_API_KEY="..."
@@ -355,7 +382,9 @@ Production example:
 ```bash
 NEXT_PUBLIC_SITE_URL="https://gitloud-web.vercel.app"
 NEXT_PUBLIC_API_URL="https://gitloud.onrender.com"
+WEB_APP_URL="https://gitloud-web.vercel.app"
 API_ALLOWED_ORIGINS="https://gitloud-web.vercel.app"
+GITHUB_APP_STATE_SECRET="at-least-32-random-characters"
 NODE_ENV="production"
 ```
 
@@ -455,37 +484,21 @@ requests.
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Run all dev servers through Turbo |
-| `npm run web` | Run only the web app |
-| `npm run api` | Run only the standalone API |
-| `npm run desktop` | Run the Electron app |
-| `npm run desktop:build` | Build the Electron app |
-| `npm run mobile` | Run the mobile workspace |
-| `npm run lint` | Lint all workspaces |
-| `npm run check-types` | Type-check all workspaces |
-| `npm run build` | Build all workspaces |
-| `npm --workspace web run build` | Build only the web app |
-| `npm --workspace web run doctor` | Run React Doctor for the web app |
-| `npm --workspace api run build` | Build only the API |
-| `npm run format` | Format source files |
-
-## Quality Checks
-
-Run these before opening a PR or deploying:
-
-```bash
-npm run lint
-npm run check-types
-npm run build
-npm --workspace web run doctor
-```
-
-`apps/web/doctor.config.json` disables React Doctor dead-code analysis because
-the current Next.js route and alias graph causes false positives for files that
-are actually used. It also ignores the Fast Refresh component-export warning for
-Next metadata image routes, where Next requires named metadata exports.
+| Command                          | Description                       |
+| -------------------------------- | --------------------------------- |
+| `npm run dev`                    | Run all dev servers through Turbo |
+| `npm run web`                    | Run only the web app              |
+| `npm run api`                    | Run only the standalone API       |
+| `npm run desktop`                | Run the Electron app              |
+| `npm run desktop:build`          | Build the Electron app            |
+| `npm run mobile`                 | Run the mobile workspace          |
+| `npm run lint`                   | Lint all workspaces               |
+| `npm run check-types`            | Type-check all workspaces         |
+| `npm run build`                  | Build all workspaces              |
+| `npm --workspace web run build`  | Build only the web app            |
+| `npm --workspace web run doctor` | Run React Doctor for the web app  |
+| `npm --workspace api run build`  | Build only the API                |
+| `npm run format`                 | Format source files               |
 
 ## Deployment
 
@@ -497,8 +510,9 @@ GitLoud deploys as two services:
 Recommended setup:
 
 1. Deploy the API first.
-2. Set API secrets: `DATABASE_URL`, `CLERK_SECRET_KEY`, `GITHUB_TOKEN`,
-   `GEMINI_API_KEY`, and Cloudinary credentials.
+2. Set API secrets: `DATABASE_URL`, `CLERK_SECRET_KEY`, `GEMINI_API_KEY`,
+   GitHub App credentials, `GITHUB_APP_STATE_SECRET`, and Cloudinary
+   credentials.
 3. Set `NODE_ENV=production` on the API.
 4. Set `API_ALLOWED_ORIGINS` on the API to the deployed web origin.
 5. Deploy the web app to Vercel.
@@ -526,20 +540,18 @@ users get feedback when an API request takes longer than expected.
 - Clerk protects dashboard pages and API requests.
 - API CORS uses exact normalized origins in production.
 - Users can access only their own saved generations.
-- GitHub input is limited to supported public PR and commit URLs.
+- GitHub input is limited to supported PR and commit URLs. Private repository
+  access is granted through a GitHub App installation on selected repositories.
+- GitHub App installation state is HMAC signed and short-lived.
+- GitHub App installation tokens are generated server-side, short-lived, scoped
+  to one repository when generating content, and restricted to read permissions.
+- `GITHUB_PUBLIC_TOKEN` is optional and must not grant private repository access.
+- GitLoud does not currently claim SOC 2 or ISO/IEC 27001 certification.
 - AI output is parsed and validated with shared Zod schemas.
 - Media uploads are handled separately and stored as attachment metadata.
 
-## Current Scope
-
-GitLoud currently focuses on manual generation from public GitHub PRs and commits.
-The standalone API is in place for web and Electron reuse. Private repository
-support, GitHub App installation, webhook ingestion, background queues, and
-advanced editing are future expansion areas.
-
 ## Roadmap
 
-- Private repository support through a GitHub App
 - Editable saved generations
 - Draft/version history
 - Repository-level filters

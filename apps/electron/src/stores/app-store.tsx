@@ -1,10 +1,10 @@
+import type { AppTab, ResolvedTheme, ThemeMode } from "@repo/shared/app-state";
+import type { XPostLength } from "@repo/shared/generations";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type XContentMode = "standard" | "premium";
-export type ThemeMode = "system" | "light" | "dark";
-export type ResolvedTheme = "light" | "dark";
-export type Tab = "home" | "generate" | "history" | "settings";
+export type XContentMode = XPostLength;
+export type Tab = AppTab;
 
 type AppStore = {
   tab: Tab;

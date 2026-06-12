@@ -14,8 +14,8 @@ export async function serverApiFetch(path: string, options: RequestInit = {}) {
   }
 
   return fetch(getApiUrl(path), {
-    ...options,
     cache: "no-store",
+    ...options,
     headers,
   });
 }

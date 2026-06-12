@@ -20,13 +20,19 @@ model User {
   image         String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  plan          UserPlan @default(FREE)
+  planExpiresAt DateTime?
 
-  pullRequests     PullRequest[]
-  commits          Commit[]
-  generatedContent GeneratedContent[]
-  mediaAttachments MediaAttachment[]
-  sessions         Session[]
-  accounts         Account[]
+  pullRequests        PullRequest[]
+  commits             Commit[]
+  generatedContent    GeneratedContent[]
+  mediaAttachments    MediaAttachment[]
+  sessions            Session[]
+  accounts            Account[]
+  githubInstallations GitHubInstallation[]
+  aiCredentials       UserAiCredential[]
+  feedback            Feedback[]
+
 }
 
 model Session {
@@ -198,6 +204,53 @@ model MediaAttachment {
   @@index([generatedContentId, generatedContentUserId])
 }
 
+model GitHubInstallation {
+  id                  String   @id @default(cuid())
+  installationId      BigInt   @unique
+  accountLogin        String
+  accountType         String
+  repositorySelection String
+  userId              String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  repositories GitHubInstallationRepository[]
+
+  @@index([userId])
+  @@index([accountLogin])
+}
+
+model GitHubInstallationRepository {
+  id             String @id @default(cuid())
+  installationId BigInt
+  owner          String
+  repo           String
+  repoId         BigInt?
+
+  installation GitHubInstallation @relation(fields: [installationId], references: [installationId], onDelete: Cascade)
+
+  @@unique([installationId, owner, repo])
+  @@index([owner, repo])
+}
+
+model UserAiCredential {
+  id        String   @id @default(cuid())
+  userId    String
+  provider  AiProvider
+  apiKeyEnc String
+  apiKeyIv  String
+  apiKeyTag String
+  model     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
 model RateLimitBucket {
   key      String   @id
   count    Int
@@ -205,6 +258,22 @@ model RateLimitBucket {
   updatedAt DateTime @updatedAt
 
   @@index([resetAt])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  category  String
+  message   String
+  email     String?
+  pagePath  String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([category])
+  @@index([userId])
 }
 
 enum GeneratedSourceType {
@@ -215,4 +284,16 @@ enum GeneratedSourceType {
 enum XPostLength {
   STANDARD
   PREMIUM
+}
+
+enum UserPlan {
+  FREE
+  PRO
+}
+
+enum AiProvider {
+  GEMINI
+  OPENAI
+  ANTHROPIC
+  OPENROUTER
 }

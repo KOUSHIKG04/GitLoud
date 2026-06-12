@@ -3,7 +3,10 @@ import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { getAllowedOrigins, isAllowedOrigin, normalizeOrigin } from "@/env";
 import { scheduleLazyCleanup } from "@/lib/lazy-cleanup";
+import { aiCredentialRoutes } from "@/routes/ai-credentials";
+import { feedbackRoutes } from "@/routes/feedback";
 import { generationRoutes } from "@/routes/generations";
+import { githubRoutes } from "@/routes/github";
 import { healthRoutes } from "@/routes/health";
 import { mediaRoutes } from "@/routes/media";
 import { prRoutes } from "@/routes/pr";
@@ -46,9 +49,12 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
 
   app.route("/health", healthRoutes);
   app.route("/profile", profileRoutes);
-  app.route("/pr", prRoutes);
   app.route("/media", mediaRoutes);
   app.route("/generations", generationRoutes);
+  app.route("/pr", prRoutes);
+  app.route("/github", githubRoutes);
+  app.route("/ai-credentials", aiCredentialRoutes);
+  app.route("/feedback", feedbackRoutes);
 
   app.notFound((context) => {
     return context.json({ error: "Not found" }, 404);

@@ -1,7 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Providers } from "@/components/Providers";
+import type { ThemeMode as Theme } from "@repo/shared/app-state";
 import { Toaster } from "@repo/ui/components/sonner";
+import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { cookies } from "next/headers";
@@ -88,7 +90,6 @@ export const metadata: Metadata = {
   },
 };
 
-type Theme = "light" | "dark" | "system";
 
 export default async function RootLayout({
   children,
@@ -113,13 +114,32 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className={`${geistMono.variable} relative isolate min-h-dvh bg-background pt-18`}
+        className={`${geistMono.variable} relative isolate h-dvh overflow-hidden bg-background`}
         suppressHydrationWarning
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const themeCookie = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
+                const theme = themeCookie || 'system';
+                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.style.colorScheme = 'dark';
+                } else {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.style.colorScheme = 'light';
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         <LiquidEther className="fixed inset-0 z-0 opacity-70" />
         <ClerkProvider>
           <Providers initialTheme={initialTheme}>
-            <div className="relative z-10">{children}</div>
+            <ScrollArea id="app-scroll-area" className="relative z-10 h-dvh">
+              {children}
+            </ScrollArea>
             <Toaster />
           </Providers>
         </ClerkProvider>

@@ -4,12 +4,15 @@ import { Header } from "@/components/Header";
 import { LazyMotionCursor } from "@/components/LazyMotionCursor";
 import { AuthToast } from "@/components/auth/AuthToast";
 import { GeneratorSection } from "@/components/home/GeneratorSection";
+import { FeedbackSection } from "@/components/home/FeedbackSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
-import { PhaseTwoUpdatesSection } from "@/components/home/PhaseTwoUpdatesSection";
 import { SeoFaqSection } from "@/components/home/SeoFaqSection";
 import { getSeoFaqItems } from "@/components/home/seo-faq-items";
 import { ProfileSync } from "@/components/auth/ProfileSync";
+import { Button } from "@repo/ui/components/button";
+import { Check } from "lucide-react";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "GitHub PR Summary and Social Post Generator",
@@ -51,11 +54,14 @@ const structuredData = {
   url: siteUrl,
   description:
     "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts for developers.",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  offers: [
+    {
+      "@type": "Offer",
+      name: "Free",
+      price: "0",
+      priceCurrency: "USD",
+    },
+  ],
 };
 const faqStructuredData = {
   "@context": "https://schema.org",
@@ -95,9 +101,106 @@ export default function Home() {
       <HeroSection />
       <GeneratorSection />
       <HowItWorksSection />
-      <PhaseTwoUpdatesSection />
+      <PricingSection />
       <SeoFaqSection />
+      <FeedbackSection />
       <Footer />
     </main>
+  );
+}
+
+function PricingSection() {
+  return (
+    <section
+      id="pricing"
+      className="px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-34"
+    >
+      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <div className="space-y-4">
+          <p className="text-sm font-semibold">FREE ACCESS</p>
+          <h2 className="max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">
+            Private repos and custom AI keys are available for free.
+          </h2>
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+            Connect the GitHub App, generate from selected private repository
+            activity, and use your own supported AI provider key without a paid
+            upgrade.
+          </p>
+        </div>
+
+        <div className="grid gap-4">
+          <PricingPlan
+            name="Free"
+            price="$0"
+            description="For public and private GitHub work, saved history, and bring-your-own AI generation."
+            cta="OPEN DASHBOARD"
+            href="/dashboard"
+            features={[
+              "Public PR and commit generation",
+              "Private repository access through the GitHub App",
+              "Generate from synced commits and pull requests",
+              "Custom Gemini, OpenAI, Anthropic, or OpenRouter key",
+              "Technical summaries and changelog entries",
+              "Portfolio bullets and social posts",
+              "Saved generation history",
+            ]}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PricingPlan({
+  name,
+  price,
+  badge,
+  description,
+  features,
+  cta,
+  href,
+}: {
+  name: string;
+  price: string;
+  badge?: string;
+  description: string;
+  features: string[];
+  cta: string;
+  href?: string;
+}) {
+  return (
+    <article className="relative flex min-h-[420px] flex-col border border-border bg-background p-6 shadow-sm">
+      {badge ? (
+        <div className="absolute right-4 top-4 border border-chart-3 bg-chart-3/10 px-2 py-1 text-xs font-medium text-chart-3">
+          {badge}
+        </div>
+      ) : null}
+
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-xl font-semibold">{name}</h3>
+          <div className="mt-3 flex items-end gap-1">
+            <span className="text-4xl font-semibold tracking-tight">
+              {price}
+            </span>
+            <span className="pb-1 text-sm text-muted-foreground">forever</span>
+          </div>
+        </div>
+        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
+      </div>
+
+      <ul className="mt-6 flex-1 space-y-3 text-sm">
+        {features.map((feature) => (
+          <li key={feature} className="flex gap-2">
+            <Check className="mt-0.5 size-4 shrink-0 text-chart-3" />
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+
+      <Button asChild className="mt-6 w-full" variant="outline">
+        <Link href={href ?? "/dashboard"}>{cta}</Link>
+      </Button>
+    </article>
   );
 }

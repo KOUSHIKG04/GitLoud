@@ -1,7 +1,4 @@
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { PrForm } from "./_components/pr-form";
-import { syncProfile } from "@/lib/generations-api";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -12,34 +9,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function DashboardPage() {
-  await syncProfile();
-
+export default function DashboardPage() {
   return (
-    <main className="relative isolate min-h-screen flex flex-col">
-      <Header />
-
-      <div className="flex flex-1 items-center justify-center px-4 pt-6 pb-6 sm:px-8">
-        <section className="w-full max-w-2xl space-y-8">
-          <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl mt-2">
-              GENERATE CONTENT THROUGH{" "}
-              <span className="text-chart-3 m-0 p-0">PR</span> BELOW
+    <main className="relative isolate flex min-h-[calc(100dvh-3.5rem)] flex-col">
+      <div className="flex flex-1 justify-center px-4 pb-6 pt-0 sm:px-8">
+        <section className="w-full max-w-5xl space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              DASHBOARD
             </h1>
+            <p className="text-sm text-muted-foreground">
+              Paste a GitHub pull request or commit link to start generating
+              summaries and share-ready posts for free.
+            </p>
           </div>
 
-          <div>
+          <div className="mx-auto max-w-3xl">
             <PrForm />
           </div>
-
-          <p className="text-sm text-muted-foreground text-center">
-            Paste a public GitHub pull request link to start generating
-            summaries and share-ready posts.
-          </p>
         </section>
       </div>
-
-      <Footer />
     </main>
   );
 }

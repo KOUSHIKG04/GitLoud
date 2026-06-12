@@ -12,7 +12,12 @@ export const seoFaqItems = [
   {
     question: "Does GitLoud support private repositories?",
     answer:
-      "Phase 1 supports public repositories. Private repository support is planned first in Phase 2 through explicit GitHub App permissions.",
+      "Yes. Signed-in users can connect selected private repositories through the GitLoud GitHub App. GitLoud uses read-only permissions and short-lived, server-side installation tokens for private PR and commit generation.",
+  },
+  {
+    question: "How does GitLoud handle private repository access?",
+    answer:
+      "GitLoud uses a read-only GitHub App with selected repository access and short-lived server-side installation tokens. GitLoud is not currently SOC 2 or ISO/IEC 27001 certified, so teams with formal compliance requirements should review their policy before connecting private repositories.",
   },
   {
     question: "What content formats does GitLoud create?",

@@ -2,24 +2,25 @@ import { MotionItem, MotionViewportStagger } from "@/components/LandingMotion";
 
 export function HowItWorksSection() {
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-20 lg:py-24 items-center">
+    <section className="px-4 py-16 sm:px-6 lg:px-20 lg:py-24 ">
       <div className="mx-auto w-full max-w-6xl space-y-7">
-        <MotionViewportStagger className="mx-auto max-w-3xl space-y-3 text-center">
+        <MotionViewportStagger className="mx-auto  space-y-3 ">
           <MotionItem>
-            <p className="text-sm font-semibold text-center">HOW IT WORKS</p>
+            <p className="text-sm font-semibold ">HOW IT WORKS</p>
           </MotionItem>
 
           <MotionItem>
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl text-center">
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl ">
               Turns code changes into clear updates
             </h2>
           </MotionItem>
 
           <MotionItem>
-            <p className="mx-auto max-w-3xl text-sm leading-6 text-muted-foreground sm:text-sm">
-              GitLoud reads public GitHub pull requests and commits, summarizes
-              the technical work, and creates platform-ready content for sharing
-              your progress.
+            <p className="mx-auto  text-sm leading-6 text-muted-foreground sm:text-sm">
+              GitLoud reads public GitHub pull requests and commits, plus
+              authorized private repository changes, summarizes the technical
+              work, and creates platform-ready content for sharing your
+              progress.
             </p>
           </MotionItem>
         </MotionViewportStagger>
@@ -28,7 +29,7 @@ export function HowItWorksSection() {
           <MotionItem>
             <HowItWorksStep
               title="Paste a PR or commit link"
-              description="Use any public GitHub pull request or commit URL. No GitHub connection is required."
+              description="Use public GitHub links without setup, or connect the GitHub App for selected private repositories."
             />
           </MotionItem>
 

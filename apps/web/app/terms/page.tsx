@@ -19,7 +19,7 @@ export default function TermsPage() {
   return (
     <main className="min-h-dvh text-foreground">
       <Header />
-      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="space-y-8">
           <div className="space-y-3">
             <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
@@ -28,15 +28,15 @@ export default function TermsPage() {
             <h1 className="text-3xl font-semibold tracking-tight">
               Terms of Service
             </h1>
-            <p className="text-sm leading-6 text-muted-foreground">
+            <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
               By creating an account or using GitLoud, you agree to use the
               service responsibly and only with repositories and content you are
               authorized to access.
             </p>
           </div>
 
-          <div className="space-y-6 text-sm leading-7 text-muted-foreground">
-            <section className="space-y-2">
+          <div className="grid gap-4 text-sm leading-7 text-muted-foreground md:grid-cols-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs">
               <h2 className="text-base font-semibold text-foreground">
                 Account Use
               </h2>
@@ -44,28 +44,34 @@ export default function TermsPage() {
                 You are responsible for activity under your account and for
                 keeping your authentication provider secure. Do not use GitLoud
                 to process content you do not have permission to use.
+                Organization owners should ensure they are allowed to connect a
+                GitHub App to selected private repositories before enabling
+                private repository generation.
               </p>
             </section>
 
-            <section className="space-y-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs">
               <h2 className="text-base font-semibold text-foreground">
                 Generated Content
               </h2>
               <p>
                 GitLoud helps generate summaries, posts, and related developer
                 content. You are responsible for reviewing generated output
-                before publishing or relying on it.
+                before publishing or relying on it. Private repository
+                generation may process PR or commit metadata and code diff
+                context through GitLoud&apos;s backend and the configured AI
+                provider.
               </p>
             </section>
 
-            <section className="space-y-2">
+            <section className="space-y-2 border border-border bg-background p-5 shadow-xs md:col-span-2">
               <h2 className="text-base font-semibold text-foreground">
                 Service Changes
               </h2>
               <p>
                 GitLoud may change, pause, or discontinue features as the
-                product evolves. Continued use after changes means you accept the
-                updated terms.
+                product evolves. Continued use after changes means you accept
+                the updated terms.
               </p>
             </section>
           </div>

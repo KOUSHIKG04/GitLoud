@@ -9,6 +9,10 @@ import {
   fetchPullRequestMetadata,
 } from "@repo/github/fetch-pr";
 import type { CommitResult } from "@repo/shared/commit";
+import type {
+  GenerationProgressEvent,
+  StoredXPostLength,
+} from "@repo/shared/generations";
 import {
   getGithubUrlType,
   githubPrOrCommitUrlSchema,
@@ -23,6 +27,9 @@ import { getCurrentUserId } from "@/lib/auth";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { persistentRateLimit } from "@/lib/rate-limit";
+import { getGitHubTokenForRepo, getPublicGitHubToken } from "@/lib/github-app";
+import { getUserFeatures } from "@/lib/features";
+import { getAiGenerationOptionsForUser } from "@/lib/ai-credentials";
 
 const requestBodySchema = z.object({
   url: githubPrOrCommitUrlSchema,
@@ -31,13 +38,7 @@ const requestBodySchema = z.object({
   xPostLength: z.enum(["standard", "premium"]).default("standard"),
 });
 
-type ProgressEvent =
-  | { type: "progress"; message: string }
-  | { type: "done"; data: unknown }
-  | { type: "error"; message: string };
-
-type SendProgress = (event: ProgressEvent) => void;
-type StoredXPostLength = "STANDARD" | "PREMIUM";
+type SendProgress = (event: GenerationProgressEvent) => void;
 
 export const prRoutes = new Hono().post("/", async (context) => {
   const appUserId = await getCurrentUserId(context.req.raw);
@@ -103,6 +104,13 @@ export const prRoutes = new Hono().post("/", async (context) => {
     if (urlType === "pull-request") {
       const { owner, repo, number } = parseGithubPullRequestUrl(url);
 
+      const features = await getUserFeatures(appUserId);
+
+      const githubToken = features.canUsePrivateRepos
+        ? ((await getGitHubTokenForRepo({ userId: appUserId, owner, repo })) ??
+          getPublicGitHubToken())
+        : getPublicGitHubToken();
+
       if (!Number.isInteger(number) || number <= 0) {
         send({ type: "error", message: "Enter a valid GitHub PR URL" });
         return;
@@ -117,7 +125,7 @@ export const prRoutes = new Hono().post("/", async (context) => {
         owner,
         repo,
         number,
-        githubToken: process.env.GITHUB_TOKEN,
+        githubToken,
       });
 
       const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
@@ -172,7 +180,7 @@ export const prRoutes = new Hono().post("/", async (context) => {
         owner,
         repo,
         number,
-        githubToken: process.env.GITHUB_TOKEN,
+        githubToken,
       });
 
       send({
@@ -180,11 +188,17 @@ export const prRoutes = new Hono().post("/", async (context) => {
         message: "Generating summaries and share-ready content with AI...",
       });
 
+      const aiGenerationOptions = await getAiGenerationOptionsForUser(
+        appUserId,
+        features,
+      );
+
       const generatedContent = await generateContentFromPullRequest(
         pullRequest,
         userContext,
         {
           xPostLength,
+          ...aiGenerationOptions,
           onProgress: (message) => send({ type: "progress", message }),
         },
       );
@@ -285,6 +299,12 @@ export const prRoutes = new Hono().post("/", async (context) => {
 
     if (urlType === "commit") {
       const { owner, repo, sha } = parseGithubCommitUrl(url);
+      const features = await getUserFeatures(appUserId);
+
+      const githubToken = features.canUsePrivateRepos
+        ? ((await getGitHubTokenForRepo({ userId: appUserId, owner, repo })) ??
+          getPublicGitHubToken())
+        : getPublicGitHubToken();
 
       send({
         type: "progress",
@@ -295,7 +315,7 @@ export const prRoutes = new Hono().post("/", async (context) => {
         owner,
         repo,
         sha,
-        githubToken: process.env.GITHUB_TOKEN,
+        githubToken,
       });
 
       const existingGenerations = await db.$queryRaw<Array<{ id: string }>>`
@@ -345,11 +365,17 @@ export const prRoutes = new Hono().post("/", async (context) => {
         message: "Generating summaries and share-ready content with AI...",
       });
 
+      const aiGenerationOptions = await getAiGenerationOptionsForUser(
+        appUserId,
+        features,
+      );
+
       const generatedContent = await generateContentFromCommit(
         commit,
         userContext,
         {
           xPostLength,
+          ...aiGenerationOptions,
           onProgress: (message) => send({ type: "progress", message }),
         },
       );
@@ -500,7 +526,11 @@ function createProgressStream(run: (send: SendProgress) => Promise<void>) {
 function getErrorMessage(error: unknown) {
   if (isGithubRequestError(error)) {
     if (error.status === 404) {
-      return "GitHub could not find that public PR or commit. Check the URL, or use a public repository.";
+      return "GitHub could not access that PR or commit. If it is private, install or sync the GitLoud GitHub App for that repository.";
+    }
+
+    if (error.status === 403) {
+      return "GitHub access was denied. Check that the GitLoud GitHub App is installed with read access for that repository.";
     }
 
     return `GitHub API error: ${error.message}`;
