@@ -1,6 +1,7 @@
 "use client";
 
 import type { GeneratedContent } from "@repo/shared/generated-content";
+import type { GenerationMediaAttachment } from "@repo/shared/generations";
 import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
 import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
@@ -9,17 +10,7 @@ import { RegenerateButton } from "./regenerate-button";
 import { FileDiff, History } from "lucide-react";
 import Link from "next/link";
 
-type MediaAttachment = {
-  id: string;
-  secureUrl: string;
-  resourceType: string;
-  fileName: string;
-  mimeType: string;
-  bytes: number;
-  width: number | null;
-  height: number | null;
-  duration: number | null;
-};
+type MediaAttachment = GenerationMediaAttachment;
 
 export function GenerationDetailClient({
   generationId,

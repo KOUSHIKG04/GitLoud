@@ -18,9 +18,8 @@ export function WhatGitLoudDoesSection() {
           <MotionItem>
             <p className="text-sm leading-6 text-muted-foreground sm:text-base">
               GitLoud reads public GitHub pull requests and commits, plus
-              authorized private repository changes for Pro users, summarizes
-              the technical work, and creates platform-ready content for sharing
-              progress.
+              authorized private repository changes, summarizes the technical
+              work, and creates platform-ready content for sharing progress.
             </p>
           </MotionItem>
         </MotionViewportStagger>

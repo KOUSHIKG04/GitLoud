@@ -23,13 +23,6 @@ model User {
   plan          UserPlan @default(FREE)
   planExpiresAt DateTime?
 
-  billingProvider          BillingProvider?
-  razorpayOrderId          String?
-  razorpayPaymentId        String?
-  razorpaySubscriptionId   String?          @unique
-  subscriptionStatus       String?
-  subscriptionCancelAtEnd  Boolean          @default(false)
-
   pullRequests        PullRequest[]
   commits             Commit[]
   generatedContent    GeneratedContent[]
@@ -303,9 +296,4 @@ enum AiProvider {
   OPENAI
   ANTHROPIC
   OPENROUTER
-}
-
-enum BillingProvider {
-  RAZORPAY
-  MANUAL
 }

@@ -8,17 +8,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
-import { useAuth, useClerk, useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { getUserDisplayName } from "@/lib/userDisplayName";
-import { apiFetch } from "@/lib/api-client";
-import { BadgeCheck, Bell, CreditCard, LogOut, Sparkles } from "lucide-react";
+import { BadgeCheck, Bell, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
-import { useEffect, useState } from "react";
-import { PaymentsComingSoon } from "@/components/PaymentsComingSoon";
-import type { BillingStatusResponse } from "@repo/shared/billing";
 
 export function UserProfileMenu({
   className,
@@ -30,10 +26,8 @@ export function UserProfileMenu({
   accountMenu?: boolean;
 }) {
   const { push, refresh } = useRouter();
-  const { getToken } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
-  const [plan, setPlan] = useState<string | null>(null);
 
   const email = user?.primaryEmailAddress?.emailAddress;
   const displayName = getUserDisplayName({
@@ -43,39 +37,6 @@ export function UserProfileMenu({
     email,
   });
   const initials = getInitials(displayName);
-  const isPro = plan === "PRO";
-
-  useEffect(() => {
-    if (!accountMenu) {
-      return;
-    }
-
-    let active = true;
-
-    async function loadBillingStatus() {
-      try {
-        const response = await apiFetch("/billing/status", {}, getToken);
-
-        if (!response.ok) {
-          return;
-        }
-
-        const data = (await response.json()) as BillingStatusResponse;
-
-        if (active) {
-          setPlan(data.plan);
-        }
-      } catch {
-        // Keep the account menu available when billing status cannot load.
-      }
-    }
-
-    void loadBillingStatus();
-
-    return () => {
-      active = false;
-    };
-  }, [accountMenu, getToken]);
 
   async function handleLogout() {
     const toastId = toast.loading("Logging out...");
@@ -148,22 +109,6 @@ export function UserProfileMenu({
         <DropdownMenuSeparator className={cn(accountMenu && "my-0")} />
         {accountMenu ? (
           <>
-            {plan !== null && !isPro ? (
-              <>
-                <div className="p-1">
-                  <PaymentsComingSoon>
-                    <DropdownMenuItem
-                      className="h-9 rounded-none text-sm font-medium"
-                      disabled
-                    >
-                      <Sparkles />
-                      Upgrade to Pro
-                    </DropdownMenuItem>
-                  </PaymentsComingSoon>
-                </div>
-                <DropdownMenuSeparator className="my-0" />
-              </>
-            ) : null}
             <div className="p-1">
               <DropdownMenuItem className="h-8 rounded-none" disabled>
                 <BadgeCheck />
@@ -172,15 +117,6 @@ export function UserProfileMenu({
                   Soon
                 </span>
               </DropdownMenuItem>
-              {isPro ? (
-                <DropdownMenuItem
-                  className="h-8 cursor-pointer rounded-none"
-                  onSelect={() => push("/dashboard/billing")}
-                >
-                  <CreditCard />
-                  Billing
-                </DropdownMenuItem>
-              ) : null}
               <DropdownMenuItem className="h-8 rounded-none" disabled>
                 <Bell />
                 Notifications

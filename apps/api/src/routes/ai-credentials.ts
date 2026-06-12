@@ -47,7 +47,7 @@ aiCredentialRoutes.post("/", async (context) => {
 
   if (!features.canUseOwnAiKey) {
     return context.json(
-      { error: "Custom AI keys are available on the Pro plan." },
+      { error: "Custom AI keys are unavailable for this account." },
       402,
     );
   }
@@ -85,7 +85,7 @@ aiCredentialRoutes.delete("/:provider", async (context) => {
 
   if (!features.canUseOwnAiKey) {
     return context.json(
-      { error: "Custom AI keys are available on the Pro plan." },
+      { error: "Custom AI keys are unavailable for this account." },
       402,
     );
   }

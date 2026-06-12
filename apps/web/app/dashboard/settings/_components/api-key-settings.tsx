@@ -20,7 +20,6 @@ import {
   providerLabels,
   useApiKeySettings,
 } from "../_hooks/use-api-key-settings";
-import { ProAccessLock } from "../../_components/pro-access-lock";
 import { SettingsLoading } from "./settings-loading";
 
 const dropdownContentClass =
@@ -46,8 +45,12 @@ export function ApiKeySettings() {
     return <SettingsLoading />;
   }
 
-  if (!data?.canUseOwnAiKey) {
-    return <ProAccessLock />;
+  if (!data) {
+    return (
+      <section className="border border-border bg-background p-4 text-sm text-muted-foreground shadow-xs sm:p-5">
+        AI key settings are unavailable right now.
+      </section>
+    );
   }
 
   return (
@@ -58,7 +61,7 @@ export function ApiKeySettings() {
           Custom AI Key
         </h2>
         <p className="text-sm text-muted-foreground">
-          Pro users can run generation with their own provider key.
+          Run generation with your own supported provider key.
         </p>
       </div>
 

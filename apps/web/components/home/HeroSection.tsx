@@ -25,8 +25,8 @@ export function HeroSection() {
           <MotionItem>
             <p className="mt-4 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md">
               Drop a GitHub PR or commit link. Public repos work instantly, and
-              Pro users can connect selected private repos through the GitHub
-              App.
+              signed-in users can connect selected private repos through the
+              GitHub App.
             </p>
           </MotionItem>
 

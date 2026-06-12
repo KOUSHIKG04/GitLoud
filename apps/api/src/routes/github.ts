@@ -32,7 +32,7 @@ githubRoutes.get("/install-url", async (context) => {
 
   if (!features.canUsePrivateRepos) {
     return context.json(
-      { error: "Private repositories are available on the Pro plan." },
+      { error: "Private repositories are unavailable for this account." },
       402,
     );
   }
@@ -235,7 +235,7 @@ githubRoutes.get("/activity", async (context) => {
 
   if (!features.canUsePrivateRepos) {
     return context.json(
-      { error: "GitHub activity browser is available on the Pro plan." },
+      { error: "GitHub activity browser is unavailable for this account." },
       402,
     );
   }
@@ -351,7 +351,7 @@ githubRoutes.post("/sync-installation", async (context) => {
 
   if (!features.canUsePrivateRepos) {
     return context.json(
-      { error: "Private repositories are available on the Pro plan." },
+      { error: "Private repositories are unavailable for this account." },
       402,
     );
   }

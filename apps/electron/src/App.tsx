@@ -9,26 +9,11 @@ import GenerateScreen from "./screens/Generate";
 import HistoryScreen from "./screens/History";
 import SettingsScreen from "./screens/Settings";
 import { useAppStore } from "./stores/app-store";
+import type { GitLoudElectronApi } from "@repo/shared/electron";
 
 declare global {
   interface Window {
-    gitloud?: {
-      platform:
-        | "aix"
-        | "darwin"
-        | "freebsd"
-        | "linux"
-        | "openbsd"
-        | "sunos"
-        | "win32"
-        | "cygwin"
-        | "netbsd";
-      windowControls: {
-        minimize: () => void;
-        maximize: () => void;
-        close: () => void;
-      };
-    };
+    gitloud?: GitLoudElectronApi;
   }
 }
 

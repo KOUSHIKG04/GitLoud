@@ -6,13 +6,13 @@ import type {
   GitHubInstallationsResponse,
   GitHubRepository,
 } from "@repo/shared/github-app";
+import type { XPostLength } from "@repo/shared/generations";
 
 export type GitHubRepositoryOption = GitHubRepository & {
   accountLogin: string;
 };
 
 export type ActivityType = GitHubActivityType;
-export type XPostLength = "standard" | "premium";
 export type GenerationStep = "select" | "customize";
 
 export type {
@@ -20,4 +20,5 @@ export type {
   GitHubActivityResponse,
   GitHubInstallation,
   GitHubInstallationsResponse,
+  XPostLength,
 };

@@ -295,8 +295,9 @@ that owns them.
 | `/examples`                  | Example generated content                  |
 | `/dashboard`                 | Authenticated generation dashboard         |
 | `/dashboard/history`         | Authenticated generation history           |
-| `/dashboard/billing`         | Plan, payment, and subscription management |
 | `/dashboard/generations/:id` | Authenticated generation detail            |
+| `/dashboard/github-activity` | Generate from synced GitHub App activity   |
+| `/dashboard/settings`        | GitHub App and custom AI key settings      |
 | `/sign-in`                   | Sign-in page                               |
 | `/sign-up`                   | Sign-up page                               |
 | `/sso-callback`              | Clerk SSO callback                         |
@@ -333,10 +334,10 @@ Current active routes:
 | `GET`    | `/github/activity`                      | List recent PR or commit metadata for a synced repository |
 | `POST`   | `/github/sync-installation`             | Sync installation repository access                       |
 | `DELETE` | `/github/installations/:id`             | Uninstall a connected GitHub App installation             |
-| `GET`    | `/billing/details`                      | Read plan, payment, and subscription status               |
-| `POST`   | `/billing/razorpay/subscription`        | Create a Razorpay auto-renewing subscription              |
-| `POST`   | `/billing/razorpay/subscription/verify` | Verify subscription checkout authentication               |
-| `POST`   | `/billing/razorpay/subscription/cancel` | Stop renewal after the current billing period             |
+| `GET`    | `/ai-credentials`                       | List supported AI providers and saved key previews        |
+| `POST`   | `/ai-credentials`                       | Save a custom AI provider key                             |
+| `DELETE` | `/ai-credentials/:provider`             | Delete a saved custom AI provider key                     |
+| `POST`   | `/feedback`                             | Submit product feedback                                   |
 
 The API expects protected requests to include a Clerk bearer token. CORS is
 controlled by `API_ALLOWED_ORIGINS`. Localhost defaults are allowed only outside
@@ -374,14 +375,6 @@ WEB_APP_URL="http://localhost:3000"
 CLOUDINARY_CLOUD_NAME="..."
 CLOUDINARY_API_KEY="..."
 CLOUDINARY_API_SECRET="..."
-
-RAZORPAY_KEY_ID="..."
-RAZORPAY_KEY_SECRET="..."
-RAZORPAY_WEBHOOK_SECRET="..."
-RAZORPAY_PRO_AMOUNT_MINOR="1400"
-RAZORPAY_CURRENCY="USD"
-RAZORPAY_PRO_PLAN_ID="plan_..."
-RAZORPAY_SUBSCRIPTION_TOTAL_COUNT="120"
 ```
 
 Production example:
@@ -403,13 +396,6 @@ Notes:
   `host.docker.internal` instead of `localhost` in `DATABASE_URL`.
 - Keep secret values in environment variables only. Do not commit `.env.local`,
   `.env`, or `.env.docker`.
-- Create the monthly Pro plan in the Razorpay Dashboard and set its ID as
-  `RAZORPAY_PRO_PLAN_ID`. The plan amount and currency must match the product
-  shown to users.
-- Configure the Razorpay webhook URL as
-  `<API_URL>/billing/razorpay/webhook`. Subscribe to `payment.captured` and the
-  subscription lifecycle events, including authenticated, activated, charged,
-  pending, halted, cancelled, completed, and expired.
 
 ## Local Development
 

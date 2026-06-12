@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Providers } from "@/components/Providers";
+import type { ThemeMode as Theme } from "@repo/shared/app-state";
 import { Toaster } from "@repo/ui/components/sonner";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Geist_Mono } from "next/font/google";
@@ -89,7 +90,6 @@ export const metadata: Metadata = {
   },
 };
 
-type Theme = "light" | "dark" | "system";
 
 export default async function RootLayout({
   children,
@@ -117,6 +117,23 @@ export default async function RootLayout({
         className={`${geistMono.variable} relative isolate h-dvh overflow-hidden bg-background`}
         suppressHydrationWarning
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const themeCookie = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
+                const theme = themeCookie || 'system';
+                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.style.colorScheme = 'dark';
+                } else {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.style.colorScheme = 'light';
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
         <LiquidEther className="fixed inset-0 z-0 opacity-70" />
         <ClerkProvider>
           <Providers initialTheme={initialTheme}>

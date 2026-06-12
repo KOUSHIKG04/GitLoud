@@ -4,7 +4,6 @@ import { logger } from "hono/logger";
 import { getAllowedOrigins, isAllowedOrigin, normalizeOrigin } from "@/env";
 import { scheduleLazyCleanup } from "@/lib/lazy-cleanup";
 import { aiCredentialRoutes } from "@/routes/ai-credentials";
-import { billingRoutes } from "@/routes/billing";
 import { feedbackRoutes } from "@/routes/feedback";
 import { generationRoutes } from "@/routes/generations";
 import { githubRoutes } from "@/routes/github";
@@ -55,7 +54,6 @@ export function createApp(options?: { allowedOrigins?: string[] }) {
   app.route("/pr", prRoutes);
   app.route("/github", githubRoutes);
   app.route("/ai-credentials", aiCredentialRoutes);
-  app.route("/billing", billingRoutes);
   app.route("/feedback", feedbackRoutes);
 
   app.notFound((context) => {

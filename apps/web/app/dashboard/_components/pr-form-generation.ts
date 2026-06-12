@@ -1,60 +1,9 @@
-import type { GeneratedContent } from "@repo/shared/generated-content";
 import { apiFetch } from "@/lib/api-client";
-
-type PullRequestGenerateResponse = {
-  sourceType: "pull-request";
-  generatedContentId: string;
-  generatedContent: GeneratedContent;
-  metadata: {
-    owner: string;
-    repo: string;
-    number: number;
-    title: string;
-    author?: string;
-    url: string;
-    state: string;
-    additions: number;
-    deletions: number;
-    changedFiles: number;
-  };
-};
-
-type CommitGenerateResponse = {
-  sourceType: "commit";
-  generatedContentId: string;
-  generatedContent: GeneratedContent;
-  metadata: {
-    owner: string;
-    repo: string;
-    sha: string;
-    shortSha: string;
-    message: string;
-    author: string | null;
-    url: string;
-    additions: number;
-    deletions: number;
-    changedFiles: number;
-  };
-};
-
-type GenerateResponse = PullRequestGenerateResponse | CommitGenerateResponse;
-
-type UploadedMediaAttachment = {
-  id: string;
-  secureUrl: string;
-  resourceType: string;
-  fileName: string;
-  mimeType: string;
-  bytes: number;
-};
-
-type ProgressEvent =
-  | { type: "progress"; message: string }
-  | {
-      type: "done";
-      data: Pick<GenerateResponse, "sourceType" | "generatedContentId">;
-    }
-  | { type: "error"; message: string };
+import type {
+  GenerateDoneResponse,
+  GenerationProgressEvent,
+  UploadedMediaAttachment,
+} from "@repo/shared/generations";
 
 export async function readProgressStream(
   response: Response,
@@ -73,9 +22,7 @@ export async function readProgressStream(
   const decoder = new TextDecoder();
   let buffer = "";
 
-  async function readNextChunk(): Promise<
-    Pick<GenerateResponse, "sourceType" | "generatedContentId">
-  > {
+  async function readNextChunk(): Promise<GenerateDoneResponse> {
     const { done, value } = await reader.read();
 
     if (done) {
@@ -91,7 +38,7 @@ export async function readProgressStream(
         continue;
       }
 
-      const event = JSON.parse(line) as ProgressEvent;
+      const event = JSON.parse(line) as GenerationProgressEvent;
 
       if (event.type === "progress") {
         onProgress(event.message);

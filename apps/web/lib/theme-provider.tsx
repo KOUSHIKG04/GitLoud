@@ -8,9 +8,7 @@ import {
   useMemo,
   useSyncExternalStore,
 } from "react";
-
-type Theme = "light" | "dark" | "system";
-type ResolvedTheme = Exclude<Theme, "system">;
+import type { ThemeMode as Theme, ResolvedTheme } from "@repo/shared/app-state";
 
 type ThemeContextValue = {
   theme: Theme;

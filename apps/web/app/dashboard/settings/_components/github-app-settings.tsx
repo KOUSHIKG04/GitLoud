@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGitHubAppSettings } from "../_hooks/use-github-app-settings";
 import { Notice } from "./notice";
-import { ProAccessLock } from "../../_components/pro-access-lock";
 import { SettingsLoading } from "./settings-loading";
 
 export function GitHubAppSettings() {
@@ -51,8 +50,12 @@ export function GitHubAppSettings() {
     return <SettingsLoading />;
   }
 
-  if (!data?.canUsePrivateRepos) {
-    return <ProAccessLock />;
+  if (!data) {
+    return (
+      <section className="border border-border bg-background p-4 text-sm text-muted-foreground shadow-xs sm:p-5">
+        GitHub App settings are unavailable right now.
+      </section>
+    );
   }
 
   return (

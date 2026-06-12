@@ -9,6 +9,10 @@ import {
   fetchPullRequestMetadata,
 } from "@repo/github/fetch-pr";
 import type { CommitResult } from "@repo/shared/commit";
+import type {
+  GenerationProgressEvent,
+  StoredXPostLength,
+} from "@repo/shared/generations";
 import {
   getGithubUrlType,
   githubPrOrCommitUrlSchema,
@@ -34,13 +38,7 @@ const requestBodySchema = z.object({
   xPostLength: z.enum(["standard", "premium"]).default("standard"),
 });
 
-type ProgressEvent =
-  | { type: "progress"; message: string }
-  | { type: "done"; data: unknown }
-  | { type: "error"; message: string };
-
-type SendProgress = (event: ProgressEvent) => void;
-type StoredXPostLength = "STANDARD" | "PREMIUM";
+type SendProgress = (event: GenerationProgressEvent) => void;
 
 export const prRoutes = new Hono().post("/", async (context) => {
   const appUserId = await getCurrentUserId(context.req.raw);

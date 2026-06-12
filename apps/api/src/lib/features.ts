@@ -19,7 +19,7 @@ export async function getUserFeatures(userId: string): Promise<UserFeatures> {
 
   return {
     plan,
-    canUsePrivateRepos: plan === "PRO",
-    canUseOwnAiKey: plan === "PRO",
+    canUsePrivateRepos: true,
+    canUseOwnAiKey: true,
   };
 }

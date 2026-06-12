@@ -6,7 +6,6 @@ export type DashboardSidebarItem = {
   label: string;
   href: string;
   icon: ComponentType<{ className?: string }>;
-  requiresPro?: boolean;
   isActive: (pathname: string) => boolean;
 };
 
@@ -21,7 +20,6 @@ export const dashboardOptions: DashboardSidebarItem[] = [
     label: "GitHub Integration",
     href: "/dashboard/github-activity",
     icon: GitBranch,
-    requiresPro: true,
     isActive: (pathname) => pathname.startsWith("/dashboard/github-activity"),
   },
 ];
@@ -40,7 +38,6 @@ export const settingsOptions: DashboardSidebarItem[] = [
     label: "GitHub App",
     href: "/dashboard/settings/github-app",
     icon: GithubIconIcon,
-    requiresPro: true,
     isActive: (pathname) =>
       pathname.startsWith("/dashboard/settings/github-app"),
   },
@@ -48,7 +45,6 @@ export const settingsOptions: DashboardSidebarItem[] = [
     label: "My API Key",
     href: "/dashboard/settings/api-key",
     icon: KeyRound,
-    requiresPro: true,
     isActive: (pathname) => pathname.startsWith("/dashboard/settings/api-key"),
   },
 ];

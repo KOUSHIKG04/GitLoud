@@ -23,7 +23,6 @@ import {
   ChevronUp,
   Home,
   LayoutDashboard,
-  LockKeyhole,
   Settings,
 } from "lucide-react";
 import Link from "next/link";
@@ -36,7 +35,6 @@ import {
   type DashboardSidebarItem,
 } from "./dashboard-navigation";
 import { SidebarResizeHandle } from "./sidebar-resize-handle";
-import { useBillingPlan } from "../_hooks/use-billing-plan";
 
 export function DashboardSidebar({
   onResize,
@@ -44,7 +42,6 @@ export function DashboardSidebar({
   onResize: (width: number) => void;
 }) {
   const pathname = usePathname();
-  const { isPro } = useBillingPlan();
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const isDashboardActive =
@@ -124,7 +121,6 @@ export function DashboardSidebar({
                   <DashboardOptionsSubmenu
                     items={dashboardOptions}
                     pathname={pathname}
-                    isPro={isPro}
                   />
                 ) : null}
               </SidebarMenuItem>
@@ -157,12 +153,12 @@ export function DashboardSidebar({
           <SidebarMenuItem className="flex flex-col-reverse">
             <SidebarMenuButton
               isActive={isSettingsActive}
-              tooltip={getSidebarTooltip("Pro Settings")}
+              tooltip={getSidebarTooltip("Settings")}
               onClick={() => setSettingsOpen((open) => !open)}
               className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
             >
               <Settings />
-              <span>Pro Settings</span>
+              <span>Settings</span>
               <ChevronUp
                 className={[
                   "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
@@ -176,7 +172,6 @@ export function DashboardSidebar({
               <DashboardOptionsSubmenu
                 items={settingsOptions}
                 pathname={pathname}
-                isPro={isPro}
                 className="mb-1 mt-0"
               />
             ) : null}
@@ -206,12 +201,10 @@ function getSidebarTooltip(label: string) {
 function DashboardOptionsSubmenu({
   items,
   pathname,
-  isPro,
   className,
 }: {
   items: DashboardSidebarItem[];
   pathname: string;
-  isPro: boolean;
   className?: string;
 }) {
   return (
@@ -225,9 +218,6 @@ function DashboardOptionsSubmenu({
               <Link href={item.href}>
                 <Icon />
                 <span>{item.label}</span>
-                {item.requiresPro && !isPro ? (
-                  <LockKeyhole className="ms-auto size-3" />
-                ) : null}
               </Link>
             </SidebarMenuSubButton>
           </SidebarMenuSubItem>

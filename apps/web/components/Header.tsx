@@ -65,13 +65,6 @@ export function Header() {
             Generator
           </Link>
           <Link
-            href="/#pricing"
-            className="transition-colors hover:text-foreground"
-            onClick={(event) => scrollToLandingSection(event, "pricing")}
-          >
-            Pricing
-          </Link>
-          <Link
             href="/examples"
             className="transition-colors hover:text-foreground"
           >

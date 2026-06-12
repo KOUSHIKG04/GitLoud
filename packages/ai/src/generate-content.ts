@@ -5,6 +5,8 @@ import {
 } from "@repo/shared/generated-content";
 import type { PullRequestResult } from "@repo/shared/pull-request";
 import type { CommitResult } from "@repo/shared/commit";
+import type { XPostLength, GenerationOptions } from "@repo/shared/generations";
+import type { ChangedFile } from "@repo/shared/changed-file";
 
 const generatedContentResponseSchema = {
   type: Type.OBJECT,
@@ -96,25 +98,7 @@ const CONTEXT_BUDGETS = [
   { maxFiles: 6, maxPatchChars: 900 },
 ] as const;
 
-type ChangedFile = {
-  filename: string;
-  status: string;
-  additions: number;
-  deletions: number;
-  patch: string | null;
-  skipped: boolean;
-  skipReason: string | null;
-};
-
 type ContextBudget = (typeof CONTEXT_BUDGETS)[number];
-
-type GenerationOptions = {
-  xPostLength?: "standard" | "premium";
-  onProgress?: (message: string) => void;
-  aiProvider?: "gemini" | "openai" | "anthropic" | "openrouter";
-  aiApiKey?: string;
-  aiModel?: string;
-};
 
 type OpenRouterChatCompletionResponse = {
   error?: {

@@ -7,14 +7,12 @@ import { GitHubActivityControls } from "./github-activity-controls";
 import { GitHubActivityCustomizeStep } from "./github-activity-customize-step";
 import { GitHubActivityFooter } from "./github-activity-footer";
 import { GitHubActivitySelectionStep } from "./github-activity-selection-step";
-import { ProAccessLock } from "./pro-access-lock";
 import Link from "next/link";
 
 export function GitHubActivityPanel() {
   const {
     activityType,
     activityTypeLabel,
-    canUsePrivateRepos,
     clearSelectedMedia,
     context,
     fileInputRef,
@@ -58,10 +56,6 @@ export function GitHubActivityPanel() {
         />
       </section>
     );
-  }
-
-  if (!canUsePrivateRepos) {
-    return <ProAccessLock />;
   }
 
   if (repositories.length === 0) {
