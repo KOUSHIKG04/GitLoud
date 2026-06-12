@@ -10,18 +10,9 @@
     "./pr-cleanup": "./src/pr-cleanup.ts",
     "./generated-content": "./src/generated-content.ts",
     "./generations": "./src/generations.ts",
-    "./commit": {
-      "types": "./dist/commit.d.ts",
-      "default": "./dist/commit.js"
-    },
-    "./github-app": {
-      "types": "./dist/github-app.d.ts",
-      "default": "./dist/github-app.js"
-    },
-    "./ai-credentials": {
-      "types": "./dist/ai-credentials.d.ts",
-      "default": "./dist/ai-credentials.js"
-    },
+    "./commit": "./src/commit.ts",
+    "./github-app": "./src/github-app.ts",
+    "./ai-credentials": "./src/ai-credentials.ts",
     "./app-state": "./src/app-state.ts",
     "./electron": "./src/electron.ts"
   },
