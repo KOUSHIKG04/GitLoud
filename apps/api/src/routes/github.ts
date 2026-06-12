@@ -114,24 +114,51 @@ githubRoutes.get("/callback", async (context) => {
       );
     }
 
-    await db.gitHubInstallation.upsert({
-      where: {
-        installationId: numericInstallationId,
-      },
-      create: {
-        installationId: numericInstallationId,
-        userId,
-        accountLogin,
-        accountType,
-        repositorySelection: installation.data.repository_selection,
-      },
-      update: {
-        userId,
-        accountLogin,
-        accountType,
-        repositorySelection: installation.data.repository_selection,
-      },
-    });
+    try {
+      await db.gitHubInstallation.create({
+        data: {
+          installationId: numericInstallationId,
+          userId,
+          accountLogin,
+          accountType,
+          repositorySelection: installation.data.repository_selection,
+        },
+      });
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== "P2002") {
+        throw error;
+      }
+
+      const conflictingInstallation = await db.gitHubInstallation.findUnique({
+        where: {
+          installationId: numericInstallationId,
+        },
+        select: { userId: true },
+      });
+
+      if (conflictingInstallation?.userId !== userId) {
+        logger.warn("GitHub installation ownership conflict", {
+          installationId,
+          requestedUserId: userId,
+        });
+
+        return context.json(
+          { error: "This GitHub installation is already connected." },
+          409,
+        );
+      }
+
+      await db.gitHubInstallation.update({
+        where: {
+          installationId: numericInstallationId,
+        },
+        data: {
+          accountLogin,
+          accountType,
+          repositorySelection: installation.data.repository_selection,
+        },
+      });
+    }
 
     await syncInstallationRepositories(numericInstallationId);
 

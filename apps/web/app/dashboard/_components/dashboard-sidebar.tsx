@@ -44,7 +44,7 @@ export function DashboardSidebar({
   onResize: (width: number) => void;
 }) {
   const pathname = usePathname();
-  const isPro = useBillingPlan();
+  const { isPro } = useBillingPlan();
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const isDashboardActive =
@@ -190,7 +190,7 @@ export function DashboardSidebar({
           />
         </div>
       </SidebarFooter>
-      <SidebarResizeHandle onResize={onResize} />
+      <SidebarResizeHandle onResize={onResize} side="left" />
     </Sidebar>
   );
 }

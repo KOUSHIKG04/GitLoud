@@ -113,22 +113,28 @@ export function useApiKeySettings() {
 
   const deleteAiKey = useCallback(
     async (provider: AiProvider) => {
-      const response = await apiFetch(
-        `/ai-credentials/${provider}`,
-        { method: "DELETE" },
-        getToken,
-      );
-      const value = (await response.json()) as
-        | { credentials: AiCredential[] }
-        | { error?: string };
+      try {
+        const response = await apiFetch(
+          `/ai-credentials/${provider}`,
+          { method: "DELETE" },
+          getToken,
+        );
+        const value = (await response.json()) as
+          | { credentials: AiCredential[] }
+          | { error?: string };
 
-      if (!response.ok) {
-        toast.error(getApiError(value, "Could not delete AI key"));
-        return;
+        if (!response.ok) {
+          toast.error(getApiError(value, "Could not delete AI key"));
+          return;
+        }
+
+        toast.success(`${providerLabels[provider]} key deleted`);
+        updateCredentials("credentials" in value ? value.credentials : []);
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Could not delete AI key",
+        );
       }
-
-      toast.success(`${providerLabels[provider]} key deleted`);
-      updateCredentials("credentials" in value ? value.credentials : []);
     },
     [getToken, updateCredentials],
   );

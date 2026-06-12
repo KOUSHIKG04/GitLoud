@@ -285,7 +285,10 @@ export const generationRoutes: Hono = new Hono()
 
       const xPostLength = await getStoredXPostLength(generation.id, userId);
       const features = await getUserFeatures(userId);
-      const aiGenerationOptions = await getAiGenerationOptionsForUser(userId);
+      const aiGenerationOptions = await getAiGenerationOptionsForUser(
+        userId,
+        features,
+      );
 
       if (generation.sourceType === "PULL_REQUEST") {
         if (!generation.pullRequest) {

@@ -166,7 +166,7 @@ export function useGitHubActivityDashboard() {
     void loadActivity(selectedRepositoryId, activityType);
   }, [activityType, loadActivity, selectedRepositoryId]);
 
-  async function generateFromSelectedItem() {
+  const generateFromSelectedItem = useCallback(async () => {
     if (!selectedItem) {
       toast.error("Select a pull request or commit first");
       return;
@@ -231,7 +231,7 @@ export function useGitHubActivityDashboard() {
       clearBackendDelayToast();
       setGenerating(false);
     }
-  }
+  }, [context, getToken, push, selectedItem, selectedMedia, xPostLength]);
 
   const onMediaChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

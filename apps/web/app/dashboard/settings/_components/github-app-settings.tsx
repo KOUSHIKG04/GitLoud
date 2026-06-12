@@ -13,13 +13,15 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGitHubAppSettings } from "../_hooks/use-github-app-settings";
 import { Notice } from "./notice";
-import { ProSettingLock } from "./pro-setting-lock";
+import { ProAccessLock } from "../../_components/pro-access-lock";
 import { SettingsLoading } from "./settings-loading";
 
 export function GitHubAppSettings() {
+  const router = useRouter();
   const {
     connectGitHub,
     data,
@@ -39,102 +41,109 @@ export function GitHubAppSettings() {
         duration: 8000,
         action: {
           label: "Read security notes",
-          onClick: () => window.location.assign("/security"),
+          onClick: () => router.push("/security"),
         },
       },
     );
-  }, []);
+  }, [router]);
 
   if (loading) {
     return <SettingsLoading />;
   }
 
   if (!data?.canUsePrivateRepos) {
-    return <ProSettingLock />;
+    return <ProAccessLock />;
   }
 
   return (
     <section className="space-y-5">
       <div className="space-y-3">
         {hasConnectedGitHub ? (
-          data.installations.map((installation) => (
-            <div
-              key={installation.id}
-              className="grid min-w-0 gap-4 border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] xl:items-center"
-            >
-              <div className="grid min-w-0 gap-8 sm:grid-cols-[auto_minmax(5rem,1fr)] sm:items-center">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center border border-primary/40 bg-primary/10 text-lg font-semibold text-primary">
-                    {installation.accountLogin.slice(0, 1).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="truncate text-base font-semibold tracking-tight">
-                      {installation.accountLogin}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs uppercase text-muted-foreground">
-                      <Users className="size-4 text-primary" />
-                      {installation.accountType} /{" "}
-                      {installation.repositorySelection}
-                    </div>
-                  </div>
-                </div>
+          data.installations.map((installation) => {
+            const accountLogin = installation.accountLogin || "Unknown";
+            const initial = installation.accountLogin
+              ? installation.accountLogin.slice(0, 1).toUpperCase()
+              : "?";
 
-                <div className="border border-border bg-muted/20 px-3 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex size-8 items-center justify-center bg-primary/10 text-primary">
-                      <Database className="size-3.5" />
-                    </span>
-                    <span className="text-sm">
-                      <span className="font-semibold">
-                        {installation.repositories.length}
-                      </span>{" "}
-                      <span className="text-muted-foreground">
-                        repositories synced.
+            return (
+              <div
+                key={installation.id}
+                className="grid min-w-0 gap-4 border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] xl:items-center"
+              >
+                <div className="grid min-w-0 gap-8 sm:grid-cols-[auto_minmax(5rem,1fr)] sm:items-center">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex size-12 shrink-0 items-center justify-center border border-primary/40 bg-primary/10 text-lg font-semibold text-primary">
+                      {initial}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="truncate text-base font-semibold tracking-tight">
+                        {accountLogin}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs uppercase text-muted-foreground">
+                        <Users className="size-4 text-primary" />
+                        {installation.accountType} /{" "}
+                        {installation.repositorySelection}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border border-border bg-muted/20 px-3 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-8 items-center justify-center bg-primary/10 text-primary">
+                        <Database className="size-3.5" />
                       </span>
-                    </span>
+                      <span className="text-sm">
+                        <span className="font-semibold">
+                          {installation.repositories.length}
+                        </span>{" "}
+                        <span className="text-muted-foreground">
+                          repositories synced.
+                        </span>
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex min-w-0 flex-col gap-3 border-border xl:border-l xl:pl-4">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="h-10 w-full justify-start gap-2 px-3"
-                >
-                  <a
-                    href={installation.manageUrl}
-                    target="_blank"
-                    rel="noreferrer"
+                <div className="flex min-w-0 flex-col gap-3 border-border xl:border-l xl:pl-4">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-10 w-full justify-start gap-2 px-3"
                   >
-                    <ExternalLink className="size-4" />
+                    <a
+                      href={installation.manageUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <ExternalLink className="size-4" />
+                      <span className="min-w-0 flex-1 truncate text-left">
+                        MANAGE ACCESS
+                      </span>
+                      <ChevronRight className="size-4 shrink-0" />
+                    </a>
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="h-10 w-full justify-start gap-2 px-3"
+                    disabled={disconnectingInstallationId === installation.id}
+                    onClick={() => void disconnectInstallation(installation.id)}
+                  >
+                    {disconnectingInstallationId === installation.id ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Unplug className="size-4" />
+                    )}
                     <span className="min-w-0 flex-1 truncate text-left">
-                      MANAGE ACCESS
+                      DISCONNECT
                     </span>
                     <ChevronRight className="size-4 shrink-0" />
-                  </a>
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="h-10 w-full justify-start gap-2 px-3"
-                  disabled={disconnectingInstallationId === installation.id}
-                  onClick={() => void disconnectInstallation(installation.id)}
-                >
-                  {disconnectingInstallationId === installation.id ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <Unplug className="size-4" />
-                  )}
-                  <span className="min-w-0 flex-1 truncate text-left">
-                    DISCONNECT
-                  </span>
-                  <ChevronRight className="size-4 shrink-0" />
-                </Button>
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <Notice text="No GitHub App installation is connected yet." />
         )}

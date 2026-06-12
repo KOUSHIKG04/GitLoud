@@ -27,11 +27,6 @@ export default function DashboardPage() {
           <div className="mx-auto max-w-3xl">
             <PrForm />
           </div>
-
-          {/* <p className="text-sm text-muted-foreground text-center">
-            Paste a GitHub pull request or commit link to start generating
-            summaries and share-ready posts.
-          </p> */}
         </section>
       </div>
     </main>

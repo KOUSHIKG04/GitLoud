@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud.app";
+const LEGAL_PAGES_LAST_MODIFIED = new Date("2026-06-09T00:00:00.000Z");
 
 /**
  * Generates the sitemap.xml dynamically.
@@ -23,19 +24,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${siteUrl}/security`,
-      lastModified: new Date(),
+      lastModified: LEGAL_PAGES_LAST_MODIFIED,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
       url: `${siteUrl}/privacy`,
-      lastModified: new Date(),
+      lastModified: LEGAL_PAGES_LAST_MODIFIED,
       changeFrequency: "yearly",
       priority: 0.4,
     },
     {
       url: `${siteUrl}/terms`,
-      lastModified: new Date(),
+      lastModified: LEGAL_PAGES_LAST_MODIFIED,
       changeFrequency: "yearly",
       priority: 0.4,
     },

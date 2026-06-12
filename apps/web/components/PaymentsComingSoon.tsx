@@ -22,7 +22,6 @@ export function PaymentsComingSoon({
         <TooltipTrigger asChild>
           <span
             className={cn("block w-full cursor-not-allowed", className)}
-            tabIndex={0}
             aria-label="Pro is launching globally soon. International payments are currently being activated. Stay tuned."
           >
             {children}

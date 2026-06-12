@@ -20,7 +20,7 @@ import {
   providerLabels,
   useApiKeySettings,
 } from "../_hooks/use-api-key-settings";
-import { ProSettingLock } from "./pro-setting-lock";
+import { ProAccessLock } from "../../_components/pro-access-lock";
 import { SettingsLoading } from "./settings-loading";
 
 const dropdownContentClass =
@@ -47,7 +47,7 @@ export function ApiKeySettings() {
   }
 
   if (!data?.canUseOwnAiKey) {
-    return <ProSettingLock />;
+    return <ProAccessLock />;
   }
 
   return (

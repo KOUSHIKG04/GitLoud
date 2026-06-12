@@ -7,6 +7,7 @@ import { Loader2, RefreshCw, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PaymentsComingSoon } from "@/components/PaymentsComingSoon";
+import { loadRazorpayScript } from "@/lib/razorpay-checkout";
 import type {
   RazorpaySubscriptionCheckoutResponse,
   RazorpaySubscriptionVerification,
@@ -55,8 +56,8 @@ export function SubscriptionActions({
         name: data.name,
         description: data.description,
         prefill: data.prefill,
-        handler: (payment: RazorpaySubscriptionVerification) => {
-          void verifySubscription(payment);
+        handler: async (payment: RazorpaySubscriptionVerification) => {
+          await verifySubscription(payment);
         },
         modal: {
           ondismiss: () => setAction(null),
@@ -153,21 +154,19 @@ export function SubscriptionActions({
 
   if (!hasSubscription) {
     return (
-      <PaymentsComingSoon>
-        <Button
-          type="button"
-          className="w-full"
-          disabled
-          onClick={() => void enableAutoRenewal()}
-        >
-          {action === "enable" ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <RefreshCw className="size-4" />
-          )}
-          ENABLE AUTO RENEWAL
-        </Button>
-      </PaymentsComingSoon>
+      <Button
+        type="button"
+        className="w-full"
+        disabled={action !== null}
+        onClick={() => void enableAutoRenewal()}
+      >
+        {action === "enable" ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <RefreshCw className="size-4" />
+        )}
+        ENABLE AUTO RENEWAL
+      </Button>
     );
   }
 
@@ -195,21 +194,4 @@ export function SubscriptionActions({
       CANCEL AUTO RENEWAL
     </Button>
   );
-}
-
-function loadRazorpayScript() {
-  return new Promise<void>((resolve, reject) => {
-    if (window.Razorpay) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error("Could not load Razorpay checkout"));
-    document.body.appendChild(script);
-  });
 }

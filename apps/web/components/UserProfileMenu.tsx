@@ -33,7 +33,7 @@ export function UserProfileMenu({
   const { getToken } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
-  const [plan, setPlan] = useState("FREE");
+  const [plan, setPlan] = useState<string | null>(null);
 
   const email = user?.primaryEmailAddress?.emailAddress;
   const displayName = getUserDisplayName({
@@ -148,7 +148,7 @@ export function UserProfileMenu({
         <DropdownMenuSeparator className={cn(accountMenu && "my-0")} />
         {accountMenu ? (
           <>
-            {!isPro ? (
+            {plan !== null && !isPro ? (
               <>
                 <div className="p-1">
                   <PaymentsComingSoon>
@@ -165,10 +165,7 @@ export function UserProfileMenu({
               </>
             ) : null}
             <div className="p-1">
-              <DropdownMenuItem
-                className="h-8 rounded-none"
-                disabled
-              >
+              <DropdownMenuItem className="h-8 rounded-none" disabled>
                 <BadgeCheck />
                 Account
                 <span className="ms-auto text-[10px] uppercase text-muted-foreground">

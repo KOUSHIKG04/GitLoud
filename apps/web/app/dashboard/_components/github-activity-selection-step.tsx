@@ -87,6 +87,13 @@ export function GitHubActivitySelectionStep({
             <div className="pl-3 py-3">
               {items.map((item) => {
                 const checked = selectedItemUrl === item.url;
+                const updatedAt = item.updatedAt
+                  ? new Date(item.updatedAt)
+                  : null;
+                const formattedUpdatedAt =
+                  updatedAt && Number.isFinite(updatedAt.valueOf())
+                    ? ` - ${updatedAt.toLocaleString()}`
+                    : "";
 
                 return (
                   <button
@@ -128,9 +135,7 @@ export function GitHubActivitySelectionStep({
                       <span className="block text-xs text-muted-foreground">
                         {item.subtitle}
                         {item.author ? ` by ${item.author}` : ""}
-                        {item.updatedAt
-                          ? ` - ${new Date(item.updatedAt).toLocaleString()}`
-                          : ""}
+                        {formattedUpdatedAt}
                       </span>
                     </span>
                   </button>

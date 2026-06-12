@@ -190,8 +190,10 @@ export const prRoutes = new Hono().post("/", async (context) => {
         message: "Generating summaries and share-ready content with AI...",
       });
 
-      const aiGenerationOptions =
-        await getAiGenerationOptionsForUser(appUserId);
+      const aiGenerationOptions = await getAiGenerationOptionsForUser(
+        appUserId,
+        features,
+      );
 
       const generatedContent = await generateContentFromPullRequest(
         pullRequest,
@@ -365,8 +367,10 @@ export const prRoutes = new Hono().post("/", async (context) => {
         message: "Generating summaries and share-ready content with AI...",
       });
 
-      const aiGenerationOptions =
-        await getAiGenerationOptionsForUser(appUserId);
+      const aiGenerationOptions = await getAiGenerationOptionsForUser(
+        appUserId,
+        features,
+      );
 
       const generatedContent = await generateContentFromCommit(
         commit,

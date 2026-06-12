@@ -4,13 +4,11 @@ type GithubIconIconProps = React.SVGProps<SVGSVGElement> & {
   className?: string;
   color?: string;
   size?: number;
-  strokeWidth?: number;
 };
 
 export function GithubIconIcon({
   size = 256,
   color = "currentColor",
-  strokeWidth = 2,
   className,
   ...props
 }: GithubIconIconProps) {
@@ -22,7 +20,6 @@ export function GithubIconIcon({
       viewBox="0 0 256 250"
       fill={color}
       stroke="none"
-      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}

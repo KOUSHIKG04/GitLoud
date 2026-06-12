@@ -34,11 +34,13 @@ export function useLocalStorageNumber({
   const [value, setValue] = React.useState(defaultValue);
 
   React.useEffect(() => {
-    const storedValue = getClampedValue(
-      Number(window.localStorage.getItem(key)),
-      min,
-      max,
-    );
+    if (typeof window === "undefined" || !window.localStorage) {
+      return;
+    }
+
+    const storedRaw = window.localStorage.getItem(key);
+    const storedValue =
+      storedRaw === null ? null : getClampedValue(Number(storedRaw), min, max);
 
     if (storedValue !== null) {
       setValue(storedValue);

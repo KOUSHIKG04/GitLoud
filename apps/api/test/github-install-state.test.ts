@@ -6,6 +6,15 @@ import {
 } from "../src/lib/github-install-state";
 
 const secret = "0123456789abcdef0123456789abcdef";
+const originalStateSecret = process.env.GITHUB_APP_STATE_SECRET;
+
+test.afterEach(() => {
+  if (originalStateSecret === undefined) {
+    delete process.env.GITHUB_APP_STATE_SECRET;
+  } else {
+    process.env.GITHUB_APP_STATE_SECRET = originalStateSecret;
+  }
+});
 
 test("GitHub install state round trips the user id", () => {
   process.env.GITHUB_APP_STATE_SECRET = secret;

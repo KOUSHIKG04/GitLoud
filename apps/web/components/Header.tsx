@@ -21,7 +21,7 @@ function scrollToLandingSection(
 
   if (sectionId === "home") {
     const appScrollViewport = document.querySelector<HTMLElement>(
-      "#app-scroll-area [data-slot='scroll-area-viewport']",
+      "#app-scroll-area [data-main-viewport]",
     );
 
     appScrollViewport?.scrollTo({ top: 0, behavior: "smooth" });

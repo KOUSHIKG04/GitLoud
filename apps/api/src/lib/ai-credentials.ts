@@ -1,10 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { db } from "@repo/db/client";
-import {
-  AI_PROVIDERS,
-  type AiProvider,
-} from "@repo/shared/ai-credentials";
-import { getUserFeatures } from "@/lib/features";
+import { AI_PROVIDERS, type AiProvider } from "@repo/shared/ai-credentials";
+import { getUserFeatures, type UserFeatures } from "@/lib/features";
 
 const ALGORITHM = "aes-256-gcm";
 type DbAiProvider = "GEMINI" | "OPENAI" | "ANTHROPIC" | "OPENROUTER";
@@ -88,8 +85,11 @@ export async function deleteAiCredential(userId: string, provider: string) {
   });
 }
 
-export async function getAiGenerationOptionsForUser(userId: string) {
-  const features = await getUserFeatures(userId);
+export async function getAiGenerationOptionsForUser(
+  userId: string,
+  prefetchedFeatures?: UserFeatures,
+) {
+  const features = prefetchedFeatures ?? (await getUserFeatures(userId));
 
   if (!features.canUseOwnAiKey) {
     return {};

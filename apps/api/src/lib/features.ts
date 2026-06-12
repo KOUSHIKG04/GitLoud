@@ -1,10 +1,12 @@
 import { db } from "@repo/db/client";
 
-export async function getUserFeatures(userId: string): Promise<{
+export type UserFeatures = {
   plan: string;
   canUsePrivateRepos: boolean;
   canUseOwnAiKey: boolean;
-}> {
+};
+
+export async function getUserFeatures(userId: string): Promise<UserFeatures> {
   const user = await db.user.findUnique({
     where: { id: userId },
     select: { plan: true, planExpiresAt: true },

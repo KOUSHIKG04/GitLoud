@@ -35,7 +35,7 @@ export default async function HistoryPage({
     <main className="relative isolate min-h-[calc(100dvh-3.5rem)]">
       <section className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl flex-col gap-6 px-4 pb-6 pt-0">
         <span className="text-2xl font-semibold tracking-tight">
-          Generation&apos;s
+          Generations
         </span>
 
         <Suspense fallback={<HistoryLoading />}>

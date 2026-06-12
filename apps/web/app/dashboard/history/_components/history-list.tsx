@@ -62,12 +62,14 @@ export async function HistoryList({
           <div className="flex min-h-[calc(100dvh-12rem)] items-center justify-center gap-1 p-6 text-lg text-muted-foreground">
             <span>
               {page === 1
-                ? "NO GENERATIONS YET!, Create a"
-                : "NO GENERATIONS YET ON THIS PAGE!."}
+                ? "No generations yet. Create a"
+                : "No generations yet on this page."}
             </span>
-            <Button asChild variant="link" className="px-1 text-lg underline">
-              <Link href="/dashboard">NEW GENERATION!</Link>
-            </Button>
+            {page === 1 ? (
+              <Button asChild variant="link" className="px-1 text-lg underline">
+                <Link href="/dashboard">new generation.</Link>
+              </Button>
+            ) : null}
           </div>
         ) : (
           <div className="space-y-3.5">

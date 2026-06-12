@@ -12,13 +12,13 @@ export type DashboardSidebarItem = {
 
 export const dashboardOptions: DashboardSidebarItem[] = [
   {
-    label: "Free",
+    label: "Quick Generate",
     href: "/dashboard",
     icon: LayoutDashboard,
     isActive: (pathname) => pathname === "/dashboard",
   },
   {
-    label: "Paid",
+    label: "GitHub Integration",
     href: "/dashboard/github-activity",
     icon: GitBranch,
     requiresPro: true,
@@ -28,7 +28,7 @@ export const dashboardOptions: DashboardSidebarItem[] = [
 
 export const secondaryNavigationItems: DashboardSidebarItem[] = [
   {
-    label: "Generation's",
+    label: "Generations",
     href: "/dashboard/history",
     icon: History,
     isActive: (pathname) => pathname.startsWith("/dashboard/history"),

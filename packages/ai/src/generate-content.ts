@@ -673,35 +673,39 @@ async function generateWithOpenAi(
   contents: string,
   options: GenerationOptions,
 ): Promise<GeneratedContent> {
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${options.aiApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: options.aiModel ?? "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: getFullJsonSystemPrompt(),
-        },
-        {
-          role: "user",
-          content: contents,
-        },
-      ],
-      temperature: 0.1,
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "generated_content",
-          strict: true,
-          schema: chatProviderResponseSchema,
-        },
+  const response = await fetchWithProviderTimeout(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${options.aiApiKey}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        model: options.aiModel ?? "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: getFullJsonSystemPrompt(),
+          },
+          {
+            role: "user",
+            content: contents,
+          },
+        ],
+        temperature: 0.1,
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "generated_content",
+            strict: true,
+            schema: chatProviderResponseSchema,
+          },
+        },
+      }),
+    },
+    "OpenAI",
+  );
 
   const data = (await response.json()) as OpenAiChatCompletionResponse;
 
@@ -718,26 +722,30 @@ async function generateWithAnthropic(
   contents: string,
   options: GenerationOptions,
 ): Promise<GeneratedContent> {
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": options.aiApiKey ?? "",
-      "anthropic-version": "2023-06-01",
-      "Content-Type": "application/json",
+  const response = await fetchWithProviderTimeout(
+    "https://api.anthropic.com/v1/messages",
+    {
+      method: "POST",
+      headers: {
+        "x-api-key": options.aiApiKey ?? "",
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: options.aiModel ?? "claude-3-5-haiku-latest",
+        max_tokens: 4000,
+        temperature: 0.1,
+        system: getFullJsonSystemPrompt(),
+        messages: [
+          {
+            role: "user",
+            content: contents,
+          },
+        ],
+      }),
     },
-    body: JSON.stringify({
-      model: options.aiModel ?? "claude-3-5-haiku-latest",
-      max_tokens: 4000,
-      temperature: 0.1,
-      system: getFullJsonSystemPrompt(),
-      messages: [
-        {
-          role: "user",
-          content: contents,
-        },
-      ],
-    }),
-  });
+    "Anthropic",
+  );
 
   const data = (await response.json()) as AnthropicMessagesResponse;
 
@@ -756,7 +764,7 @@ async function generateFullContentWithOpenRouter(
   contents: string,
   options: GenerationOptions,
 ): Promise<GeneratedContent> {
-  const response = await fetch(
+  const response = await fetchWithProviderTimeout(
     "https://openrouter.ai/api/v1/chat/completions",
     {
       method: "POST",
@@ -790,6 +798,7 @@ async function generateFullContentWithOpenRouter(
         },
       }),
     },
+    "OpenRouter",
   );
 
   const data = (await response.json()) as OpenRouterChatCompletionResponse;
@@ -801,6 +810,30 @@ async function generateFullContentWithOpenRouter(
   }
 
   return parseGeneratedProviderText(data.choices?.[0]?.message?.content);
+}
+
+async function fetchWithProviderTimeout(
+  input: string,
+  init: RequestInit,
+  provider: string,
+) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error(`${provider} request timed out`);
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function getFullJsonSystemPrompt() {

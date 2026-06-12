@@ -1,6 +1,8 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import { getCurrentUserId } from "@/lib/auth";
 import { db } from "@repo/db/client";
+import { logger } from "@/lib/logger";
 import {
   razorpayPaymentVerificationSchema,
   razorpaySubscriptionVerificationSchema,
@@ -20,6 +22,41 @@ import {
 } from "@/lib/razorpay";
 
 export const billingRoutes = new Hono();
+
+const razorpayWebhookEventSchema = z.object({
+  event: z.string(),
+  payload: z
+    .object({
+      payment: z
+        .object({
+          entity: z
+            .object({
+              id: z.string().optional(),
+              order_id: z.string().optional(),
+            })
+            .passthrough(),
+        })
+        .optional(),
+      subscription: z
+        .object({
+          entity: z
+            .object({
+              id: z.string(),
+              status: z.string(),
+              current_start: z.number().nullable().optional(),
+              current_end: z.number().nullable().optional(),
+              charge_at: z.number().nullable().optional(),
+              has_scheduled_changes: z.boolean().optional(),
+              paid_count: z.number().optional(),
+              remaining_count: z.union([z.string(), z.number()]).optional(),
+              plan_id: z.string().optional(),
+            })
+            .passthrough(),
+        })
+        .optional(),
+    })
+    .optional(),
+});
 
 billingRoutes.get("/status", async (context) => {
   const userId = await getCurrentUserId(context.req.raw);
@@ -298,7 +335,7 @@ billingRoutes.post("/razorpay/order", async (context) => {
 
     const razorpay = getRazorpay();
     const amount = getRazorpayAmount();
-    const currency = process.env.RAZORPAY_CURRENCY ?? "USD";
+    const currency = process.env.RAZORPAY_CURRENCY ?? "INR";
     const order = await razorpay.orders.create({
       amount,
       currency,
@@ -407,33 +444,56 @@ billingRoutes.post("/razorpay/webhook", async (context) => {
     return context.json({ error: "Invalid Razorpay webhook signature" }, 400);
   }
 
-  const event = JSON.parse(payload) as {
-    event?: string;
-    payload?: {
-      payment?: {
-        entity?: {
-          id?: string;
-          order_id?: string;
-        };
-      };
-      subscription?: {
-        entity?: RazorpaySubscriptionEntity;
-      };
-    };
-  };
+  let decodedPayload: unknown;
+
+  try {
+    decodedPayload = JSON.parse(payload);
+  } catch {
+    return context.json({ error: "Invalid webhook JSON" }, 400);
+  }
+
+  const parsed = razorpayWebhookEventSchema.safeParse(decodedPayload);
+
+  if (!parsed.success) {
+    return context.json({ error: "Invalid webhook payload structure" }, 400);
+  }
+
+  const event = parsed.data;
   const payment = event.payload?.payment?.entity;
-  const subscription = event.payload?.subscription?.entity;
+  const subscription = event.payload?.subscription?.entity as
+    | RazorpaySubscriptionEntity
+    | undefined;
 
   if (event.event === "payment.captured" && payment?.id && payment.order_id) {
-    const user = await db.user.findFirst({
-      where: { razorpayOrderId: payment.order_id },
-      select: { id: true },
-    });
+    try {
+      const order = await getRazorpay().orders.fetch(payment.order_id);
+      const expectedAmount = getRazorpayAmount();
 
-    if (user) {
-      await activateRazorpayPlan({
-        userId: user.id,
+      if (Number(order.amount) !== expectedAmount) {
+        logger.warn("Razorpay captured payment amount mismatch", {
+          paymentId: payment.id,
+          orderId: payment.order_id,
+          expectedAmount,
+          actualAmount: order.amount,
+        });
+      } else {
+        const user = await db.user.findFirst({
+          where: { razorpayOrderId: payment.order_id },
+          select: { id: true },
+        });
+
+        if (user) {
+          await activateRazorpayPlan({
+            userId: user.id,
+            paymentId: payment.id,
+          });
+        }
+      }
+    } catch (error) {
+      logger.error("Failed to verify Razorpay webhook order amount", {
         paymentId: payment.id,
+        orderId: payment.order_id,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }

@@ -6,8 +6,10 @@ import { Button } from "@repo/ui/components/button";
 import { CircleDollarSign, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
+import { loadRazorpayScript } from "@/lib/razorpay-checkout";
 import { cn } from "@repo/ui/lib/utils";
 import { PaymentsComingSoon } from "@/components/PaymentsComingSoon";
+import { useRouter } from "next/navigation";
 import type {
   RazorpayOrderResponse,
   RazorpayPaymentVerification,
@@ -27,6 +29,7 @@ export function BillingActions({
   redirectTo?: string;
 }) {
   const { getToken } = useAuth();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   async function startRazorpayCheckout() {
@@ -106,7 +109,7 @@ export function BillingActions({
       }
 
       toast.success("Pro is active");
-      window.location.href = redirectTo;
+      router.push(redirectTo);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not verify payment",
@@ -135,21 +138,4 @@ export function BillingActions({
       </PaymentsComingSoon>
     </div>
   );
-}
-
-function loadRazorpayScript() {
-  return new Promise<void>((resolve, reject) => {
-    if (window.Razorpay) {
-      resolve();
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error("Could not load Razorpay checkout"));
-    document.body.appendChild(script);
-  });
 }

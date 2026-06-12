@@ -38,6 +38,7 @@ model User {
   accounts            Account[]
   githubInstallations GitHubInstallation[]
   aiCredentials       UserAiCredential[]
+  feedback            Feedback[]
 
 }
 
@@ -274,6 +275,8 @@ model Feedback {
   email     String?
   pagePath  String?
   createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@index([category])

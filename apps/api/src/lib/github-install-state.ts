@@ -85,7 +85,7 @@ function isGitHubInstallState(value: unknown): value is GitHubInstallState {
     typeof candidate.userId === "string" &&
     candidate.userId.length > 0 &&
     typeof candidate.nonce === "string" &&
-    candidate.nonce.length >= 16 &&
+    candidate.nonce.length >= 22 &&
     typeof candidate.expiresAt === "number" &&
     Number.isSafeInteger(candidate.expiresAt)
   );

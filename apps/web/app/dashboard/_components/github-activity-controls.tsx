@@ -15,10 +15,7 @@ import type {
   ActivityType,
   GitHubRepositoryOption,
 } from "./github-activity-types";
-import {
-  dropdownContentClass,
-  dropdownItemClass,
-} from "./github-activity-ui";
+import { dropdownContentClass, dropdownItemClass } from "./github-activity-ui";
 
 type GitHubActivityControlsProps = {
   activityType: ActivityType;
@@ -79,11 +76,10 @@ export function GitHubActivityControls({
             <ScrollArea className="h-[min(16rem,var(--radix-dropdown-menu-content-available-height))]">
               <div className="p-1 pr-5">
                 {repositories.map((repository) => (
-                  <button
+                  <DropdownMenuItem
                     key={repository.id}
-                    type="button"
                     className={[
-                      "flex w-full items-center gap-2 px-2 py-1.5 text-left text-sm outline-hidden transition-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring",
+                      "flex w-full items-center gap-2 rounded-none px-2 py-1.5 text-left text-sm outline-hidden transition-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring",
                       repository.id === selectedRepositoryId
                         ? "bg-accent/70"
                         : "",
@@ -101,7 +97,7 @@ export function GitHubActivityControls({
                     {repository.id === selectedRepositoryId ? (
                       <Check className="size-4 shrink-0 text-primary" />
                     ) : null}
-                  </button>
+                  </DropdownMenuItem>
                 ))}
               </div>
             </ScrollArea>
@@ -157,10 +153,7 @@ export function GitHubActivityControls({
           disabled={loadingInstallations || generating}
         >
           <RefreshCw
-            className={[
-              "size-4",
-              loadingInstallations ? "animate-spin" : "",
-            ]
+            className={["size-4", loadingInstallations ? "animate-spin" : ""]
               .filter(Boolean)
               .join(" ")}
           />
