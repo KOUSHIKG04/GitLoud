@@ -4,7 +4,6 @@ import { Header } from "@/components/Header";
 import { LazyMotionCursor } from "@/components/LazyMotionCursor";
 import { AuthToast } from "@/components/auth/AuthToast";
 import { GeneratorSection } from "@/components/home/GeneratorSection";
-import { FeedbackSection } from "@/components/home/FeedbackSection";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { SeoFaqSection } from "@/components/home/SeoFaqSection";
@@ -103,7 +102,6 @@ export default function Home() {
       <HowItWorksSection />
       <PricingSection />
       <SeoFaqSection />
-      <FeedbackSection />
       <Footer />
     </main>
   );
