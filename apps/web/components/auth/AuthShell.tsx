@@ -1,31 +1,48 @@
+"use client";
+
 import { Header } from "@/components/Header";
+import { QuestionMarkIcon } from "../home/GeneratorSection";
+import { motion } from "motion/react";
 
 export function AuthShell({
   children,
-  eyebrow,
-  title,
 }: {
   children: React.ReactNode;
   eyebrow: string;
   title: string;
 }) {
   return (
-    <main className="auth-shell min-h-screen">
+    <main className="min-h-screen">
       <Header />
 
-      <section className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-6xl gap-8 px-4 py-10 md:grid-cols-[0.9fr_1.1fr] md:items-center lg:px-8">
-        <div className="space-y-2">
-          <p className="text-md font-semibold">{eyebrow}</p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-            {title}
-          </h1>
-          <p className="max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-            Generate summaries, changelog entries, portfolio bullets, and
-            share-ready posts from GitHub pull requests and commits.
-          </p>
+      <section className="grid min-h-[calc(100vh-3.5rem)] md:grid-cols-[1fr_1px_1fr]">
+        <div className="flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-sm">{children}</div>
         </div>
 
-        <div className="mx-auto w-full max-w-md">{children}</div>
+        <div className="hidden md:block bg-border" />
+
+        <div className="flex justify-center items-center px-8 md:px-16 py-12 bg-transparent [--pattern-fg:var(--color-gray-950)]/5 dark:[--pattern-fg:var(--color-white)]/10 bg-[repeating-linear-gradient(45deg,var(--pattern-fg),var(--pattern-fg)_1px,transparent_1px,transparent_10px)]">
+          <div className="max-w-lg ">
+            <div className="flex flex-col gap-8 min-h-36 min-w-50 items-center justify-center bg-background p-3 text-sm leading-6 text-muted-foreground">
+              <motion.div
+                style={{ perspective: 1000 }}
+                animate={{
+                  rotateY: [0, 180, 360],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <QuestionMarkIcon size={40} />
+              </motion.div>
+              {/* <div>Dev --&gt; WIP</div> */}
+              <div>W I P</div>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
   );

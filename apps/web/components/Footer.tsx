@@ -39,8 +39,8 @@ export function Footer() {
       </div>
 
       <div className="border-b">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-4 divide-x">
-          <div className="col-span-2 p-10 flex flex-col items-start justify-center">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 md:grid-cols-4 md:divide-x">
+          <div className="border-b md:border-b-0 md:col-span-2 p-6 sm:p-10 flex flex-col items-start justify-center">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
               Contact Us:{" "}
               <a
@@ -55,7 +55,7 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="p-10">
+          <div className="hidden md:block border-b md:border-b-0 p-6 sm:p-10">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
               Navigation
             </h3>
@@ -79,7 +79,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="p-10">
+          <div className="p-6 sm:p-10">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
               Support
             </h3>
@@ -99,8 +99,8 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="overflow-hidden pt-10">
-        <h1 className="text-center text-[15vw] font-bold leading-[0.8] tracking-tight bg-gradient-to-b from-transparent to-primary/80 bg-clip-text text-transparent -mb-[22px]">
+      <div className="overflow-hidden px-4 pt-10 pb-2">
+        <h1 className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] tracking-tight bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6">
           GitLoud
         </h1>
       </div>

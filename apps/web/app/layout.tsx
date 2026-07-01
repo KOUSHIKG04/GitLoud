@@ -1,13 +1,13 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Providers } from "@/components/Providers";
-import type { ThemeMode as Theme } from "@repo/shared/app-state";
+
 import { Toaster } from "@repo/ui/components/sonner";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { cookies } from "next/headers";
-import { LiquidEther } from "@repo/ui/components/liquid-ether";
+
+
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
@@ -91,25 +91,15 @@ export const metadata: Metadata = {
 };
 
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme")?.value;
-  const initialTheme: Theme =
-    themeCookie === "light" ||
-    themeCookie === "dark" ||
-    themeCookie === "system"
-      ? themeCookie
-      : "system";
-  const htmlClassName = initialTheme === "system" ? undefined : initialTheme;
-
   return (
     <html
       lang="en"
-      className={htmlClassName}
+      className="dark"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
@@ -117,26 +107,9 @@ export default async function RootLayout({
         className={`${geistMono.variable} relative isolate h-dvh overflow-hidden bg-background`}
         suppressHydrationWarning
       >
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const themeCookie = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
-                const theme = themeCookie || 'system';
-                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.style.colorScheme = 'dark';
-                } else {
-                  document.documentElement.classList.add('light');
-                  document.documentElement.style.colorScheme = 'light';
-                }
-              } catch (e) {}
-            `,
-          }}
-        />
-        <LiquidEther className="fixed inset-0 z-0 opacity-70" />
+
         <ClerkProvider>
-          <Providers initialTheme={initialTheme}>
+          <Providers initialTheme="dark">
             <ScrollArea id="app-scroll-area" className="relative z-10 h-dvh">
               {children}
             </ScrollArea>

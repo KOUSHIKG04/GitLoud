@@ -29,13 +29,13 @@ export function getUserDisplayName({
 
   const metadataDisplayName = getMetadataDisplayName(metadata);
 
-  if (metadataDisplayName) {
+  if (metadataDisplayName && metadataDisplayName.toLowerCase() !== "gitloud") {
     return metadataDisplayName;
   }
 
   const trimmedUsername = username?.trim();
 
-  if (trimmedUsername) {
+  if (trimmedUsername && trimmedUsername.toLowerCase() !== "gitloud") {
     return trimmedUsername;
   }
 

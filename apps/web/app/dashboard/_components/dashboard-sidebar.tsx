@@ -1,7 +1,7 @@
 "use client";
 
 import { AppLogo } from "@/assets/AppLogo";
-import { ThemeToggle } from "@/components/ToggleThemeBtn";
+
 import { UserProfileMenu } from "@/components/UserProfileMenu";
 import {
   Sidebar,
@@ -178,7 +178,7 @@ export function DashboardSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
         <div className="flex w-full items-center gap-2 group-data-[collapsible=icon]:flex-col">
-          <ThemeToggle className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none" />
+
           <UserProfileMenu
             accountMenu
             className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none"
