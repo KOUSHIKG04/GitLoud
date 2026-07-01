@@ -1,48 +1,128 @@
 "use client";
 
-import { HomeLink } from "@/components/HomeLink";
-import { Home } from "lucide-react";
 import Link from "next/link";
+import { AppLogo } from "@/assets/AppLogo";
+import { HomeLink } from "@/components/HomeLink";
+// import { cn } from "@/lib/utils";
 
-const footerLinkClass =
-  "px-3 py-1 border shadow-sm text-chart-3 relative transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary/50 after:transition-all after:duration-300 hover:text-primary/80 hover:after:w-full disabled:opacity-60";
 const currentYear = new Date().getFullYear();
 
 export function Footer() {
   return (
-    <footer className="border-t bg-background px-4 py-2 sm:px-6 lg:px-10">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-        <span>
-          Copyright (c) {currentYear} GitLoud. Built for developers who ship in
-          public.
-        </span>
+    <footer className="bg-background border-t">
+      <div className="mx-auto w-full max-w-7xl">
+        <div className="px-10 py-12 border-b">
+          <div className="flex items-center gap-3">
+            <AppLogo className="size-4 text-foreground" />
+            <span className="text-md font-bold tracking-tight text-foreground">
+              GitLoud
+            </span>
+          </div>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            GitLoud turns GitHub pull requests and commits into clear summaries,
+            changelog entries, portfolio bullets, and social posts. Built for
+            developers who ship in public.
+          </p>
+        </div>
+      </div>
 
-        <nav
-          aria-label="Footer navigation"
-          className="flex flex-wrap items-center gap-4"
-        >
-          <HomeLink
-            aria-label="Go to home"
-            className="relative border px-3 py-1 shadow-sm transition-colors after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-primary/50 after:transition-all after:duration-300 hover:text-primary/80 hover:after:w-full"
-          >
-            <Home className="mt-0.75 size-3.5" />
-          </HomeLink>
-          <Link href="/examples" className={footerLinkClass}>
-            EXAMPLES
-          </Link>
-          <Link href="/#feedback" className={footerLinkClass}>
-            FEEDBACK
-          </Link>
-          <Link href="/security" className={footerLinkClass}>
-            SECURITY
-          </Link>
-          <Link href="/privacy" className={footerLinkClass}>
-            PRIVACY
-          </Link>
-          <Link href="/terms" className={footerLinkClass}>
-            TERMS
-          </Link>
-        </nav>
+      <div className="grid grid-cols-4 divide-x border-b">
+        <div className="col-span-2 p-10 flex flex-col items-left justify-center">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+            Contact Us:
+            <span>
+              <a
+                href="koushikgdatta5@gmail.com"
+                className="font-medium text-foreground lowercase hover:text-chart-3 transition-colors"
+              >
+                {" "}
+                koushikgdatta5@gmail.com
+              </a>
+            </span>
+          </h3>
+          <div className="pt-2 text-sm leading-6 text-muted-foreground">
+            <p></p>
+            <p className="text-xs pt-1 text-muted-foreground/60">
+              Copyright &copy; {currentYear} GitLoud. All rights reserved.
+            </p>
+          </div>
+          
+        </div>
+
+        <div className="p-10">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+            Navigation
+          </h3>
+          <ul className="pt-3 space-y-3 text-sm uppercase">
+            <li>
+              <HomeLink className="text-muted-foreground hover:text-chart-3 transition-colors">
+                Home
+              </HomeLink>
+            </li>
+            <li>
+              <Link
+                href="/examples"
+                className="text-muted-foreground hover:text-chart-3 transition-colors"
+              >
+                Examples
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/feedback"
+                className="text-muted-foreground hover:text-chart-3 transition-colors"
+              >
+                Feedback
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/dashboard"
+                className="text-muted-foreground hover:text-chart-3 transition-colors"
+              >
+                Dashboard
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div className="p-10">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+            Support
+          </h3>
+          <ul className="pt-3 space-y-3 text-sm uppercase">
+           
+            <li>
+              <Link
+                href="/privacy"
+                className="text-muted-foreground hover:text-chart-3 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+            </li> <li>
+              <Link
+                href="/security"
+                className="text-muted-foreground hover:text-chart-3 transition-colors"
+              >
+                Security
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/terms"
+                className="text-muted-foreground hover:text-chart-3 transition-colors"
+              >
+                Terms of Service
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="overflow-hidden pt-10">
+        <h1 className="text-center text-[15vw] font-bold leading-[0.8] tracking-tight bg-linear-to-b from-transparent to-primary/80 bg-clip-text text-transparent -mb-5.5">
+          GitLoud
+        </h1>
       </div>
     </footer>
   );
