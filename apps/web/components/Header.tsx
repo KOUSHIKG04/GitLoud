@@ -8,6 +8,7 @@ import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { AppLogo } from "@/assets/AppLogo";
 import type { MouseEvent } from "react";
+import { useRouter } from "next/navigation";
 
 function scrollToLandingSection(
   event: MouseEvent<HTMLAnchorElement>,
@@ -36,6 +37,7 @@ function scrollToLandingSection(
 
 export function Header() {
   const { isLoaded, isSignedIn } = useUser();
+  const { push } = useRouter();
 
   return (
     <>
@@ -71,9 +73,9 @@ export function Header() {
             Examples
           </Link>
           <Link
-            href="/#feedback"
+            href="/feedback"
             className="transition-colors hover:text-foreground"
-            onClick={(event) => scrollToLandingSection(event, "feedback")}
+            onClick={() => push("/feedback")}
           >
             Feedback
           </Link>
