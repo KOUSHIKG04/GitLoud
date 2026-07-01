@@ -9,7 +9,7 @@ import { seoFaqItems } from "./seo-faq-items";
 export function SeoFaqSection() {
   return (
     <section className="px-4 py-16 sm:px-6 lg:px-20 lg:py-24">
-      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <div className="mx-auto grid w-full max-w-4xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <div className="space-y-3">
           <p className="text-sm font-semibold sm:text-base">FAQ</p>
           <h2 className="max-w-xl text-2xl font-semibold tracking-tight sm:text-3xl">

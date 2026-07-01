@@ -12,7 +12,7 @@ export function GeneratorSection() {
       id="generator"
       className="px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-38"
     >
-      <MotionViewportStagger className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <MotionViewportStagger className="mx-auto grid w-full max-w-4xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <MotionViewportStagger className="space-y-3">
           <MotionItem>
             <p className="text-sm font-semibold">DASHBOARD</p>
@@ -38,7 +38,7 @@ export function GeneratorSection() {
         <MotionItem>
           <GeneratorPreview />
 
-          <MotionSection className="mx-auto flex w-full max-w-6xl justify-center mt-10">
+          <MotionSection className="mx-auto flex w-full max-w-4xl justify-center mt-10">
             <DashboardGetStartedButton />
           </MotionSection>
         </MotionItem>

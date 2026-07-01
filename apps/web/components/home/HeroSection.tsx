@@ -4,8 +4,7 @@ import { ScrollToGeneratorButton } from "@/components/ScrollToGeneratorButton";
 export function HeroSection() {
   return (
     <section className="relative flex min-h-[86dvh] items-center justify-center px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
-      <div
-        id="hero"
+      <div id="hero"
         className="mx-auto w-full max-w-sm scroll-mt-24 text-center sm:max-w-2xl lg:max-w-4xl"
       >
         <MotionStagger>

@@ -43,7 +43,7 @@ export const metadata: Metadata = {
   },
 };
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -62,6 +62,7 @@ const structuredData = {
     },
   ],
 };
+
 const faqStructuredData = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -102,6 +103,7 @@ export default function Home() {
       <HowItWorksSection />
       <PricingSection />
       <SeoFaqSection />
+
       <Footer />
     </main>
   );
@@ -113,7 +115,7 @@ function PricingSection() {
       id="pricing"
       className="px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-34"
     >
-      <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <div className="mx-auto grid w-full max-w-4xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
         <div className="space-y-4">
           <p className="text-sm font-semibold">FREE ACCESS</p>
           <h2 className="max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">

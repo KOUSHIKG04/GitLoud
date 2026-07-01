@@ -3,7 +3,7 @@ import { MotionItem, MotionViewportStagger } from "@/components/LandingMotion";
 export function HowItWorksSection() {
   return (
     <section className="px-4 py-16 sm:px-6 lg:px-20 lg:py-24 ">
-      <div className="mx-auto w-full max-w-6xl space-y-7">
+      <div className="mx-auto w-full max-w-4xl space-y-7">
         <MotionViewportStagger className="mx-auto  space-y-3 ">
           <MotionItem>
             <p className="text-sm font-semibold ">HOW IT WORKS</p>
