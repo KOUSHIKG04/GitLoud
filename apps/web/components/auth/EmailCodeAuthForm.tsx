@@ -257,8 +257,7 @@ function CodeStep({
           Enter verification code
         </h2>
         <p className="text-sm leading-6 text-muted-foreground">
-          We sent a six-digit code to{" "}
-          <span className="text-foreground">{email}</span>.
+          We sent a six-digit code to email
         </p>
       </div>
       <InputOTP

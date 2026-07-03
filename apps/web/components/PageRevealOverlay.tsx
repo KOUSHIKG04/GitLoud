@@ -1,6 +1,5 @@
 "use client";
 
-import { LiquidEther } from "@repo/ui/components/liquid-ether";
 import { useEffect, useState } from "react";
 
 export function PageRevealOverlay() {
@@ -22,7 +21,6 @@ export function PageRevealOverlay() {
         isVisible ? "opacity-100 blur-0" : "opacity-0 blur-sm",
       ].join(" ")}
     >
-      <LiquidEther className="fixed inset-0 opacity-80" />
     </div>
   );
 }

@@ -1,150 +1,246 @@
 "use client";
 
-import { AppLogo } from "@/assets/AppLogo";
 import { getApiUrl } from "@/lib/api-url";
-import { LiquidEther } from "@repo/ui/components/liquid-ether";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DotmSquare4 } from "@repo/ui/components/dotm-square-4";
 
-const storageKey = "gitloud:backend-wake-screen:v1";
-const minVisibleMs = 10_000;
-const maxVisibleMs = 15_000;
-const retryDelayMs = 1_500;
-const requestTimeoutMs = 4_000;
+const STORAGE_KEY = "gitloud:backend-wake-screen:v1";
 
-type WakeStatus = "starting" | "ready" | "slow";
+const SHOW_DELAY_MS = 400;
+const MIN_VISIBLE_MS = 2_500;
+const MAX_VISIBLE_MS = 15_000;
+
+const INITIAL_RETRY_DELAY_MS = 900;
+const MAX_RETRY_DELAY_MS = 4_000;
+const REQUEST_TIMEOUT_MS = 4_000;
+
+type WakeStatus = "idle" | "starting" | "ready" | "slow";
+type WakeResult = "skipped" | "ready" | "timeout";
 
 export function BackendWakeScreen() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [status, setStatus] = useState<WakeStatus>("starting");
+  const { visible, status } = useBackendWakeScreen();
 
-  useEffect(() => {
-    if (!shouldShowWakeScreen()) {
-      return;
+  const message = useMemo(() => {
+    switch (status) {
+      case "ready":
+        return "Workspace ready…";
+      case "slow":
+        return "Still warming up…";
+      case "starting":
+        return "Starting services…";
+      default:
+        return "";
     }
+  }, [status]);
 
-    let isCancelled = false;
-    const startedAt = Date.now();
-    setIsVisible(true);
-
-    const finish = () => {
-      if (isCancelled) {
-        return;
-      }
-
-      sessionStorage.setItem(storageKey, "done");
-      setIsVisible(false);
-    };
-
-    const maxTimer = window.setTimeout(() => {
-      setStatus("slow");
-      finish();
-    }, maxVisibleMs);
-
-    async function waitForMinimumThenFinish() {
-      const remainingMs = Math.max(minVisibleMs - (Date.now() - startedAt), 0);
-
-      window.setTimeout(() => {
-        window.clearTimeout(maxTimer);
-        finish();
-      }, remainingMs);
-    }
-
-    async function wakeBackend() {
-      while (!isCancelled && Date.now() - startedAt < maxVisibleMs) {
-        const isReady = await pingBackendHealth();
-
-        if (isReady) {
-          setStatus("ready");
-          await waitForMinimumThenFinish();
-          return;
-        }
-
-        await wait(retryDelayMs);
-      }
-    }
-
-    void wakeBackend();
-
-    return () => {
-      isCancelled = true;
-      window.clearTimeout(maxTimer);
-    };
-  }, []);
-
-  if (!isVisible) {
-    return null;
-  }
-
-  const message =
-    status === "ready"
-      ? "is being ready, Opening your workspace"
-      : status === "slow"
-        ? "is still warming up, Opening your workspace"
-        : "is being ready, Opening your workspace";
+  if (!visible) return null;
 
   return (
     <div
-      className="fixed inset-0 z-1000 flex min-h-dvh items-center justify-center overflow-hidden bg-background px-4 text-foreground sm:px-8"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
       role="status"
       aria-live="polite"
+      aria-busy="true"
     >
-      <LiquidEther className="bg-[#101010]" />
-
-      <div className="relative flex w-full max-w-6xl flex-col items-center justify-center gap-6 text-center">
-        <div className="flex w-full min-w-0 items-center justify-center gap-2 sm:gap-3">
-          <AppLogo className="size-7 shrink-0 animate-pulse sm:size-9 md:size-10" />
-
-          <div className="flex min-w-0 items-center justify-center gap-x-1.5 whitespace-nowrap font-mono text-[clamp(0.7rem,2.45vw,2rem)] leading-tight tracking-normal sm:gap-x-2.5">
-            <span>Git</span>
-            <span className="text-primary">loud</span>
-            <span>{message}</span>
-          </div>
-        </div>
-
-        <div className="relative mt-3 flex h-14 w-full max-w-72 items-center justify-center overflow-hidden font-mono text-[clamp(1.35rem,8vw,2.25rem)] font-semibold text-foreground sm:h-20 sm:max-w-88 sm:text-4xl">
-          <span className="gitloud-status-word">Frontend ...</span>
-          <span className="gitloud-status-word">API ...</span>
-          <span className="gitloud-status-word">Backend ...</span>
-        </div>
+      <div className="flex flex-col items-center gap-6">
+        <DotmSquare4 />
+        <p className="text-sm text-muted-foreground motion-safe:animate-pulse lg:text-lg">
+          {message}
+        </p>
+        <span className="sr-only">Loading workspace</span>
       </div>
     </div>
   );
 }
 
-function shouldShowWakeScreen() {
-  if (typeof window === "undefined") {
-    return false;
-  }
+function getForcedWakeMode(): string | null {
+  if (typeof window === "undefined") return null;
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("wake")) return params.get("wake") || "normal";
+  if (params.has("awake")) return params.get("awake") || "normal";
+  return null;
+}
 
-  const forceWakeScreen = new URLSearchParams(window.location.search).has(
-    "wake",
+function useBackendWakeScreen() {
+  const [visible, setVisible] = useState(false);
+  const [status, setStatus] = useState<WakeStatus>("idle");
+
+  const doneRef = useRef(false);
+
+  useEffect(() => {
+    if (!shouldShowWakeScreen()) return;
+
+    const forcedMode = getForcedWakeMode();
+    const isForced = forcedMode !== null;
+
+    const controller = new AbortController();
+
+    let showTimer: number | null = null;
+    let maxTimer: number | null = null;
+    let visibleAt = 0;
+    const startedAt = performance.now();
+
+    const clearTimers = () => {
+      if (showTimer) window.clearTimeout(showTimer);
+      if (maxTimer) window.clearTimeout(maxTimer);
+    };
+
+    const complete = async (result: WakeResult) => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+
+      clearTimers();
+
+      if (result === "ready" && visibleAt > 0) {
+        const shownFor = performance.now() - visibleAt;
+        const remaining = Math.max(MIN_VISIBLE_MS - shownFor, 0);
+
+        try {
+          await sleep(remaining, controller.signal);
+        } catch {
+          return;
+        }
+      }
+
+      try {
+        if (!isForced && (result === "ready" || result === "timeout")) {
+          sessionStorage.setItem(STORAGE_KEY, "done");
+        }
+      } catch {}
+
+      setVisible(false);
+    };
+
+    showTimer = window.setTimeout(() => {
+      if (doneRef.current) return;
+      visibleAt = performance.now();
+      setVisible(true);
+      setStatus("starting");
+    }, SHOW_DELAY_MS);
+
+    maxTimer = window.setTimeout(() => {
+      if (doneRef.current) return;
+      setVisible(true);
+      setStatus("slow");
+      void complete("timeout");
+    }, MAX_VISIBLE_MS);
+
+    const run = async () => {
+      let retryDelay = INITIAL_RETRY_DELAY_MS;
+
+      while (!doneRef.current) {
+        const elapsed = performance.now() - startedAt;
+        if (elapsed >= MAX_VISIBLE_MS) return;
+
+        const isReady = await pingBackendHealth(controller.signal);
+        if (doneRef.current) return;
+
+        // If forced with 'slow' or 'timeout', simulate that the backend is never ready
+        // If forced normally, simulate that the backend takes 3 seconds to wake up so you can see the UI transition
+        let simulatedReady = isReady;
+        if (isForced) {
+          if (forcedMode === "slow" || forcedMode === "timeout") {
+            simulatedReady = false;
+          } else {
+            simulatedReady = isReady && elapsed >= 3000;
+          }
+        }
+
+        if (simulatedReady) {
+          if (!isForced && performance.now() - startedAt < SHOW_DELAY_MS) {
+            await complete("skipped");
+            return;
+          }
+
+          if (visibleAt === 0) {
+            visibleAt = performance.now();
+            setVisible(true);
+          }
+          setStatus("ready");
+          await complete("ready");
+          return;
+        }
+
+        try {
+          await sleep(retryDelay, controller.signal);
+        } catch {
+          return;
+        }
+
+        retryDelay = Math.min(Math.round(retryDelay * 1.6), MAX_RETRY_DELAY_MS);
+      }
+    };
+
+    void run();
+
+    return () => {
+      doneRef.current = true;
+      controller.abort();
+      clearTimers();
+    };
+  }, []);
+
+  return { visible, status };
+}
+
+function shouldShowWakeScreen() {
+  if (getForcedWakeMode() !== null) return true;
+  if (typeof window === "undefined") return false;
+
+  try {
+    return sessionStorage.getItem(STORAGE_KEY) !== "done";
+  } catch {
+    return true;
+  }
+}
+
+async function pingBackendHealth(parentSignal?: AbortSignal) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    REQUEST_TIMEOUT_MS,
   );
 
-  return forceWakeScreen || sessionStorage.getItem(storageKey) !== "done";
-}
+  const onAbort = () => controller.abort();
+  parentSignal?.addEventListener("abort", onAbort, { once: true });
 
-async function pingBackendHealth() {
   try {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => {
-      controller.abort();
-    }, requestTimeoutMs);
+    const response = await fetch(getApiUrl("/health"), {
+      cache: "no-store",
+      signal: controller.signal,
+    });
 
-    try {
-      const response = await fetch(getApiUrl("/health"), {
-        cache: "no-store",
-        signal: controller.signal,
-      });
-
-      return response.ok;
-    } finally {
-      window.clearTimeout(timeout);
-    }
+    return response.ok;
   } catch {
     return false;
+  } finally {
+    window.clearTimeout(timeout);
+    parentSignal?.removeEventListener("abort", onAbort);
   }
 }
 
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
+function sleep(ms: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      cleanup();
+      resolve();
+    }, ms);
+
+    const onAbort = () => {
+      window.clearTimeout(timer);
+      cleanup();
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+
+    const cleanup = () => {
+      signal?.removeEventListener("abort", onAbort);
+    };
+
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
 }

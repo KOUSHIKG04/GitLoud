@@ -16,6 +16,7 @@ import { AppLogo } from "@/assets/AppLogo";
 import type { MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
+import { ThemeToggle } from "@/components/ToggleThemeBtn";
 
 function scrollToLandingSection(
   event: MouseEvent<HTMLAnchorElement>,
@@ -49,7 +50,7 @@ export function Header() {
 
   return (
     <>
-      <header className="fixed left-1/2 top-0 z-50 flex h-16 w-full -translate-x-1/2 items-center justify-between rounded-xs border border-border bg-background px-12 py-0 shadow-lg dark:border-white/10 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)]">
+      <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-border bg-background/80 px-6 lg:px-12 py-0 shadow-xs backdrop-blur-md dark:border-white/10">
         <div className="flex items-center">
           <HomeLink className="flex items-center gap-2 text-lg font-bold tracking-tight">
             <AppLogo className="size-6" />
@@ -90,6 +91,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           {isLoaded && !isSignedIn ? (
             <>
               <Button
@@ -169,41 +171,41 @@ export function Header() {
                 </Link>
               </nav>
 
-              {isLoaded && !isSignedIn ? (
-                <div className="mt-auto p-6 border-t border-border flex flex-col gap-3">
-                  <Button asChild variant="outline" className="w-full">
-                    <Link
-                      href="/sign-in"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      SIGN IN
-                    </Link>
-                  </Button>
-                  <Button asChild className="w-full">
-                    <Link
-                      href="/sign-up"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      SIGN UP
-                    </Link>
-                  </Button>
-                </div>
-              ) : isSignedIn ? (
-                <div className="mt-auto p-6 border-t border-border w-full flex items-center justify-center">
+              <div className="mt-auto p-6 border-t border-border w-full flex flex-col gap-4">
+                {isLoaded && !isSignedIn ? (
+                  <div className="flex flex-col gap-3">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link
+                        href="/sign-in"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        SIGN IN
+                      </Link>
+                    </Button>
+                    <Button asChild className="w-full">
+                      <Link
+                        href="/sign-up"
+                        onClick={() => setMobileOpen(false)}
+                      >
+                        SIGN UP
+                      </Link>
+                    </Button>
+                  </div>
+                ) : isSignedIn ? (
                   <UserProfileMenu
                     accountMenu
                     showLabel
                     side="top"
-                    variant="ghost"
-                    className="w-full h-10 justify-start gap-3 px-3"
+                    variant="outline"
+                    className="w-full h-10 justify-start gap-3 px-3 "
                   />
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </SheetContent>
           </Sheet>
         </div>
       </header>
-      <div className="h-14" aria-hidden="true" />
+      <div className="h-16" aria-hidden="true" />
     </>
   );
 }

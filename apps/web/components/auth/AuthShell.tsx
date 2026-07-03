@@ -1,47 +1,56 @@
 "use client";
 
 import { Header } from "@/components/Header";
-import { QuestionMarkIcon } from "../home/GeneratorSection";
-import { motion } from "motion/react";
+import { Dithering } from "@paper-design/shaders-react";
+import { useTheme } from "@/lib/theme-provider";
 
-export function AuthShell({
-  children,
-}: {
-  children: React.ReactNode;
-  eyebrow: string;
-  title: string;
-}) {
+export function AuthShell({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme } = useTheme();
+
+  const isDark = resolvedTheme === "dark";
+
+  const colorBack = isDark ? "#0a0a0a" : "#ffffff";
+  const colorFront = isDark ? "#ffdf2082" : "#0284c7";
+
   return (
     <main className="min-h-screen">
       <Header />
 
-      <section className="grid min-h-[calc(100vh-3.5rem)] md:grid-cols-[1fr_1px_1fr]">
-        <div className="flex items-center justify-center px-6 py-12">
-          <div className="w-full max-w-sm">{children}</div>
+      <section className="grid min-h-[calc(100vh-4rem)] md:grid-cols-[1fr_1px_1fr]">
+        <div className="relative hidden overflow-hidden md:flex items-center justify-center">
+          <Dithering
+            className="absolute inset-0 h-full w-full"
+            colorBack={colorBack}
+            colorFront={colorFront}
+            shape="warp"
+            type="2x2"
+            size={2}
+            speed={0.4}
+            scale={0.5}
+            offsetY={0.8}
+          />
+
+          <div className="relative z-10 text-center perspective-distant transform-3d">
+            <div className="relative z-10 max-w-md space-y-8 text-center">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.3em] text-chart-1">
+                  Gitloud
+                </p>
+
+                <p className="mt-5 text-md uppercase leading-7">
+                  Tool that turns your GitHub work into release notes,
+                  changelogs, summaries and other content.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="hidden md:block bg-border" />
 
-        <div className="flex justify-center items-center px-8 md:px-16 py-12 bg-transparent [--pattern-fg:var(--color-gray-950)]/5 dark:[--pattern-fg:var(--color-white)]/10 bg-[repeating-linear-gradient(45deg,var(--pattern-fg),var(--pattern-fg)_1px,transparent_1px,transparent_10px)]">
-          <div className="max-w-lg ">
-            <div className="flex flex-col gap-8 min-h-36 min-w-50 items-center justify-center bg-background p-3 text-sm leading-6 text-muted-foreground">
-              <motion.div
-                style={{ perspective: 1000 }}
-                animate={{
-                  rotateY: [0, 180, 360],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              >
-                <QuestionMarkIcon size={40} />
-              </motion.div>
-              {/* <div>Dev --&gt; WIP</div> */}
-              <div>W I P</div>
-            </div>
-          </div>
+        <div className="flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-sm">
+            {children}</div>
         </div>
       </section>
     </main>

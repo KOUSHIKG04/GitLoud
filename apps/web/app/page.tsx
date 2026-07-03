@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { LazyMotionCursor } from "@/components/LazyMotionCursor";
 import { AuthToast } from "@/components/auth/AuthToast";
 import { GeneratorSection } from "@/components/home/GeneratorSection";
 import { HeroSection } from "@/components/home/HeroSection";
@@ -43,7 +42,8 @@ export const metadata: Metadata = {
   },
 };
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -83,6 +83,7 @@ const faqStructuredData = {
  *
  * @returns React page layout component.
  */
+
 export default function Home() {
   return (
     <main className="relative isolate min-h-dvh flex flex-col overflow-x-hidden">
@@ -96,111 +97,16 @@ export default function Home() {
         {JSON.stringify(faqStructuredData)}
       </script>
 
-      <LazyMotionCursor />
-      <Header />
-      <HeroSection />
-      <GeneratorSection />
-      <HowItWorksSection />
-      <PricingSection />
-      <SeoFaqSection />
+      <div className="w-full max-w-5xl mx-auto md:border-x md:border-border bg-background">
+        <Header />
+        <HeroSection />
+        <GeneratorSection />
+        <HowItWorksSection />
+        <SeoFaqSection />
+      </div>
 
       <Footer />
     </main>
   );
 }
 
-function PricingSection() {
-  return (
-    <section
-      id="pricing"
-      className="px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-34"
-    >
-      <div className="mx-auto grid w-full max-w-4xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="space-y-4">
-          <p className="text-sm font-semibold">FREE ACCESS</p>
-          <h2 className="max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">
-            Private repos and custom AI keys are available for free.
-          </h2>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-            Connect the GitHub App, generate from selected private repository
-            activity, and use your own supported AI provider key without a paid
-            upgrade.
-          </p>
-        </div>
-
-        <div className="grid gap-4">
-          <PricingPlan
-            name="Free"
-            price="$0"
-            description="For public and private GitHub work, saved history, and bring-your-own AI generation."
-            cta="OPEN DASHBOARD"
-            href="/dashboard"
-            features={[
-              "Public PR and commit generation",
-              "Private repository access through the GitHub App",
-              "Generate from synced commits and pull requests",
-              "Custom Gemini, OpenAI, Anthropic, or OpenRouter key",
-              "Technical summaries and changelog entries",
-              "Portfolio bullets and social posts",
-              "Saved generation history",
-            ]}
-          />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function PricingPlan({
-  name,
-  price,
-  badge,
-  description,
-  features,
-  cta,
-  href,
-}: {
-  name: string;
-  price: string;
-  badge?: string;
-  description: string;
-  features: string[];
-  cta: string;
-  href?: string;
-}) {
-  return (
-    <article className="relative flex min-h-[420px] flex-col border border-border bg-background p-6 shadow-sm">
-      {badge ? (
-        <div className="absolute right-4 top-4 border border-chart-3 bg-chart-3/10 px-2 py-1 text-xs font-medium text-chart-3">
-          {badge}
-        </div>
-      ) : null}
-
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-xl font-semibold">{name}</h3>
-          <div className="mt-3 flex items-end gap-1">
-            <span className="text-4xl font-semibold tracking-tight">
-              {price}
-            </span>
-            <span className="pb-1 text-sm text-muted-foreground">forever</span>
-          </div>
-        </div>
-        <p className="text-sm leading-6 text-muted-foreground">{description}</p>
-      </div>
-
-      <ul className="mt-6 flex-1 space-y-3 text-sm">
-        {features.map((feature) => (
-          <li key={feature} className="flex gap-2">
-            <Check className="mt-0.5 size-4 shrink-0 text-chart-3" />
-            <span>{feature}</span>
-          </li>
-        ))}
-      </ul>
-
-      <Button asChild className="mt-6 w-full" variant="outline">
-        <Link href={href ?? "/dashboard"}>{cta}</Link>
-      </Button>
-    </article>
-  );
-}

@@ -10,9 +10,10 @@ import {
 } from "@repo/ui/components/dropdown-menu";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { getUserDisplayName } from "@/lib/userDisplayName";
-import { 
-  // BadgeCheck, Bell, 
-  LogOut } from "lucide-react";
+import {
+  // BadgeCheck, Bell,
+  LogOut,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
@@ -78,7 +79,7 @@ export function UserProfileMenu({
           type="button"
           variant={variant}
           className={cn(
-            "flex size-[31px] items-center justify-center rounded-none p-0 outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            " flex size-[31px] items-center justify-center rounded-none p-0 outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             variant !== "ghost" &&
               "border border-border bg-background hover:bg-muted",
             showLabel && "h-9 w-full justify-start gap-2 px-2",
@@ -125,7 +126,7 @@ export function UserProfileMenu({
             ) : null}
           </>
         )}
-        <DropdownMenuSeparator className={cn(accountMenu && "my-0")} />
+        <DropdownMenuSeparator className={cn(accountMenu && "my-0 mt-2")} />
         {/* {accountMenu ? (
           <>
             <div className="p-1">
