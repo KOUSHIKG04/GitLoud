@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 
 export default function GitHubActivityPage() {
   return (
-    <main className="relative isolate">
+    <main className="max-w-3xl mx-auto relative isolate">
       <div className="flex justify-center px-4 sm:px-8">
-        <section className="w-full max-w-5xl space-y-8">
+        <section className="w-full  space-y-4">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h1 className="font-semibold tracking-tight sm:text-2xl">
               GITHUB ACTIVITY
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-md text-muted-foreground tracking-normal">
               Select synced commits or pull requests from your GitHub App
               installation and generate content without pasting links.
             </p>

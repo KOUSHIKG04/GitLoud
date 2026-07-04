@@ -1,15 +1,18 @@
 "use client";
 
-import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
 import { Button } from "@repo/ui/components/button";
+import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
 import {
-  ChevronRight,
+  Code2,
+  GitBranch,
+  CalendarDays,
+  User,
   GitPullRequest,
-  SquarePen,
-  UserRound,
+  Paperclip,
+  ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import type {
-  GenerationStep,
   GitHubActivityItem,
 } from "./github-activity-types";
 
@@ -17,63 +20,181 @@ export function GitHubActivityCustomizeStep({
   context,
   generating,
   selectedItem,
+  selectedMedia,
   setContext,
-  setGenerationStep,
 }: {
   context: string;
   generating: boolean;
   selectedItem: GitHubActivityItem | undefined;
+  selectedMedia: File | null;
   setContext: (value: string) => void;
-  setGenerationStep: (step: GenerationStep) => void;
 }) {
   return (
     <div className="space-y-4">
       {selectedItem ? (
-        <div className="grid border bg-background sm:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="min-w-0 p-3">
-            <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <span className="flex size-6 items-center justify-center bg-primary/10 text-primary">
+        <div className="border bg-card text-card-foreground p-6 shadow-sm rounded-none">
+          {/* Header Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="flex size-10 shrink-0 items-center justify-center bg-primary/10 text-primary border border-primary/20 rounded-none">
                 {selectedItem.sourceType === "pull-request" ? (
-                  <GitPullRequest className="size-3.5" />
+                  <GitPullRequest className="size-5" />
                 ) : (
-                  <CommitBranchIcon className="size-3.5" />
+                  <Code2 className="size-5" />
                 )}
               </span>
-              Selected{" "}
-              {selectedItem.sourceType === "pull-request" ? "PR" : "commit"}
+              <span className="text-sm font-medium text-muted-foreground truncate">
+                {selectedItem.sourceType === "pull-request" ? "Pull Request" : "Commit"} •{" "}
+                <span className="text-primary font-mono font-semibold hover:underline">
+                  <a href={selectedItem.url} target="_blank" rel="noreferrer">
+                    {(() => {
+                      const match = selectedItem.url.match(/github\.com\/([^/]+)\/([^/]+)/);
+                      return match ? `${match[1]}/${match[2]}` : "Repository";
+                    })()}
+                  </a>
+                </span>
+              </span>
             </div>
 
-            <div className="relative mt-2 bg-muted/20 py-1.5 pl-4 pr-3">
-              <span className="absolute inset-y-0 left-0 w-1 bg-primary" />
-              <p className="truncate text-sm font-semibold">
-                {selectedItem.title}
-              </p>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span className="bg-primary/10 px-2 py-0.5 font-medium text-primary">
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-9 px-3 rounded-none border-input"
+              >
+                <a href={selectedItem.url} target="_blank" rel="noreferrer">
+                  <ExternalLink className="size-4 mr-2" />
+                  Open
+                </a>
+              </Button>
+
+              <Button
+                asChild
+                variant="outline"
+                size="icon-sm"
+                className="size-9 p-0 rounded-none border-input"
+              >
+                <a href={selectedItem.url} target="_blank" rel="noreferrer" title="Open on GitHub">
+                  <GithubIconIcon className="size-4" />
+                </a>
+              </Button>
+            </div>
+          </div>
+
+          {/* Title & Divider */}
+          <div className="mt-4">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              {selectedItem.title}
+            </h1>
+            <div className="mt-4 border-b border-border/60" />
+          </div>
+
+          {/* Description */}
+          <div className="mt-4">
+            <p className="text-sm text-muted-foreground/60 italic">
+              No additional description provided.
+            </p>
+          </div>
+
+          {/* Metadata Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-b border-border/80 py-4 my-6 gap-4 divide-y sm:divide-y-0 lg:divide-x divide-border">
+            {/* 1st: Author */}
+            <div className="flex items-center gap-3 py-2 sm:py-0">
+              <span className="flex size-10 shrink-0 items-center justify-center bg-muted text-muted-foreground border rounded-none">
+                <User className="size-4 text-primary/80" />
+              </span>
+              <div className="min-w-0">
+                <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Author
+                </span>
+                <span className="block text-sm font-semibold text-foreground mt-0.5 truncate">
+                  {selectedItem.author ?? "Unknown"}
+                </span>
+              </div>
+            </div>
+
+            {/* 2nd: Committed/Created Date */}
+            <div className="flex items-center gap-3 pt-4 sm:pt-0 sm:pl-0 lg:pl-4">
+              <span className="flex size-10 shrink-0 items-center justify-center bg-muted text-muted-foreground border rounded-none">
+                <CalendarDays className="size-4 text-primary/80" />
+              </span>
+              <div className="min-w-0">
+                <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {selectedItem.sourceType === "commit" ? "Committed on" : "Created on"}
+                </span>
+                <span className="block text-sm font-semibold text-foreground mt-0.5 truncate">
+                  {formatSourceDate(selectedItem.updatedAt)}
+                </span>
+              </div>
+            </div>
+
+            {/* 3rd: Branch */}
+            <div className="flex items-center gap-3 pt-4 sm:pt-4 lg:pt-0 lg:pl-4">
+              <span className="flex size-10 shrink-0 items-center justify-center bg-muted text-muted-foreground border rounded-none">
+                <GitBranch className="size-4 text-primary/80" />
+              </span>
+              <div className="min-w-0">
+                <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Branch
+                </span>
+                <div className="mt-0.5">
+                  <span className="inline-flex items-center bg-muted px-2 py-0.5 text-xs font-semibold rounded-none border font-mono">
+                    main
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* 4th: Identifier (PR # or Commit SHA) */}
+            <div className="flex items-center gap-3 pt-4 sm:pt-4 lg:pt-0 lg:pl-4">
+              <span className="flex size-10 shrink-0 items-center justify-center bg-muted text-muted-foreground border rounded-none">
+                {selectedItem.sourceType === "pull-request" ? (
+                  <GitPullRequest className="size-4 text-primary/80" />
+                ) : (
+                  <Code2 className="size-4 text-primary/80" />
+                )}
+              </span>
+              <div className="min-w-0">
+                <span className="block text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  {selectedItem.sourceType === "pull-request" ? "PR Number" : "Commit SHA"}
+                </span>
+                <span className="block text-sm font-semibold text-foreground mt-0.5 truncate font-mono">
                   {selectedItem.subtitle}
                 </span>
-                {selectedItem.author ? (
-                  <span className="flex items-center gap-1">
-                    <UserRound className="size-3.5 text-primary" />
-                    {selectedItem.author}
-                  </span>
-                ) : null}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-end border-t p-3 sm:min-w-44 sm:border-l sm:border-t-0">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 w-full shrink-0 px-2.5 text-xs sm:w-auto"
-              disabled={generating}
-              onClick={() => setGenerationStep("select")}
-            >
-              <SquarePen className="size-4" />
-              CHANGE SELECTION
-            </Button>
+          {/* Attached Media Section */}
+          <div className="mt-6 border bg-muted/10 p-3 rounded-none">
+            {selectedMedia ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20">
+                    <Paperclip className="size-3.5" />
+                  </span>
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Attached Media (1)
+                  </span>
+                </div>
+                <div className="flex items-center justify-between border bg-background p-2 rounded-none text-xs mt-2">
+                  <span className="truncate font-medium pr-2 max-w-[85%]">{selectedMedia.name}</span>
+                  <span className="text-muted-foreground font-mono shrink-0">
+                    {(selectedMedia.size / 1024).toFixed(1)} KB
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20 shrink-0">
+                  <Paperclip className="size-4" />
+                </span>
+                <span>
+                  No file attached to this {selectedItem.sourceType === "commit" ? "commit" : "pull request"}.
+                </span>
+              </div>
+            )}
           </div>
         </div>
       ) : null}
@@ -105,4 +226,25 @@ export function GitHubActivityCustomizeStep({
       </div>
     </div>
   );
+}
+
+function formatSourceDate(value: string | null) {
+  if (!value) return "";
+  const dateObj = new Date(value);
+  if (!Number.isFinite(dateObj.valueOf())) return "";
+
+  const formattedDate = dateObj.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const formattedTime = dateObj.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  return `${formattedDate} • ${formattedTime}`;
 }

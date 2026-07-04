@@ -20,10 +20,7 @@ import {
   providerLabels,
   useApiKeySettings,
 } from "../_hooks/use-api-key-settings";
-import { SettingsLoading } from "./settings-loading";
-
-const dropdownContentClass =
-  "w-(--radix-dropdown-menu-trigger-width) max-h-none overflow-hidden rounded-none";
+import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 
 export function ApiKeySettings() {
   const {
@@ -42,7 +39,7 @@ export function ApiKeySettings() {
   } = useApiKeySettings();
 
   if (loading) {
-    return <SettingsLoading />;
+    return <DotMatrixLoader className="min-h-64" label="Loading settings" />;
   }
 
   if (!data) {
@@ -96,7 +93,7 @@ export function ApiKeySettings() {
       ) : null}
 
       <div className="space-y-3">
-        <div className="grid min-w-0 gap-3 xl:grid-cols-[0.85fr_1.15fr]">
+        <div className="grid min-w-0 gap-3 md:grid-cols-[0.85fr_1.15fr]">
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
@@ -112,7 +109,10 @@ export function ApiKeySettings() {
                 <ChevronDown className="size-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className={dropdownContentClass}>
+            <DropdownMenuContent
+              align="start"
+              className="w-(--radix-dropdown-menu-trigger-width) max-h-none overflow-hidden rounded-none"
+            >
               {data.supportedProviders.map((provider) => (
                 <DropdownMenuItem
                   key={provider}

@@ -1,5 +1,5 @@
-import { DashboardLoading } from "./_components/dashboard-loading";
+import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 
 export default function Loading() {
-  return <DashboardLoading label="Loading dashboard" />;
+  return <DotMatrixLoader className="min-h-[calc(100dvh-3.5rem)]" label="Loading dashboard" />;
 }

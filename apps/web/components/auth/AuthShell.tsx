@@ -5,12 +5,9 @@ import { Dithering } from "@paper-design/shaders-react";
 import { useTheme } from "@/lib/theme-provider";
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
+  
   const { resolvedTheme } = useTheme();
-
-  const isDark = resolvedTheme === "dark";
-
-  const colorBack = isDark ? "#0a0a0a" : "#ffffff";
-  const colorFront = isDark ? "#ffdf2082" : "#0284c7";
+  const colorBack = resolvedTheme === "dark" ? "#0a0a0a" : "#ffffff";
 
   return (
     <main className="min-h-screen">
@@ -21,7 +18,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           <Dithering
             className="absolute inset-0 h-full w-full"
             colorBack={colorBack}
-            colorFront={colorFront}
+            colorFront="#ffdf2082"
             shape="warp"
             type="2x2"
             size={2}
@@ -49,8 +46,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
         <div className="hidden md:block bg-border" />
 
         <div className="flex items-center justify-center px-6 py-12">
-          <div className="w-full max-w-sm">
-            {children}</div>
+          <div className="w-full max-w-sm">{children}</div>
         </div>
       </section>
     </main>

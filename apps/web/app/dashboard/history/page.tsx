@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { HistoryLoading } from "./_components/history-loading";
+import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 import { HistoryList } from "./_components/history-list";
 
 export const metadata: Metadata = {
@@ -32,13 +32,10 @@ export default async function HistoryPage({
   } = await searchParams;
 
   return (
-    <main className="relative isolate min-h-[calc(100dvh-3.5rem)]">
+    <main className="relative isolate min-h-[calc(100dvh-3.5rem)] mx-auto w-full max-w-5xl">
       <section className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl flex-col gap-6 px-4 pb-6 pt-0">
-        <span className="text-2xl font-semibold tracking-tight">
-          Generations
-        </span>
 
-        <Suspense fallback={<HistoryLoading />}>
+        <Suspense fallback={<DotMatrixLoader className="min-h-64 flex-1" label="Loading history" />}>
           <HistoryList
             date={legacyDateParam}
             from={fromParam}

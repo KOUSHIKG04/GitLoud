@@ -18,17 +18,15 @@ export default async function SignInPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string; redirect_url?: string }>;
 }) {
-  const [
-    { callbackUrl, redirect_url: redirectUrl },
-    { userId },
-  ] = await Promise.all([searchParams, auth()]);
+  const [{ callbackUrl, redirect_url: redirectUrl }, { userId }] =
+    await Promise.all([searchParams, auth()]);
 
   const requestedUrl = callbackUrl ?? redirectUrl;
+  
   const isSafeRedirect =
     typeof requestedUrl === "string" &&
-    requestedUrl.startsWith("/") &&
-    !requestedUrl.startsWith("//") &&
-    !requestedUrl.startsWith("/\\");
+    requestedUrl.startsWith("/") && !requestedUrl.startsWith("//") && !requestedUrl.startsWith("/\\");
+
   const afterAuthUrl = isSafeRedirect ? requestedUrl : "/?auth=sign-in";
 
   if (userId) {
@@ -36,7 +34,7 @@ export default async function SignInPage({
   }
 
   return (
-    <AuthShell eyebrow="Welcome back" title="Sign in to GitLoud">
+    <AuthShell>
       <EmailCodeAuthForm mode="sign-in" redirectUrl={afterAuthUrl} />
     </AuthShell>
   );

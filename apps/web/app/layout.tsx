@@ -6,7 +6,6 @@ import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 
-
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
@@ -102,13 +101,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body
-        className={`${geistMono.variable} relative isolate h-dvh overflow-hidden bg-background`}
+        className={`${geistMono.variable} selection:bg-neutral-500/30 relative isolate h-dvh overflow-hidden bg-background`}
         suppressHydrationWarning
       >
 
         <ClerkProvider>
           <Providers initialTheme="dark">
             <ScrollArea id="app-scroll-area" className="relative z-10 h-dvh">
+
               {children}
             </ScrollArea>
             <Toaster />

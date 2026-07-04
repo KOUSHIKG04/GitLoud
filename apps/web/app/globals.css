@@ -3,10 +3,12 @@
 
 .gitloud-activity-scroll {
   scrollbar-width: none;
+  border:  none;
 }
 
 .gitloud-activity-scroll::-webkit-scrollbar {
   display: none;
+  border:  none;
 }
 
 @keyframes gitloud-wake {

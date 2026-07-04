@@ -1,67 +1,76 @@
 "use client";
 import { MotionItem, MotionStagger } from "@/components/LandingMotion";
-import { ScrollToGeneratorButton } from "@/components/ScrollToGeneratorButton";
-import { useTheme } from "@/lib/theme-provider";
-import { Dithering } from "@paper-design/shaders-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@repo/ui/components/button";
+import Image from "next/image";
+import { DashboardGetStartedButton } from "../DashboardGetStartedButton";
 
 export function HeroSection() {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-  const colorBack = isDark ? "#0a0a0a" : "#ffffff";
-  // const colorFront = isDark ? "#fcc800" : "#0284c7";
-  const colorFront = isDark ? "#ffdf2082" : "#0284c7";
-
   return (
-    <section className="relative flex min-h-[86dvh] items-center justify-center px-4 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
-      {/* <div className="absolute inset-0 z-0 mx-auto">
-        <Dithering
-          // width={880}
-          // height={620}
-          colorBack={colorBack}
-          colorFront={colorFront}
-          shape="warp"
-          type="4x4"
-          size={2}
-          speed={1}
-          scale={0.6}
-          className="absolute inset-0 z-0 mx-auto"
-        />
-      </div> */}
+    <section className="relative flex flex-col items-center justify-center overflow-hidden py-24 sm:py-28 lg:py-22 w-full">
       <div
         id="hero"
-        className="relative z-10 mx-auto w-full max-w-sm scroll-mt-24 text-center sm:max-w-2xl lg:max-w-4xl"
+        className=" relative z-10 mx-auto w-full max-w-sm scroll-mt-24 text-center sm:max-w-2xl lg:max-w-4xl px-4 sm:px-6 lg:px-8"
       >
-        <div className="">
+        <div className="relative ">
           <MotionStagger>
             <MotionItem>
-              <p className="mb-6 border inline-flex items-center gap-2 bg-background/60 px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm">
+              <Button
+                variant="outline"
+                className="pointer-event-none mb-12 border uppercase inline-flex items-center gap-4 bg-background/60 px-4  py-1.5  font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm"
+              >
                 <span className="size-2 rounded-full bg-chart-1" />
-                Developer PR content assistant
+                <span className="text-[12px] tracking-tight">
+                  Developer PR content assistant
+                </span>
+              </Button>
+            </MotionItem>
+
+            <MotionItem>
+              <p className="relative z-10  text-balance mt-4 sm:mt-5 text-3xl font-bold tracking-tighter sm:text-4xl lg:text-5xl">
+                Ship it,{" "}
+                <span
+                  className={cn(
+                    "after:-rotate-10 after:skew-10 after:absolute after:bg-primary after:-z-10 after:inset-0 after:content-[''] after:w-full after:h-full",
+                    "text-center tracking-tight inline-block relative z-10 ",
+                  )}
+                >
+                  Make noise.
+                </span>
               </p>
             </MotionItem>
 
             <MotionItem>
-              <p className="text-balance mt-4 sm:mt-5 text-3xl font-bold tracking-tight sm:text-4xl lg:text-6xl">
-                Ship it. <span className="text-primary">Make noise.</span>
-              </p>
-            </MotionItem>
-
-            <MotionItem>
-              <p className="mt-4 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md">
+              <p className="mt-4 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md tracking-tighter">
                 Drop a GitHub PR or commit link. Public repos work instantly,
                 and signed-in users can connect selected private repos through
                 the GitHub App.
               </p>
             </MotionItem>
 
-            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <MotionItem>
-                <ScrollToGeneratorButton />
+                <DashboardGetStartedButton />
               </MotionItem>
             </div>
           </MotionStagger>
         </div>
       </div>
+
+      <MotionStagger>
+        <MotionItem>
+          <div className="relative mx-auto mt-18 w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+            <Image
+              src="/GitLoud-Dashboard-Preview.png"
+              alt="GitLoud Dashboard Preview"
+              width={1000}
+              height={605}
+              priority
+              className="shadow-2xl shadow-primary/5 select-none h-auto w-full scale-102 object-top-left"
+            />
+          </div>
+        </MotionItem>
+      </MotionStagger>
     </section>
   );
 }

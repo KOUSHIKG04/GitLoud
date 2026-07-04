@@ -96,10 +96,10 @@ function HistoryDatePickerContent() {
         <Button
           type="button"
           variant="outline"
-          className="justify-start"
+          className="justify-start uppercase"
           aria-label="Filter history by date range"
         >
-          <CalendarIcon className="size-4" />
+          <CalendarIcon className="size-4 " />
           {selectedRange?.from ? (
             selectedRange.to ? (
               <>

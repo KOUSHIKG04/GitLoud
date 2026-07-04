@@ -2,7 +2,7 @@
 
 import { useGitHubActivityDashboard } from "../_hooks/use-github-activity-dashboard";
 import { Button } from "@repo/ui/components/button";
-import { LoaderCircle } from "lucide-react";
+import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 import { GitHubActivityControls } from "./github-activity-controls";
 import { GitHubActivityCustomizeStep } from "./github-activity-customize-step";
 import { GitHubActivityFooter } from "./github-activity-footer";
@@ -45,16 +45,10 @@ export function GitHubActivityPanel() {
 
   if (!hasLoadedInstallations) {
     return (
-      <section
-        className="flex min-h-[calc(100dvh-12rem)] items-center justify-center"
-        role="status"
-        aria-label="Loading GitHub activity dashboard"
-      >
-        <LoaderCircle
-          className="size-9 animate-spin text-primary sm:size-10"
-          aria-hidden="true"
-        />
-      </section>
+      <DotMatrixLoader
+        className="min-h-[calc(100dvh-12rem)]"
+        label="Loading GitHub activity dashboard"
+      />
     );
   }
 
@@ -76,13 +70,13 @@ export function GitHubActivityPanel() {
   return (
     <section className="border bg-card text-card-foreground shadow-sm">
       <form
-        className="flex flex-col"
+        className="flex flex-col min-h-105"
         onSubmit={(event) => {
           event.preventDefault();
           void generateFromSelectedItem();
         }}
       >
-        <div className="space-y-6 p-4 sm:p-6">
+        <div className="space-y-2 p-4 sm:p-4">
           <GitHubActivityControls
             activityType={activityType}
             activityTypeLabel={activityTypeLabel}
@@ -96,6 +90,9 @@ export function GitHubActivityPanel() {
             setActivityType={setActivityType}
             setRepositoryMenuOpen={setRepositoryMenuOpen}
             setSelectedRepositoryId={setSelectedRepositoryId}
+            generationStep={generationStep}
+            selectedItem={selectedItem}
+            setGenerationStep={setGenerationStep}
           />
 
           {generationStep === "select" ? (
@@ -112,7 +109,6 @@ export function GitHubActivityPanel() {
               generating={generating}
               selectedItem={selectedItem}
               setContext={setContext}
-              setGenerationStep={setGenerationStep}
             />
           )}
         </div>

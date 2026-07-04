@@ -1,12 +1,11 @@
 "use client";
 
 import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
-import { Check, GitPullRequest, LoaderCircle } from "lucide-react";
+import { Check, GitPullRequest } from "lucide-react";
+import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 import { type UIEvent, useState } from "react";
 import type { ActivityType, GitHubActivityItem } from "./github-activity-types";
 
-const activityListScrollClass =
-  "gitloud-activity-scroll h-[17rem] scroll-smooth overflow-y-auto pr-5";
 const activityListHeightPx = 272;
 const activityScrollTrackHeightPx = activityListHeightPx - 8;
 const minimumScrollThumbHeightPx = 28;
@@ -61,15 +60,17 @@ export function GitHubActivitySelectionStep({
   }
 
   return (
-    <div className="h-[17rem] border bg-background">
+    <div className="h-64 w-full border bg-background overflow-hidden">
       {loadingActivity ? (
         <output
           className="flex h-full items-center justify-center"
           aria-label="Loading GitHub activity"
         >
-          <LoaderCircle
-            className="size-9 animate-spin text-primary sm:size-10"
-            aria-hidden="true"
+          <DotMatrixLoader
+            className="h-full"
+            size={40}
+            dotSize={5}
+            label="Loading GitHub activity"
           />
         </output>
       ) : items.length === 0 ? (
@@ -79,20 +80,25 @@ export function GitHubActivitySelectionStep({
           found.
         </div>
       ) : (
-        <div className="relative h-[17rem]">
+        <div className="relative h-68 w-full overflow-x-hidden">
           <div
-            className={activityListScrollClass}
+            className={
+              "gitloud-activity-scroll h-68 w-full scroll-smooth overflow-y-auto overflow-x-hidden pr-0 border-none"
+            }
             onScroll={handleActivityScroll}
           >
-            <div className="pl-3 py-3">
+            <div className="">
               {items.map((item) => {
                 const checked = selectedItemUrl === item.url;
                 const updatedAt = item.updatedAt
                   ? new Date(item.updatedAt)
                   : null;
-                const formattedUpdatedAt =
+                const formattedDate =
                   updatedAt && Number.isFinite(updatedAt.valueOf())
-                    ? ` - ${updatedAt.toLocaleString()}`
+                    ? `${updatedAt.toLocaleDateString()} ${updatedAt.toLocaleTimeString(
+                        undefined,
+                        { hour: "2-digit", minute: "2-digit" },
+                      )}`
                     : "";
 
                 return (
@@ -101,7 +107,7 @@ export function GitHubActivitySelectionStep({
                     type="button"
                     aria-pressed={checked}
                     className={[
-                      "flex w-full cursor-pointer gap-3 border-b p-3 text-left transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                      "flex w-full cursor-pointer gap-2 sm:gap-3 border-b px-3.5 py-3 sm:px-6 sm:py-4 text-left transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
                       checked ? "bg-muted/50" : "",
                     ]
                       .filter(Boolean)
@@ -132,10 +138,16 @@ export function GitHubActivitySelectionStep({
                       <span className="block truncate text-sm font-medium">
                         {item.title}
                       </span>
-                      <span className="block text-xs text-muted-foreground">
-                        {item.subtitle}
-                        {item.author ? ` by ${item.author}` : ""}
-                        {formattedUpdatedAt}
+                      <span className="flex flex-wrap gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
+                        <span className="font-mono text-primary/80">
+                          {item.subtitle}
+                        </span>
+                        {item.author ? <span>by {item.author}</span> : null}
+                        {formattedDate ? (
+                          <span className="before:content-['•'] before:mr-1.5 opacity-80">
+                            {formattedDate}
+                          </span>
+                        ) : null}
                       </span>
                     </span>
                   </button>
@@ -144,7 +156,7 @@ export function GitHubActivitySelectionStep({
             </div>
           </div>
           {scrollThumbVisible ? (
-            <div className="pointer-events-none absolute inset-y-1 right-1 w-2 border border-border/60 bg-background">
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-1  bg-background">
               <div
                 className="absolute inset-x-0 bg-border transition-transform duration-100 ease-out"
                 style={{

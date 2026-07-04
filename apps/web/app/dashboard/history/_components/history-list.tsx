@@ -9,7 +9,15 @@ import {
   PaginationPrevious,
 } from "@repo/ui/components/pagination";
 import { getGenerationHistory } from "@/lib/generations-api";
-import { ExternalLink, Paperclip, Plus } from "lucide-react";
+import {
+  ExternalLink,
+  Paperclip,
+  Plus,
+  CalendarDays,
+  GitBranch,
+  GitPullRequest,
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 import { DeleteGenerationButton } from "./delete-generation-button";
 import { HistoryDatePicker } from "./history-date-picker";
@@ -42,7 +50,7 @@ export async function HistoryList({
     visibleGenerations.length > 0 || hasActiveDateFilter;
 
   return (
-    <>
+    <div className="w-full max-w-4xl mx-auto space-y-4 px-2">
       {showHistoryActions ? (
         <div className="flex flex-wrap justify-end gap-2">
           <HistoryDatePicker />
@@ -86,44 +94,63 @@ export async function HistoryList({
                   ? generation.pullRequest.title
                   : (generation.commit?.message ?? "").split("\n")[0];
 
+              const sourceLabel =
+                generation.sourceType === "PULL_REQUEST"
+                  ? "Pull Request"
+                  : "Commit";
+
               return (
                 <article
                   key={generation.id}
-                  className="border bg-card text-card-foreground transition-colors hover:bg-muted/40"
+                  className="relative border text-card-foreground p-4 shadow-sm transition-colors hover:bg-card"
                 >
-                  <div className="grid gap-4 p-5 md:grid-cols-[5fr_1fr] md:items-start">
-                    <Link
-                      href={`/dashboard/generations/${generation.id}`}
-                      className="min-w-0 space-y-1.5"
-                    >
-                      <p className="text-sm text-muted-foreground">
-                        {generation.sourceType === "PULL_REQUEST"
-                          ? "Pull Request"
-                          : "Commit"}{" "}
-                        - {source.owner}/{source.repo}
-                      </p>
+                  <Link
+                    href={`/dashboard/generations/${generation.id}`}
+                    className="absolute inset-0 z-10"
+                    aria-label={`View generation ${title}`}
+                  />
 
-                      <h2 className="wrap-break-word text-lg font-semibold leading-7">
-                        {title}
-                      </h2>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <span className="flex size-7 shrink-0 items-center justify-center text-primary">
+                        {generation.sourceType === "PULL_REQUEST" ? (
+                          <GitPullRequest className="size-4" />
+                        ) : (
+                          <GitBranch className="size-4" />
+                        )}
+                      </span>
+                      <span className="text-sm font-medium text-muted-foreground shrink-0 relative z-20">
+                        {sourceLabel}:
+                        <span className="text-xs">
+                          <a href={source.url} target="_blank" rel="noreferrer">
+                            {source.owner}/{source.repo}
+                          </a>
+                        </span>
+                      </span>
 
-                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                        <span>
-                          {new Date(generation.createdAt).toLocaleString()}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 border bg-background px-2 py-1">
-                          <Paperclip className="size-3.5" />
-                          {generation.mediaAttachmentCount > 0
-                            ? `${generation.mediaAttachmentCount} file attached`
-                            : "No file attached"}
-                        </span>
+                      <span className="text-muted-foreground/80 shrink-0 mx-0.5">
+                        <ArrowRight size={12} />
+                      </span>
+
+                      <div className="min-w-0 flex-1">
+                        <h2
+                          className="text-sm text-muted-foreground uppercase truncate font-semibold"
+                          title={title}
+                        >
+                          {title}
+                        </h2>
                       </div>
-                    </Link>
+                    </div>
 
-                    <div className="flex flex-wrap gap-2 md:justify-end">
-                      <Button asChild variant="outline" size="sm">
+                    <div className="flex items-center gap-2 shrink-0 self-end md:self-auto relative z-20">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 border-input"
+                      >
                         <Link href={`/dashboard/generations/${generation.id}`}>
-                          <ExternalLink className="size-4" />
+                          <ExternalLink className="size-3.5 mr-1.5" />
                           Open
                         </Link>
                       </Button>
@@ -132,14 +159,12 @@ export async function HistoryList({
                         asChild
                         variant="outline"
                         size="icon-sm"
-                        aria-label="Open on GitHub"
-                        title="Open on GitHub"
+                        className="size-8 p-0 border-input"
                       >
                         <a
                           href={source.url}
                           target="_blank"
                           rel="noreferrer"
-                          aria-label="Open on GitHub"
                           title="Open on GitHub"
                         >
                           <GithubIconIcon className="size-4" />
@@ -147,6 +172,24 @@ export async function HistoryList({
                       </Button>
 
                       <DeleteGenerationButton generationId={generation.id} />
+                    </div>
+                  </div>
+
+                  <div className="ml-2 mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground relative z-20">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="size-4 text-muted-foreground/80" />
+                      <span className="capitalize">
+                        {formatHistoryDateItem(generation.createdAt)}
+                      </span>
+                    </div>
+
+                    <div className="inline-flex items-center gap-1.5 border bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground font-medium">
+                      <Paperclip className="size-3" />
+                      <span className="uppercase">
+                        {generation.mediaAttachmentCount > 0
+                          ? `${generation.mediaAttachmentCount} file${generation.mediaAttachmentCount > 1 ? "s" : ""} attached`
+                          : "No file attached"}
+                      </span>
                     </div>
                   </div>
                 </article>
@@ -166,7 +209,7 @@ export async function HistoryList({
           />
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
 
@@ -247,6 +290,26 @@ function formatHistoryDate(date: Date) {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+}
+
+function formatHistoryDateItem(value: string) {
+  const dateObj = new Date(value);
+  if (!Number.isFinite(dateObj.valueOf())) return "";
+
+  const formattedDate = dateObj.toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const formattedTime = dateObj.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  return `${formattedDate}, ${formattedTime}`;
 }
 
 function getHistoryPageHref(

@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
 import { AuthToast } from "@/components/auth/AuthToast";
-import { GeneratorSection } from "@/components/home/GeneratorSection";
-import { HeroSection } from "@/components/home/HeroSection";
+import { Footer } from "@/components/Footer";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
-import { SeoFaqSection } from "@/components/home/SeoFaqSection";
-import { getSeoFaqItems } from "@/components/home/seo-faq-items";
+import { Header } from "@/components/Header";
+import { HeroSection } from "@/components/home/HeroSection";
 import { ProfileSync } from "@/components/auth/ProfileSync";
-import { Button } from "@repo/ui/components/button";
-import { Check } from "lucide-react";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "GitHub PR Summary and Social Post Generator",
@@ -44,6 +38,7 @@ export const metadata: Metadata = {
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
+
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -63,19 +58,6 @@ const structuredData = {
   ],
 };
 
-const faqStructuredData = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: getSeoFaqItems().map((item) => ({
-    "@type": "Question",
-    name: item.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: item.answer,
-    },
-  })),
-};
-
 /**
  * Renders the main GitLoud landing page / home page.
  * Includes SEO structured data scripts, dynamic motion cursor, hero elements,
@@ -86,27 +68,21 @@ const faqStructuredData = {
 
 export default function Home() {
   return (
-    <main className="relative isolate min-h-dvh flex flex-col overflow-x-hidden">
+    <main className=" relative isolate min-h-dvh flex flex-col overflow-x-hidden">
       <AuthToast />
       <ProfileSync />
 
       <script type="application/ld+json">
         {JSON.stringify(structuredData)}
       </script>
-      <script type="application/ld+json">
-        {JSON.stringify(faqStructuredData)}
-      </script>
 
       <div className="w-full max-w-5xl mx-auto md:border-x md:border-border bg-background">
         <Header />
         <HeroSection />
-        <GeneratorSection />
         <HowItWorksSection />
-        <SeoFaqSection />
       </div>
 
       <Footer />
     </main>
   );
 }
-

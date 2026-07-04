@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGitHubAppSettings } from "../_hooks/use-github-app-settings";
 import { Notice } from "./notice";
-import { SettingsLoading } from "./settings-loading";
+import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 
 export function GitHubAppSettings() {
   const router = useRouter();
@@ -47,7 +47,7 @@ export function GitHubAppSettings() {
   }, [router]);
 
   if (loading) {
-    return <SettingsLoading />;
+    return <DotMatrixLoader className="min-h-64" label="Loading settings" />;
   }
 
   if (!data) {
@@ -71,7 +71,7 @@ export function GitHubAppSettings() {
             return (
               <div
                 key={installation.id}
-                className="grid min-w-0 gap-4 border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] xl:items-center"
+                className="grid min-w-0 gap-4 border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center"
               >
                 <div className="grid min-w-0 gap-8 sm:grid-cols-[auto_minmax(5rem,1fr)] sm:items-center">
                   <div className="flex min-w-0 items-center gap-3">
@@ -107,7 +107,7 @@ export function GitHubAppSettings() {
                   </div>
                 </div>
 
-                <div className="flex min-w-0 flex-col gap-3 border-border xl:border-l xl:pl-4">
+                <div className="grid grid-cols-2 min-w-0 gap-3 border-border xl:border-l xl:pl-4">
                   <Button
                     asChild
                     variant="outline"

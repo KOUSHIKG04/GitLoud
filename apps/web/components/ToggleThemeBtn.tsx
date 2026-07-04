@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Moon, Sun } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
-import { useTheme } from "@/lib/theme-provider";
-import { cn } from "@repo/ui/lib/utils";
+// import { useEffect, useState } from "react";
+// import { Moon, Sun } from "lucide-react";
+// import { Button } from "@repo/ui/components/button";
+// import { useTheme } from "@/lib/theme-provider";
+// import { cn } from "@repo/ui/lib/utils";
 
 export function ThemeToggle({
   className,
@@ -13,6 +13,8 @@ export function ThemeToggle({
   className?: string;
   showLabel?: boolean;
 }) {
+  return null; // Locked to dark/black theme only
+  /*
   const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -117,4 +119,5 @@ export function ThemeToggle({
       ) : null}
     </Button>
   );
+  */
 }

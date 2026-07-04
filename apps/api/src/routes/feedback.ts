@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { db } from "@repo/db/client";
-import { getAuthenticatedUserId } from "@/lib/auth";
+import { getCurrentUserId } from "@/lib/auth";
 import { getRequestIp } from "@/lib/ip";
 import { persistentRateLimit } from "@/lib/rate-limit";
 
@@ -53,7 +53,7 @@ export const feedbackRoutes = new Hono().post("/", async (context) => {
     );
   }
 
-  const userId = await getAuthenticatedUserId(context.req.raw);
+  const userId = await getCurrentUserId(context.req.raw);
 
   await db.feedback.create({
     data: {

@@ -65,17 +65,21 @@ export default async function GenerationDetailPage({
       : generation.commit?.shortSha;
 
   return (
-    <main className="relative isolate min-h-[calc(100dvh-3.5rem)]">
+    <main className="relative isolate min-h-[calc(100dvh-3.5rem)] mx-auto">
       <section className="mx-auto w-full max-w-6xl space-y-6 px-4 pb-6 pt-0">
         <div className="space-y-2">
-          <p className="text-md flex gap-2 font-semibold text-muted-foreground">
-            {sourceLabel.toUpperCase()}
-            <span className="flex items-center">
-              <ChevronRight size={16} />
+          <h1 className="px-2 flex items-center gap-2 text-xl font-semibold tracking-tight min-w-0 w-full justify-start">
+            <span className="flex items-center mt-0.5 gap-1 text-[13px] text-muted-foreground shrink-0 uppercase">
+              {sourceLabel} <ChevronRight size={16} />
             </span>
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          <p className="break-all text-sm text-muted-foreground">
+            <span
+              className="truncate text-foreground max-w-4xl font-normal tracking-tighter"
+              title={title}
+            >
+              {title}
+            </span>
+          </h1>
+          <p className="break-all text-sm text-muted-foreground px-2 ">
             {source.owner}/{source.repo}
           </p>
         </div>

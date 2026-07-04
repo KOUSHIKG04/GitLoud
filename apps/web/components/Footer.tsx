@@ -2,6 +2,7 @@
 
 import { AppLogo } from "@/assets/AppLogo";
 import { HomeLink } from "@/components/HomeLink";
+import { MailOpen } from "lucide-react";
 import Link from "next/link";
 
 const currentYear = new Date().getFullYear();
@@ -10,13 +11,13 @@ const navigationLinks = [
   { href: "/", label: "Home", isHome: true },
   { href: "/examples", label: "Examples" },
   { href: "/feedback", label: "Feedback" },
-  { href: "/dashboard", label: "Dashboard" },
 ];
 
 const supportLinks = [
   { href: "/privacy", label: "Privacy Policy" },
   { href: "/security", label: "Security" },
   { href: "/terms", label: "Terms of Service" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 export function Footer() {
@@ -41,16 +42,19 @@ export function Footer() {
       <div className="border-b">
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 md:grid-cols-4 md:divide-x">
           <div className="border-b md:border-b-0 md:col-span-2 p-6 sm:p-10 flex flex-col items-start justify-center">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+            <h3 className="text-sm font-semibold uppercase tracking-normal text-foreground">
               Contact Us:{" "}
               <a
                 href="mailto:koushikgdatta5@gmail.com"
-                className="font-medium text-foreground lowercase hover:text-chart-3 transition-colors"
+                className="inline-flex gap-1.5 items-center font-medium text-foreground lowercase hover:text-chart-3 transition-colors"
               >
-                koushikgdatta5@gmail.com
+                koushikgdatta5@gmail.com <MailOpen size={10} />
               </a>
+             
+                
+            
             </h3>
-            <p className="text-xs pt-3 text-muted-foreground/60">
+            <p className="text-xs pt-3 text-muted-foreground/60 tracking-normal">
               Copyright &copy; {currentYear} GitLoud. All rights reserved.
             </p>
           </div>

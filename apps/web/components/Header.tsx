@@ -14,9 +14,39 @@ import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { AppLogo } from "@/assets/AppLogo";
 import type { MouseEvent } from "react";
-import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/ToggleThemeBtn";
+
+type NavItem = {
+  label: string;
+  href: string;
+  component: typeof Link | typeof HomeLink;
+  section?: string;
+};
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    label: "Home",
+    href: "/",
+    component: HomeLink,
+    section: "home",
+  },
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    component: Link,
+  },
+  {
+    label: "Examples",
+    href: "/examples",
+    component: Link,
+  },
+  {
+    label: "Feedback",
+    href: "/feedback",
+    component: Link,
+  },
+];
 
 function scrollToLandingSection(
   event: MouseEvent<HTMLAnchorElement>,
@@ -43,9 +73,53 @@ function scrollToLandingSection(
   });
 }
 
+type NavigationProps = {
+  mobile?: boolean;
+  onNavigate?: () => void;
+};
+
+export function Navigation({ mobile = false, onNavigate }: NavigationProps) {
+  const { isSignedIn } = useUser();
+
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    if (item.href === "/dashboard") {
+      return isSignedIn;
+    }
+    return true;
+  });
+
+  return (
+    <>
+      {filteredNavItems.map((item) => {
+        const Component = item.component;
+
+        return (
+          <Component
+            key={item.label}
+            href={item.href}
+            className={
+              mobile
+                ? "w-full px-6 py-4 text-center text-sm font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                : "text-xs font-medium uppercase tracking-wide text-muted-foreground transition-colors hover:text-chart-2"
+            }
+            onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+              onNavigate?.();
+
+              if (item.section) {
+                scrollToLandingSection(event, item.section);
+              }
+            }}
+          >
+            {item.label}
+          </Component>
+        );
+      })}
+    </>
+  );
+}
+
 export function Header() {
   const { isLoaded, isSignedIn } = useUser();
-  const { push } = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -60,34 +134,9 @@ export function Header() {
 
         <nav
           aria-label="Main navigation"
-          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-5 text-xs font-medium uppercase tracking-wide text-muted-foreground md:flex"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-5 md:flex"
         >
-          <HomeLink
-            className="transition-colors hover:text-foreground"
-            onClick={(event) => scrollToLandingSection(event, "home")}
-          >
-            Home
-          </HomeLink>
-          <Link
-            href="/#generator"
-            className="transition-colors hover:text-foreground"
-            onClick={(event) => scrollToLandingSection(event, "generator")}
-          >
-            Generator
-          </Link>
-          <Link
-            href="/examples"
-            className="transition-colors hover:text-foreground"
-          >
-            Examples
-          </Link>
-          <Link
-            href="/feedback"
-            className="transition-colors hover:text-foreground"
-            onClick={() => push("/feedback")}
-          >
-            Feedback
-          </Link>
+          <Navigation />
         </nav>
 
         <div className="flex items-center gap-3">
@@ -118,7 +167,6 @@ export function Header() {
             />
           ) : null}
 
-
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button
@@ -130,45 +178,13 @@ export function Header() {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0 pt-14 flex flex-col h-full">
+            <SheetContent
+              side="left"
+              className="w-72 p-0 pt-14 flex flex-col h-full"
+            >
               <SheetTitle className="sr-only">Navigation menu</SheetTitle>
-              <nav className="flex flex-col items-center text-sm font-medium uppercase tracking-wide w-full">
-                <HomeLink
-                  className="w-full text-center px-6 py-4 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={(event) => {
-                    setMobileOpen(false);
-                    scrollToLandingSection(event, "home");
-                  }}
-                >
-                  Home
-                </HomeLink>
-                <Link
-                  href="/#generator"
-                  className="w-full text-center px-6 py-4 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={(event) => {
-                    setMobileOpen(false);
-                    scrollToLandingSection(event, "generator");
-                  }}
-                >
-                  Generator
-                </Link>
-                <Link
-                  href="/examples"
-                  className="w-full text-center px-6 py-4 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Examples
-                </Link>
-                <Link
-                  href="/feedback"
-                  className="w-full text-center px-6 py-4 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  onClick={() => {
-                    setMobileOpen(false);
-                    push("/feedback");
-                  }}
-                >
-                  Feedback
-                </Link>
+              <nav className="flex w-full flex-col">
+                <Navigation mobile onNavigate={() => setMobileOpen(false)} />
               </nav>
 
               <div className="mt-auto p-6 border-t border-border w-full flex flex-col gap-4">
