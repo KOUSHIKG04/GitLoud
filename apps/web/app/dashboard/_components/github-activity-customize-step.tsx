@@ -21,7 +21,7 @@ export function GitHubActivityCustomizeStep({
   context: string;
   generating: boolean;
   selectedItem: GitHubActivityItem | undefined;
-  selectedMedia: File | null;
+  selectedMedia?: File | null;
   setContext: (value: string) => void;
 }) {
   return (

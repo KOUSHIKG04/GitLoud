@@ -108,6 +108,7 @@ export function GitHubActivityPanel() {
               context={context}
               generating={generating}
               selectedItem={selectedItem}
+              selectedMedia={selectedMedia}
               setContext={setContext}
             />
           )}
