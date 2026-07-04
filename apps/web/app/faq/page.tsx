@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { seoFaqItems } from "@/components/home/seo-faq-items";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@repo/ui/components/accordion";
 
 export const metadata: Metadata = {
   title: "FAQ - GitLoud",
@@ -18,12 +24,12 @@ export default function FaqPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            "mainEntity": seoFaqItems.map((item) => ({
+            mainEntity: seoFaqItems.map((item) => ({
               "@type": "Question",
-              "name": item.question,
-              "acceptedAnswer": {
+              name: item.question,
+              acceptedAnswer: {
                 "@type": "Answer",
-                "text": item.answer,
+                text: item.answer,
               },
             })),
           }),
@@ -44,30 +50,37 @@ export default function FaqPage() {
             </h1>
 
             <p className="mt-3 max-w-3xl text-md leading-6 text-muted-foreground tracking-tighter">
-              Quick answers about GitLoud&apos;s features, summary generation formats, and security policies for public and private repositories.
+              Quick answers about GitLoud&apos;s features, summary generation
+              formats, and security policies for public and private
+              repositories.
             </p>
           </div>
         </section>
 
-        <div className="h-px bg-border w-full" />
-
-        <section className="px-4 py-12 sm:px-6 lg:px-20">
-          <div className="mx-auto max-w-4xl space-y-12">
-            {seoFaqItems.map((item) => (
-              <div key={item.question} className="space-y-3 pb-8 border-b border-border last:border-b-0 border-dashed">
-                <h2 className="text-xl font-bold tracking-tight text-foreground">
-                  {item.question}
-                </h2>
-                <p className="text-base leading-7 text-muted-foreground tracking-normal">
-                  {item.answer}
-                </p>
+        <section className="border-t border-border">
+          <div className="mx-auto w-full">
+            <Accordion type="single" collapsible className="w-full">
+              <div className="grid md:grid-cols-2 md:divide-x divide-border w-full">
+                {seoFaqItems.map((item, index) => (
+                  <AccordionItem
+                    key={item.question}
+                    value={`faq-item-${index}`}
+                    className="border-b border-border py-1 last:border-b-0"
+                  >
+                    <AccordionTrigger className="px-4 sm:px-6 lg:px-10 text-left text-lg font-semibold tracking-tight hover:no-underline text-foreground py-4">
+                      {item.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 sm:px-6 lg:px-10 text-base leading-7 text-muted-foreground pb-4">
+                      {item.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
               </div>
-            ))}
+            </Accordion>
           </div>
         </section>
-
-        <Footer />
       </div>
+      <Footer />
     </>
   );
 }

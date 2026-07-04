@@ -14,10 +14,9 @@ const navigationLinks = [
 ];
 
 const supportLinks = [
-  { href: "/privacy", label: "Privacy Policy" },
-  { href: "/security", label: "Security" },
   { href: "/terms", label: "Terms of Service" },
   { href: "/faq", label: "FAQ" },
+  { href: "/security-and-privacy", label: "Security & Privacy" },
 ];
 
 export function Footer() {

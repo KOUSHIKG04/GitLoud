@@ -143,7 +143,7 @@ function EmailStep({
               and{" "}
               <Link
                 className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
-                href="/privacy"
+                href="/security-and-privacy"
                 target="_blank"
               >
                 Privacy Policy
@@ -229,7 +229,6 @@ function EmailStep({
 
 function CodeStep({
   code,
-  email,
   errorMessage,
   isPending,
   isSignIn,

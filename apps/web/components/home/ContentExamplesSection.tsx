@@ -98,7 +98,7 @@ export function ContentExamplesSection() {
             </span>{" "}
           </h2>
           <p className="text-base text-muted-foreground">
-            GitLoud generates many formats—including X posts, LinkedIn updates,
+            GitLoud generates many formats including X posts, LinkedIn updates,
             Discord alerts, portfolio bullets, and release changelogs. Create
             yours and see all of them in one place!
           </p>

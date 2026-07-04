@@ -16,7 +16,6 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGitHubAppSettings } from "../_hooks/use-github-app-settings";
-import { Notice } from "./notice";
 import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 
 export function GitHubAppSettings() {
@@ -148,7 +147,9 @@ export function GitHubAppSettings() {
             );
           })
         ) : (
-          <Notice text="No GitHub App installation is connected yet." />
+          <div className="border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+            No GitHub App installation is connected yet.
+          </div>
         )}
       </div>
 

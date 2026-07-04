@@ -121,7 +121,7 @@ export function GitHubActivitySelectionStep({
                     <span
                       aria-hidden="true"
                       className={[
-                        "mt-1 flex size-4 shrink-0 items-center justify-center border border-primary transition-colors",
+                        "mt-1 flex size-3 shrink-0 items-center justify-center border border-primary transition-colors",
                         checked
                           ? "bg-primary text-primary-foreground"
                           : "bg-background",
@@ -130,12 +130,12 @@ export function GitHubActivitySelectionStep({
                       {checked ? <Check className="size-3" /> : null}
                     </span>
                     {item.sourceType === "pull-request" ? (
-                      <GitPullRequest className="mt-1 size-4 shrink-0 text-primary" />
+                      <GitPullRequest className="mt-1 size-3 shrink-0 text-primary" />
                     ) : (
-                      <CommitBranchIcon className="mt-1 size-4 shrink-0 text-primary" />
+                      <CommitBranchIcon className="mt-1 size-3 shrink-0 text-primary" />
                     )}
                     <span className="min-w-0 flex-1 space-y-1">
-                      <span className="block truncate text-sm font-medium">
+                      <span className="block truncate text-sm tracking-tighter">
                         {item.title}
                       </span>
                       <span className="flex flex-wrap gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
@@ -144,7 +144,7 @@ export function GitHubActivitySelectionStep({
                         </span>
                         {item.author ? <span>by {item.author}</span> : null}
                         {formattedDate ? (
-                          <span className="before:content-['•'] before:mr-1.5 opacity-80">
+                          <span className="before:content-['-'] before:mr-1.5 opacity-80 tracking-tighter">
                             {formattedDate}
                           </span>
                         ) : null}
