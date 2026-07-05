@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { seoFaqItems } from "@/components/home/seo-faq-items";
+import { safeJsonLd } from "@/lib/safe-json-ld";
 import {
   Accordion,
   AccordionContent,
@@ -18,23 +19,20 @@ export const metadata: Metadata = {
 export default function FaqPage() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: seoFaqItems.map((item) => ({
-              "@type": "Question",
-              name: item.question,
-              acceptedAnswer: {
-                "@type": "Answer",
-                text: item.answer,
-              },
-            })),
-          }),
-        }}
-      />
+      <script type="application/ld+json">
+        {safeJsonLd({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: seoFaqItems.map((item) => ({
+            "@type": "Question",
+            name: item.question,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.answer,
+            },
+          })),
+        })}
+      </script>
 
       <div className="w-full max-w-5xl mx-auto md:border-x md:border-border bg-background">
         <Header />

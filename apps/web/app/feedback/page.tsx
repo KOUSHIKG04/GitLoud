@@ -1,8 +1,15 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FeedbackSection } from "./FeedBackSection";
+
+export const metadata: Metadata = {
+  title: "Feedback - GitLoud",
+  description: "Provide feedback, feature requests, or report issues regarding GitLoud.",
+  alternates: {
+    canonical: "/feedback",
+  },
+};
 
 export default function FeedbackPage() {
   return (

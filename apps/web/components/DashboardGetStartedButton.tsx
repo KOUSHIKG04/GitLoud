@@ -30,8 +30,8 @@ export function DashboardGetStartedButton() {
         type="button"
         onClick={openDashboard}
         disabled={!isLoaded}
-        className="px-6 py-4 active:scale-98 text-white"
-        variant={'secondary'}
+        className=" active:scale-98"
+        variant="default"
       >
         GET STARTED
       </Button>

@@ -178,7 +178,7 @@ function useBackendWakeScreen() {
       controller.abort();
       clearTimers();
     };
-  }, []);
+  }, [setVisible, setStatus]);
 
   return { visible, status };
 }

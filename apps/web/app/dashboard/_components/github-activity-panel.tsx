@@ -69,13 +69,7 @@ export function GitHubActivityPanel() {
 
   return (
     <section className="border bg-card text-card-foreground shadow-sm">
-      <form
-        className="flex flex-col min-h-105"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void generateFromSelectedItem();
-        }}
-      >
+      <div className="flex flex-col min-h-105">
         <div className="space-y-2 p-4 sm:p-4">
           <GitHubActivityControls
             activityType={activityType}
@@ -132,12 +126,13 @@ export function GitHubActivityPanel() {
             isPremiumXPost={isPremiumXPost}
             isSubmitting={generating}
             onMediaChange={onMediaChange}
+            onSubmit={generateFromSelectedItem}
             selectedMedia={selectedMedia}
             setXPostLength={setXPostLength}
             submitDisabled={!selectedItem || generating}
           />
         )}
-      </form>
+      </div>
     </section>
   );
 }

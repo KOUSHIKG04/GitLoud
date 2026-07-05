@@ -138,7 +138,7 @@ export function ApiKeySettings() {
         </div>
         <Input
           className="rounded-none"
-          placeholder="Model, optional"
+          placeholder="Model, (optional)"
           value={model}
           disabled={savingKey}
           onChange={(event) => setModel(event.target.value)}

@@ -1,13 +1,15 @@
 "use client";
+
 import { MotionItem, MotionStagger } from "@/components/LandingMotion";
 import { cn } from "@/lib/utils";
 import { Button } from "@repo/ui/components/button";
 import Image from "next/image";
+import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
 import { DashboardGetStartedButton } from "../DashboardGetStartedButton";
 
 export function HeroSection() {
   return (
-    <section className="relative flex flex-col items-center justify-center overflow-hidden py-24 sm:py-28 lg:py-22 w-full">
+    <section className="relative flex flex-col items-center justify-center overflow-hidden py-24 sm:py-28 lg:pb-22 lg:pt-18 w-full">
       <div
         id="hero"
         className=" relative z-10 mx-auto w-full max-w-sm scroll-mt-24 text-center sm:max-w-2xl lg:max-w-4xl px-4 sm:px-6 lg:px-8"
@@ -27,28 +29,44 @@ export function HeroSection() {
             </MotionItem>
 
             <MotionItem>
-              <p className="relative z-10  text-balance mt-4 sm:mt-5 text-3xl font-bold tracking-tighter sm:text-4xl lg:text-5xl">
+              <p className="relative z-10 uppercase text-balance mt-4 sm:mt-5 text-3xl font-bold tracking-tighter sm:text-4xl lg:text-[40px]">
                 Ship it,{" "}
                 <span
                   className={cn(
-                    "after:-rotate-10 after:skew-10 after:absolute after:bg-primary after:-z-10 after:inset-0 after:content-[''] after:w-full after:h-full",
+                    "after:rotate-5 after:-skew-5 after:absolute after:bg-primary after:-z-10 after:inset-0 after:content-[''] after:w-full after:h-full",
                     "text-center tracking-tight inline-block relative z-10 ",
                   )}
                 >
-                  Make noise.
+                 Make noise.
                 </span>
               </p>
             </MotionItem>
 
             <MotionItem>
-              <p className="mt-4 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md tracking-tighter">
+              <p className="mt-3 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md tracking-tighter">
                 Drop a GitHub PR or commit link. Public repos work instantly,
                 and signed-in users can connect selected private repos through
                 the GitHub App.
               </p>
             </MotionItem>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-14 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <MotionItem>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="px-6 py-4 active:scale-98 inline-flex items-center gap-2 text-foreground"
+                >
+                  <a
+                    href="https://github.com/KOUSHIKG04/GitLoud"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <GithubIconIcon className="size-4" />
+                    STAR ON GITHUB
+                  </a>
+                </Button>
+              </MotionItem>{" "}
               <MotionItem>
                 <DashboardGetStartedButton />
               </MotionItem>

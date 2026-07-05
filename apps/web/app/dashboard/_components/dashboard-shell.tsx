@@ -27,7 +27,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         }
       >
         <DashboardSidebar onResize={setSidebarWidth} />
-        <SidebarInset className="min-h-dvh bg-transparent">
+        <SidebarInset className="min-h-dvh bg-transparent min-w-0 w-full">
           <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-border px-4">
             <div className="bg-card">
               <SidebarTrigger className="rounded-none" />
@@ -40,7 +40,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
           </header>
           <main
             data-dashboard-shell
-            className="min-h-[calc(100dvh-3.5rem)] [&[data-dashboard-shell]_button]:rounded-none [&[data-dashboard-shell]_input]:rounded-none [&[data-dashboard-shell]_textarea]:rounded-none"
+            className="min-h-[calc(100dvh-3.5rem)] min-w-0 w-full [&[data-dashboard-shell]_button]:rounded-none [&[data-dashboard-shell]_input]:rounded-none [&[data-dashboard-shell]_textarea]:rounded-none"
           >
             {children}
           </main>

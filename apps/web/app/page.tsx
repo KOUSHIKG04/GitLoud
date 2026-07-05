@@ -5,6 +5,7 @@ import { HowItWorksSection } from "@/components/home/HowItWorksSection";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/home/HeroSection";
 import { ProfileSync } from "@/components/auth/ProfileSync";
+import { safeJsonLd } from "@/lib/safe-json-ld";
 
 export const metadata: Metadata = {
   title: "GitHub PR Summary and Social Post Generator",

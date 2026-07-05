@@ -24,18 +24,18 @@ export default function ExamplesPage() {
       <div className="w-full max-w-5xl mx-auto md:border-x md:border-border bg-background">
         <Header />
 
-        <section className="px-4 py-10 sm:px-6 lg:px-20 lg:pt-20 lg:py-10">
+        <section className="px-4 pt-10 pb-6 sm:px-6 lg:px-20 lg:pt-20 lg:pb-6">
           <div className="mx-auto max-w-5xl text-left">
             <p className="text-md font-semibold uppercase tracking-wider text-primary">
               EXAMPLES
             </p>
 
-            <h1 className="mt-4 text-balance text-4xl font-bold tracking-tighter ">
+            <h1 className="mt-4 text-balance text-4xl font-bold tracking-tighter">
               See what GitLoud can generate
             </h1>
 
-            <p className="mt-3 max-w-3xl text-md leading-6 text-muted-foreground tracking-tighter">
-              Every example below was generated from a GitHub pull request or
+            <p className="mt-3 max-w-4xl text-md leading-6 text-muted-foreground tracking-tighter">
+              Example below was generated from a GitHub pull request or
               commit. GitLoud transforms technical changes into clear, shareable
               content for teammates, recruiters, & your developer portfolio.
             </p>

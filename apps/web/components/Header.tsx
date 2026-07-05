@@ -16,6 +16,7 @@ import { AppLogo } from "@/assets/AppLogo";
 import type { MouseEvent } from "react";
 import { Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/ToggleThemeBtn";
+import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
 
 type NavItem = {
   label: string;
@@ -141,6 +142,21 @@ export function Header() {
 
         <div className="flex items-center gap-3">
           <ThemeToggle />
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground rounded-full"
+          >
+            <a
+              href="https://github.com/KOUSHIKG04/GitLoud"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub Repository"
+            >
+              <GithubIconIcon className="size-5" />
+            </a>
+          </Button>
           {isLoaded && !isSignedIn ? (
             <>
               <Button

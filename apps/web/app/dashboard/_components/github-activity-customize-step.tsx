@@ -7,9 +7,7 @@ import {
   UserRound,
   Paperclip,
 } from "lucide-react";
-import type {
-  GitHubActivityItem,
-} from "./github-activity-types";
+import type { GitHubActivityItem } from "./github-activity-types";
 
 export function GitHubActivityCustomizeStep({
   context,

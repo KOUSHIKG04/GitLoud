@@ -255,7 +255,7 @@ function CodeStep({
         <h2 className="text-center text-xl font-semibold tracking-tight">
           Enter verification code
         </h2>
-        <p className="text-sm leading-6 text-muted-foreground">
+        <p className="text-sm leading-6 text-muted-foreground text-center">
           We sent a six-digit code to email
         </p>
       </div>

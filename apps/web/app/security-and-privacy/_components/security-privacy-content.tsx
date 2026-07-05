@@ -39,6 +39,7 @@ export function SecurityPrivacyContent() {
       <div className="border-t border-b border-border w-full">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-20 flex gap-8">
           <button
+            type="button"
             onClick={() => setActiveTab("security")}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "security"
@@ -52,6 +53,7 @@ export function SecurityPrivacyContent() {
             )}
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("privacy")}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "privacy"

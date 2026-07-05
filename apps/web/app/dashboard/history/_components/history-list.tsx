@@ -21,6 +21,7 @@ import {
 import Link from "next/link";
 import { DeleteGenerationButton } from "./delete-generation-button";
 import { HistoryDatePicker } from "./history-date-picker";
+import { HistoryCardLink } from "./history-card-link";
 
 export async function HistoryList({
   date: legacyDateParam,
@@ -102,12 +103,11 @@ export async function HistoryList({
               return (
                 <article
                   key={generation.id}
-                  className="relative border text-card-foreground p-4 shadow-sm transition-colors hover:bg-card"
+                  className="relative border text-card-foreground p-4 shadow-sm transition-colors hover:bg-card cursor-pointer"
                 >
-                  <Link
+                  <HistoryCardLink
                     href={`/dashboard/generations/${generation.id}`}
-                    className="absolute inset-0 z-10"
-                    aria-label={`View generation ${title}`}
+                    ariaLabel={`View generation ${title}`}
                   />
 
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -119,10 +119,10 @@ export async function HistoryList({
                           <GitBranch className="size-4" />
                         )}
                       </span>
-                      <span className="text-sm font-medium text-muted-foreground shrink-0 relative z-20">
-                        {sourceLabel}:
-                        <span className="text-xs">
-                          <a href={source.url} target="_blank" rel="noreferrer">
+                      <span className="text-sm font-medium text-muted-foreground shrink-0">
+                        {sourceLabel}:{" "}
+                        <span className="text-xs relative z-20">
+                          <a href={source.url} target="_blank" rel="noreferrer" className="hover:underline">
                             {source.owner}/{source.repo}
                           </a>
                         </span>
@@ -175,7 +175,7 @@ export async function HistoryList({
                     </div>
                   </div>
 
-                  <div className="ml-2 mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground relative z-20">
+                  <div className="ml-2 mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <CalendarDays className="size-4 text-muted-foreground/80" />
                       <span className="capitalize">

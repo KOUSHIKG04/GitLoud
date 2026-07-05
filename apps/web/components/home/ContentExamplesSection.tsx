@@ -8,7 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@repo/ui/components/accordion";
-import { Clipboard, Share2, ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, Clipboard, Share2 } from "lucide-react";
 import {
   DiscordIcon,
   LinkedInIcon,
@@ -16,10 +16,11 @@ import {
   XIcon,
 } from "@/assets/social-icons";
 import { cn } from "@/lib/utils";
+import { TypingText } from "../TypingText";
 
 const MOCK_CONTENT = {
   shortSummary:
-    "Summary:\nThis pull request adds passkey (WebAuthn) authentication support to the application. It integrates the @simplewebauthn library, adds database schema changes to store credential public keys, and introduces API endpoints for credential registration and verification. This enables biometric logins like FaceID and TouchID alongside the existing passwordless email authentication.",
+    "Short Summary:\nThis pull request adds passkey (WebAuthn) authentication support to the application. It integrates the @simplewebauthn library, adds database schema changes to store credential public keys, and introduces API endpoints for credential registration and verification. This enables biometric logins like FaceID and TouchID alongside the existing passwordless email authentication.",
   changelogEntry:
     "### Added\n- Support for Passkey (WebAuthn) biometric authentication (FaceID, TouchID, Windows Hello).\n- Database schema updates for secure cryptographic credential storage.\n- API endpoints for registration and login challenges and verification.\n- User interface elements to register/sign in using passkeys.",
 };
@@ -46,26 +47,28 @@ export function ContentExamplesSection() {
     <>
       <section className="px-4  pb-20 sm:px-6 lg:px-20">
         <div className="mx-auto max-w-6xl space-y-4">
-          <h2 className="text-lg font-bold tracking-tight text-foreground">
-            GENERATED CONTENT
-          </h2>
-
-          <div className="tracking-tighter mx-auto max-w-5xl bg-card border border-border p-4 mt-2 font-mono text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-            <span className="text-foreground font-semibold block mb-1">
-              <p className="flex items-center gap-2 ">
-                <span className="text-muted-foreground text-sm tracking-tight">
-                  PULL REQUEST #43
-                </span>
-              </p>
+          <div className="mx-auto mt-2 max-w-5xl border border-border bg-card p-4 font-mono tracking-tighter">
+            <div className="flex items-center gap-1 mb-1 text-sm tracking-tight text-muted-foreground">
+              <span className="flex items-center gap-1">
+                For <ArrowRight size={14} className="mt-0.25" />
+              </span>{" "}
+            <span className="mt-0.5">PULL REQUEST #43</span>  
+            </div>
+            <div className="text-sm font-semibold leading-relaxed text-foreground">
               feat: add WebAuthn (Passkey) support for biometric authentication
               (#43)
-            </span>
+            </div>
           </div>
-
+          <h2 className="mt-6 flex items-center gap-2 text-lg tracking-normal text-foreground">
+            Generated Content below
+            <span>
+              <ArrowDown size={16} />
+            </span>
+          </h2>
           <Accordion
             type="multiple"
             defaultValue={["short-summary", "changelog-entry"]}
-            className="grid items-start gap-4 md:grid-cols-2"
+            className="grid items-start gap-4 md:grid-cols-2 "
           >
             <MockContentBlock
               valueKey="short-summary"
@@ -123,16 +126,21 @@ function MockContentBlock({
   return (
     <AccordionItem
       value={valueKey}
-      className="tracking-tighter border bg-card px-5 text-card-foreground shadow-sm"
+      className="tracking-tighter border bg-card px-5 text-card-foreground shadow-2xl shadow-primary/5 last:border-b"
     >
-      <AccordionTrigger className="uppercase  text-[17px] font-semibold leading-6 hover:no-underline">
+      <AccordionTrigger className="uppercase text-[17px] font-semibold leading-6 hover:no-underline">
         {title}
       </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-6 pb-4">
-          <p className="min-h-[180px] whitespace-pre-wrap wrap-break-word text-base leading-7 text-muted-foreground">
-            {value}
-          </p>
+          <div className="min-h-[180px]">
+            <TypingText
+              key={`${valueKey}-${typeof window !== "undefined" ? performance.now() : 0}`}
+              text={value}
+              duration={5.5}
+              className="whitespace-pre-wrap wrap-break-word text-base leading-7 text-muted-foreground"
+            />
+          </div>
 
           <div className="flex flex-wrap gap-2">
             {actionButtons.map((btn) => (

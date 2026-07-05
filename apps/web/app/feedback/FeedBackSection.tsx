@@ -88,7 +88,7 @@ export function FeedbackSection() {
             matter to developers using the product.
           </p>
 
-          <div className="flex tracking-tighter gap-3 border bg-background py-2 px-2 text-xs leading-6 text-muted-foreground shadow-xs">
+          <div className="flex gap-3 border bg-background py-2 px-3 text-xs leading-6 text-muted-foreground shadow-xs">
             Do not include repository secrets, API keys, passwords, or private
             source code in your message.
           </div>
@@ -126,7 +126,7 @@ export function FeedbackSection() {
             </label>
             <textarea
               id="feedback-message"
-              className="min-h-32 w-full resize-y rounded-none border border-input bg-transparent px-2.5 py-3 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-0 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+              className="mt-2 min-h-32 w-full resize-y rounded-none border border-input bg-transparent px-2.5 py-3 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-0 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
               placeholder="What happened, what did you expect, or what should GitLoud add?"
               minLength={10}
               maxLength={2000}
@@ -136,13 +136,19 @@ export function FeedbackSection() {
               onChange={(event) => setMessage(event.target.value)}
             />
             <p className="text-right text-xs text-muted-foreground">
+              <span className="mt-0.5 text-muted-foreground text-xs tracking-tight">
+                (least add 10 character to submit)
+              </span>{" "}
               {message.length}/2000
             </p>
           </div>
 
           <div>
             <label htmlFor="feedback-email" className="text-sm font-medium">
-              Contact email, optional
+              Contact email{" "}
+              <span className="text-muted-foreground text-xs tracking-tight">
+                (optional)
+              </span>
             </label>
             <Input
               id="feedback-email"
