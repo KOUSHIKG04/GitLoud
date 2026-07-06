@@ -1,17 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import { AppLogo } from "@/assets/AppLogo";
 import { HomeLink } from "@/components/HomeLink";
-// import { cn } from "@/lib/utils";
+import { MailOpen } from "lucide-react";
+import Link from "next/link";
 
 const currentYear = new Date().getFullYear();
+
+const navigationLinks = [
+  { href: "/", label: "Home", isHome: true },
+  { href: "/examples", label: "Examples" },
+  { href: "/feedback", label: "Feedback" },
+];
+
+const supportLinks = [
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/security-and-privacy", label: "Security & Privacy" },
+];
 
 export function Footer() {
   return (
     <footer className="bg-background border-t">
-      <div className="mx-auto w-full max-w-7xl">
-        <div className="px-10 py-12 border-b">
+      <div className="border-b">
+        <div className="mx-auto w-full max-w-7xl px-10 py-12">
           <div className="flex items-center gap-3">
             <AppLogo className="size-4 text-foreground" />
             <span className="text-md font-bold tracking-tight text-foreground">
@@ -26,101 +38,72 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 divide-x border-b">
-        <div className="col-span-2 p-10 flex flex-col items-left justify-center">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-            Contact Us:
-            <span>
+      <div className="border-b">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 md:grid-cols-4 md:divide-x">
+          <div className="border-b md:border-b-0 md:col-span-2 p-6 sm:p-10 flex flex-col items-start justify-center">
+            <h3 className="text-sm font-semibold uppercase tracking-normal text-foreground">
+              Contact Us:{" "}
               <a
-                href="koushikgdatta5@gmail.com"
-                className="font-medium text-foreground lowercase hover:text-chart-3 transition-colors"
+                href="mailto:koushikgdatta5@gmail.com"
+                className="inline-flex gap-1.5 items-center font-medium text-foreground lowercase hover:text-chart-3 transition-colors"
               >
-                {" "}
-                koushikgdatta5@gmail.com
+                koushikgdatta5@gmail.com <MailOpen size={10} />
               </a>
-            </span>
-          </h3>
-          <div className="pt-2 text-sm leading-6 text-muted-foreground">
-            <p></p>
-            <p className="text-xs pt-1 text-muted-foreground/60">
+             
+                
+            
+            </h3>
+            <p className="text-xs pt-3 text-muted-foreground/60 tracking-normal">
               Copyright &copy; {currentYear} GitLoud. All rights reserved.
             </p>
           </div>
-          
-        </div>
 
-        <div className="p-10">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-            Navigation
-          </h3>
-          <ul className="pt-3 space-y-3 text-sm uppercase">
-            <li>
-              <HomeLink className="text-muted-foreground hover:text-chart-3 transition-colors">
-                Home
-              </HomeLink>
-            </li>
-            <li>
-              <Link
-                href="/examples"
-                className="text-muted-foreground hover:text-chart-3 transition-colors"
-              >
-                Examples
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/feedback"
-                className="text-muted-foreground hover:text-chart-3 transition-colors"
-              >
-                Feedback
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard"
-                className="text-muted-foreground hover:text-chart-3 transition-colors"
-              >
-                Dashboard
-              </Link>
-            </li>
-          </ul>
-        </div>
+          <div className="hidden md:block border-b md:border-b-0 p-6 sm:p-10">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+              Navigation
+            </h3>
+            <ul className="pt-3 space-y-3 text-sm uppercase">
+              {navigationLinks.map(({ href, label, isHome }) => (
+                <li key={href}>
+                  {isHome ? (
+                    <HomeLink className="text-muted-foreground hover:text-chart-3 transition-colors">
+                      {label}
+                    </HomeLink>
+                  ) : (
+                    <Link
+                      href={href}
+                      className="text-muted-foreground hover:text-chart-3 transition-colors"
+                    >
+                      {label}
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-        <div className="p-10">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-            Support
-          </h3>
-          <ul className="pt-3 space-y-3 text-sm uppercase">
-           
-            <li>
-              <Link
-                href="/privacy"
-                className="text-muted-foreground hover:text-chart-3 transition-colors"
-              >
-                Privacy Policy
-              </Link>
-            </li> <li>
-              <Link
-                href="/security"
-                className="text-muted-foreground hover:text-chart-3 transition-colors"
-              >
-                Security
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/terms"
-                className="text-muted-foreground hover:text-chart-3 transition-colors"
-              >
-                Terms of Service
-              </Link>
-            </li>
-          </ul>
+          <div className="p-6 sm:p-10">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+              Support
+            </h3>
+            <ul className="pt-3 space-y-3 text-sm uppercase">
+              {supportLinks.map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-muted-foreground hover:text-chart-3 transition-colors"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
 
-      <div className="overflow-hidden pt-10">
-        <h1 className="text-center text-[15vw] font-bold leading-[0.8] tracking-tight bg-linear-to-b from-transparent to-primary/80 bg-clip-text text-transparent -mb-5.5">
+      <div className="overflow-hidden px-4 pt-10 pb-2">
+        <h1 className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] tracking-tight bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6">
           GitLoud
         </h1>
       </div>

@@ -1,0 +1,86 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+export function ResponsiveTitle({ title }: { title: string }) {
+  const containerRef = useRef<HTMLSpanElement>(null);
+  const [displayTitle, setDisplayTitle] = useState("");
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const parent = container.parentElement;
+    const h1 = container.closest("h1");
+    if (!parent || !h1) return;
+
+    const updateTruncation = () => {
+      const maxWidth = parent.clientWidth;
+      if (maxWidth === 0) return;
+
+      // 1. Get the computed font styles of the container to measure accurately
+      const computedStyle = window.getComputedStyle(container);
+      const font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      if (!context) return;
+      context.font = font;
+
+      // 2. Measure full title width synchronously using canvas context
+      const fullWidth = context.measureText(title).width;
+
+      // If it fits inside the true client width, show the full title
+      if (fullWidth <= maxWidth) {
+        setDisplayTitle(title);
+        return;
+      }
+
+      // 3. Binary search to find the maximum characters that fit within maxWidth
+      let low = 0;
+      let high = title.length;
+      let bestFit = "";
+
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        const testText = title.slice(0, mid) + "...";
+        const testWidth = context.measureText(testText).width;
+
+        if (testWidth <= maxWidth) {
+          bestFit = testText;
+          low = mid + 1; // Try to fit more characters
+        } else {
+          high = mid - 1; // Fit fewer characters
+        }
+      }
+
+      setDisplayTitle(bestFit || title.slice(0, 5) + "...");
+    };
+
+    // Run initial truncation calculation
+    updateTruncation();
+
+    // 4. Set up ResizeObserver on the H1 container. Since H1 only changes size
+    // with layout/sidebar changes, it prevents any feedback loops.
+    const resizeObserver = new ResizeObserver(() => {
+      updateTruncation();
+    });
+    
+    resizeObserver.observe(h1);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [title]);
+
+  return (
+    <span
+      ref={containerRef}
+      className="block w-full whitespace-nowrap overflow-hidden text-foreground font-normal tracking-tighter"
+      title={title}
+      suppressHydrationWarning
+    >
+      {displayTitle}
+    </span>
+  );
+}

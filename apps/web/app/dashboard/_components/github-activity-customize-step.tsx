@@ -1,36 +1,32 @@
 "use client";
 
 import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
-import { Button } from "@repo/ui/components/button";
 import {
   ChevronRight,
   GitPullRequest,
-  SquarePen,
   UserRound,
+  Paperclip,
 } from "lucide-react";
-import type {
-  GenerationStep,
-  GitHubActivityItem,
-} from "./github-activity-types";
+import type { GitHubActivityItem } from "./github-activity-types";
 
 export function GitHubActivityCustomizeStep({
   context,
   generating,
   selectedItem,
+  selectedMedia,
   setContext,
-  setGenerationStep,
 }: {
   context: string;
   generating: boolean;
   selectedItem: GitHubActivityItem | undefined;
+  selectedMedia?: File | null;
   setContext: (value: string) => void;
-  setGenerationStep: (step: GenerationStep) => void;
 }) {
   return (
     <div className="space-y-4">
       {selectedItem ? (
-        <div className="grid border bg-background sm:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="min-w-0 p-3">
+        <div className="border bg-background p-3">
+          <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               <span className="flex size-6 items-center justify-center bg-primary/10 text-primary">
                 {selectedItem.sourceType === "pull-request" ? (
@@ -62,19 +58,19 @@ export function GitHubActivityCustomizeStep({
             </div>
           </div>
 
-          <div className="flex items-center justify-end border-t p-3 sm:min-w-44 sm:border-l sm:border-t-0">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 w-full shrink-0 px-2.5 text-xs sm:w-auto"
-              disabled={generating}
-              onClick={() => setGenerationStep("select")}
-            >
-              <SquarePen className="size-4" />
-              CHANGE SELECTION
-            </Button>
-          </div>
+          {selectedMedia ? (
+            <div className="mt-2 border bg-muted/10 p-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 truncate font-medium">
+                  <Paperclip className="size-3.5 text-primary" />
+                  {selectedMedia.name}
+                </span>
+                <span className="text-muted-foreground font-mono shrink-0">
+                  {(selectedMedia.size / 1024).toFixed(1)} KB
+                </span>
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

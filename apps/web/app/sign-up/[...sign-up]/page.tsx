@@ -36,7 +36,7 @@ export default async function SignUpPage({
   }
 
   return (
-    <AuthShell eyebrow="Create your account" title="Start using GitLoud">
+    <AuthShell>
       <EmailCodeAuthForm mode="sign-up" redirectUrl={afterAuthUrl} />
     </AuthShell>
   );

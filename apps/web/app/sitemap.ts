@@ -23,16 +23,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${siteUrl}/security`,
+      url: `${siteUrl}/security-and-privacy`,
       lastModified: LEGAL_PAGES_LAST_MODIFIED,
       changeFrequency: "monthly",
       priority: 0.7,
-    },
-    {
-      url: `${siteUrl}/privacy`,
-      lastModified: LEGAL_PAGES_LAST_MODIFIED,
-      changeFrequency: "yearly",
-      priority: 0.4,
     },
     {
       url: `${siteUrl}/terms`,

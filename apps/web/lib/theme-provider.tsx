@@ -103,6 +103,10 @@ export function ThemeProvider({
   children: React.ReactNode;
   initialTheme: Theme;
 }) {
+  const theme: Theme = "dark";
+  const resolvedTheme: ResolvedTheme = "dark";
+
+  /*
   const theme = useSyncExternalStore<Theme>(
     subscribeToThemeChange,
     getCookieTheme,
@@ -115,14 +119,15 @@ export function ThemeProvider({
   );
   const resolvedTheme: ResolvedTheme =
     theme === "system" ? systemTheme : theme;
+  */
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme, resolvedTheme]);
+    applyTheme("dark");
+  }, []);
 
   const setTheme = useCallback((nextTheme: Theme) => {
-    document.cookie = `theme=${nextTheme}; path=/; max-age=31536000; samesite=lax`;
-    window.dispatchEvent(new Event(themeChangeEvent));
+    // document.cookie = `theme=${nextTheme}; path=/; max-age=31536000; samesite=lax`;
+    // window.dispatchEvent(new Event(themeChangeEvent));
   }, []);
 
   const value = useMemo<ThemeContextValue>(

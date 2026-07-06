@@ -1,20 +1,17 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Providers } from "@/components/Providers";
-import type { ThemeMode as Theme } from "@repo/shared/app-state";
 import { Toaster } from "@repo/ui/components/sonner";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { cookies } from "next/headers";
-import { LiquidEther } from "@repo/ui/components/liquid-ether";
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
 const siteName = "GitLoud";
 const siteDescription =
   "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts for X, LinkedIn, and Reddit.";
@@ -91,53 +88,27 @@ export const metadata: Metadata = {
 };
 
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const themeCookie = cookieStore.get("theme")?.value;
-  const initialTheme: Theme =
-    themeCookie === "light" ||
-    themeCookie === "dark" ||
-    themeCookie === "system"
-      ? themeCookie
-      : "system";
-  const htmlClassName = initialTheme === "system" ? undefined : initialTheme;
-
   return (
     <html
       lang="en"
-      className={htmlClassName}
+      className="dark"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <body
-        className={`${geistMono.variable} relative isolate h-dvh overflow-hidden bg-background`}
+        className={`${geistMono.variable} selection:bg-neutral-500/30 relative isolate h-dvh overflow-hidden bg-background`}
         suppressHydrationWarning
       >
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const themeCookie = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
-                const theme = themeCookie || 'system';
-                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.style.colorScheme = 'dark';
-                } else {
-                  document.documentElement.classList.add('light');
-                  document.documentElement.style.colorScheme = 'light';
-                }
-              } catch (e) {}
-            `,
-          }}
-        />
-        <LiquidEther className="fixed inset-0 z-0 opacity-70" />
+
         <ClerkProvider>
-          <Providers initialTheme={initialTheme}>
+          <Providers initialTheme="dark">
             <ScrollArea id="app-scroll-area" className="relative z-10 h-dvh">
+
               {children}
             </ScrollArea>
             <Toaster />

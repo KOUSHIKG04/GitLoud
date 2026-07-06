@@ -6,19 +6,20 @@ import { toast } from "sonner";
 import { useAuth } from "@clerk/nextjs";
 import { Input } from "@repo/ui/components/input";
 import { ChevronRight, Info } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/api-client";
+import { startBackendDelayToast } from "@/lib/api-delay-toast";
 import {
   useRef,
   useState,
   type ChangeEvent,
   type ComponentPropsWithoutRef,
 } from "react";
-import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api-client";
-import { startBackendDelayToast } from "@/lib/api-delay-toast";
 import { PrFormFooter } from "./pr-form-footer";
 import { readProgressStream, uploadMedia, wait } from "./pr-form-generation";
 import { formSchema, type FormValues } from "./pr-form.schema";
 import { getMediaValidationError, onInvalid } from "./pr-form-validation";
+import { useSidebar } from "@repo/ui/components/sidebar";
 
 /**
  * Renders the PR generation form and coordinates media upload before generation.
@@ -29,6 +30,7 @@ export function PrForm({
 }: ComponentPropsWithoutRef<"div">) {
   const { push } = useRouter();
   const { getToken } = useAuth();
+  const { setOpen, setOpenMobile } = useSidebar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaAttachmentIdRef = useRef<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
@@ -98,6 +100,9 @@ export function PrForm({
       toast.success("Content generated successfully", {
         id: toastId,
       });
+
+      setOpen(false);
+      setOpenMobile(false);
 
       push(`/dashboard/generations/${data.generatedContentId}`);
     } catch (error) {
@@ -171,9 +176,9 @@ export function PrForm({
       <div className="border bg-card text-card-foreground shadow-sm">
         <form
           onSubmit={handleSubmit(onSubmit, onInvalid)}
-          className="flex min-h-[29rem] flex-col"
+          className="flex min-h-105 flex-col"
         >
-          <div className="flex-1 space-y-6 p-4 sm:p-6">
+          <div className="flex-1 space-y-6 p-4">
             <div className="space-y-2">
               <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
                 <p className="my-1 gap-1 text-md leading-5 text-foreground flex items-center">

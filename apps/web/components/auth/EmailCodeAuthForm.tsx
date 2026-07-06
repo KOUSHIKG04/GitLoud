@@ -46,7 +46,7 @@ export function EmailCodeAuthForm({
   } = useEmailCodeAuthFormController({ mode, redirectUrl });
 
   return (
-    <div className="border bg-card p-5 text-card-foreground shadow-sm">
+    <div className="p-5 text-card-foreground shadow-sm">
       {step === "email" ? (
         <EmailStep
           email={email}
@@ -120,14 +120,8 @@ function EmailStep({
     <form className="space-y-3" onSubmit={onSubmit}>
       <div className="space-y-1.5">
         <h2 className="text-center text-xl font-semibold tracking-tight">
-          {isSignIn ? "Sign-in with email" : "Create account"}
+          {isSignIn ? "Sign-in with email" : "Create account here"}
         </h2>
-        <p className="text-center text-sm leading-6 text-muted-foreground">
-          {isSignIn
-            ? "Enter your email and we will send a one-time code."
-            : "Use your email to create an account and verify it with a one-time code."}
-        </p>
-
         {!isSignIn ? (
           <label className="mx-auto mt-6 flex max-w-fit items-start justify-center gap-2 text-center text-xs leading-5 text-muted-foreground">
             <input
@@ -139,11 +133,19 @@ function EmailStep({
             />
             <span>
               I agree to GitLoud&apos;s{" "}
-              <Link className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary" href="/terms" target="_blank">
+              <Link
+                className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+                href="/terms"
+                target="_blank"
+              >
                 Terms
               </Link>{" "}
               and{" "}
-              <Link className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary" href="/privacy" target="_blank">
+              <Link
+                className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
+                href="/security-and-privacy"
+                target="_blank"
+              >
                 Privacy Policy
               </Link>
               .
@@ -160,7 +162,7 @@ function EmailStep({
             className="mb-3 rounded-none"
             disabled={isPending}
             onChange={(event) => onUsernameChange(event.target.value)}
-            placeholder="CHOOSE A USERNAME"
+            placeholder="CHOOSE USERNAME"
             type="text"
             value={username}
           />
@@ -178,18 +180,46 @@ function EmailStep({
         />
       </div>
 
-      {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
-      {!isSignIn ? <div id="clerk-captcha" className="h-0 overflow-hidden empty:hidden" /> : null}
-      <Button className="w-full" disabled={isPending || !email.trim() || (!isSignIn && (!username.trim() || !legalAccepted))} type="submit">
-        {pendingAction === "email" ? <Loader2 className="size-4 animate-spin" /> : isSignIn ? "Send sign-in code" : "Send verification code"}
+      {errorMessage ? (
+        <p className="text-sm text-destructive">{errorMessage}</p>
+      ) : null}
+      {!isSignIn ? (
+        <div id="clerk-captcha" className="h-0 overflow-hidden empty:hidden" />
+      ) : null}
+      <Button
+        className="w-full"
+        disabled={
+          isPending ||
+          !email.trim() ||
+          (!isSignIn && (!username.trim() || !legalAccepted))
+        }
+        type="submit"
+      >
+        {pendingAction === "email" ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : isSignIn ? (
+          "Send sign-in code"
+        ) : (
+          "Send verification code"
+        )}
       </Button>
       <div className="flex items-center gap-3">
         <span className="h-px flex-1 bg-border" />
         <span className="text-xs text-muted-foreground">or</span>
         <span className="h-px flex-1 bg-border" />
       </div>
-      <Button className="w-full" disabled={isPending || (!isSignIn && !legalAccepted)} onClick={onContinueWithGoogle} type="button" variant="outline">
-        {pendingAction === "google" ? <Loader2 className="size-4 animate-spin" /> : <GoogleIcon />}
+      <Button
+        className="w-full"
+        disabled={isPending || (!isSignIn && !legalAccepted)}
+        onClick={onContinueWithGoogle}
+        type="button"
+        variant="outline"
+      >
+        {pendingAction === "google" ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <GoogleIcon />
+        )}
         CONTINUE WITH GOOGLE
       </Button>
       <AuthModeLink mode={mode} redirectUrl={redirectUrl} />
@@ -199,7 +229,6 @@ function EmailStep({
 
 function CodeStep({
   code,
-  email,
   errorMessage,
   isPending,
   isSignIn,
@@ -223,12 +252,19 @@ function CodeStep({
   return (
     <form className="space-y-4" onSubmit={onSubmit}>
       <div className="space-y-1.5">
-        <h2 className="text-center text-xl font-semibold tracking-tight">Enter verification code</h2>
-        <p className="text-sm leading-6 text-muted-foreground">
-          We sent a six-digit code to <span className="text-foreground">{email}</span>.
+        <h2 className="text-center text-xl font-semibold tracking-tight">
+          Enter verification code
+        </h2>
+        <p className="text-sm leading-6 text-muted-foreground text-center">
+          We sent a six-digit code to email
         </p>
       </div>
-      <InputOTP disabled={isPending} maxLength={6} onChange={onCodeChange} value={code}>
+      <InputOTP
+        disabled={isPending}
+        maxLength={6}
+        onChange={onCodeChange}
+        value={code}
+      >
         <InputOTPGroup className="w-full justify-between">
           {["first", "second", "third", "fourth", "fifth", "sixth"].map(
             (key, index) => (
@@ -237,13 +273,37 @@ function CodeStep({
           )}
         </InputOTPGroup>
       </InputOTP>
-      {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
-      <Button className="w-full" disabled={isPending || code.length < 6} type="submit">
-        {pendingAction === "code" ? <Loader2 className="size-4 animate-spin" /> : isSignIn ? "Sign in" : "Verify and continue"}
+      {errorMessage ? (
+        <p className="text-sm text-destructive">{errorMessage}</p>
+      ) : null}
+      <Button
+        className="w-full"
+        disabled={isPending || code.length < 6}
+        type="submit"
+      >
+        {pendingAction === "code" ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : isSignIn ? (
+          "Sign in"
+        ) : (
+          "Verify and continue"
+        )}
       </Button>
       <div className="flex items-center justify-between text-sm">
-        <button className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline" disabled={isPending} onClick={onChangeEmail} type="button">Change email</button>
-        <button className="text-foreground underline-offset-4 hover:underline disabled:text-muted-foreground" disabled={isPending} onClick={onResendCode} type="button">
+        <button
+          className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          disabled={isPending}
+          onClick={onChangeEmail}
+          type="button"
+        >
+          Change email
+        </button>
+        <button
+          className="text-foreground underline-offset-4 hover:underline disabled:text-muted-foreground"
+          disabled={isPending}
+          onClick={onResendCode}
+          type="button"
+        >
           {pendingAction === "resend" ? "Sending..." : "Resend code"}
         </button>
       </div>
@@ -267,7 +327,7 @@ function AuthModeLink({
 
   if (mode === "sign-in") {
     return (
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="mt-2 text-center text-sm text-muted-foreground">
         No account?{" "}
         <Link
           className="text-foreground underline-offset-4 hover:underline"
@@ -280,7 +340,7 @@ function AuthModeLink({
   }
 
   return (
-    <p className="text-center text-sm text-muted-foreground">
+    <p className="mt-2 text-center text-sm text-muted-foreground">
       Already have an account?{" "}
       <Link
         className="text-foreground underline-offset-4 hover:underline"

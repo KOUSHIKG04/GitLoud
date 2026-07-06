@@ -127,8 +127,8 @@ export function GeneratedContentView({
           <div
             className={
               isReducedFallbackContent
-                ? "grid gap-4 lg:grid-cols-2"
-                : "grid gap-4 md:grid-cols-2"
+                ? "grid gap-4 lg:grid-cols-2 min-w-0 w-full"
+                : "grid gap-4 md:grid-cols-2 min-w-0 w-full"
             }
           >
             <SocialPostCard

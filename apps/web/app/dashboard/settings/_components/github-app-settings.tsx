@@ -16,8 +16,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGitHubAppSettings } from "../_hooks/use-github-app-settings";
-import { Notice } from "./notice";
-import { SettingsLoading } from "./settings-loading";
+import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 
 export function GitHubAppSettings() {
   const router = useRouter();
@@ -34,20 +33,25 @@ export function GitHubAppSettings() {
 
   useEffect(() => {
     toast.info(
-      "Review the security notes before connecting private repositories.",
+      <p className="text-[12px] font-light tracking-tight ml-2">
+        Review security notes before connecting private repositories.
+      </p>,
       {
         id: "github-app-security-notes",
         duration: 8000,
         action: {
-          label: "Read security notes",
-          onClick: () => router.push("/security"),
+          label: (
+            <p className="uppercase font-medium text-[10px]">Review notes</p>
+          ),
+          onClick: () => router.push("/security-and-privacy"),
         },
       },
     );
-  }, [router]);
+    }, [router]);
+
 
   if (loading) {
-    return <SettingsLoading />;
+    return <DotMatrixLoader className="min-h-64" label="Loading settings" />;
   }
 
   if (!data) {
@@ -71,7 +75,7 @@ export function GitHubAppSettings() {
             return (
               <div
                 key={installation.id}
-                className="grid min-w-0 gap-4 border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] xl:items-center"
+                className="grid min-w-0 gap-4 border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center"
               >
                 <div className="grid min-w-0 gap-8 sm:grid-cols-[auto_minmax(5rem,1fr)] sm:items-center">
                   <div className="flex min-w-0 items-center gap-3">
@@ -107,21 +111,24 @@ export function GitHubAppSettings() {
                   </div>
                 </div>
 
-                <div className="flex min-w-0 flex-col gap-3 border-border xl:border-l xl:pl-4">
+                <div className="grid grid-cols-2 min-w-0 gap-3 border-border xl:grid-cols-1 xl:border-l xl:pl-4 xl:w-48">
                   <Button
                     asChild
                     variant="outline"
                     size="sm"
-                    className="h-10 w-full justify-start gap-2 px-3"
+                    className="h-10 w-full justify-between gap-2 px-3"
                   >
                     <a
                       href={installation.manageUrl}
                       target="_blank"
                       rel="noreferrer"
+                      className="flex items-center justify-between w-full"
                     >
-                      <ExternalLink className="size-4" />
-                      <span className="min-w-0 flex-1 truncate text-left">
-                        MANAGE ACCESS
+                      <span className="flex items-center gap-2">
+                        <ExternalLink className="size-4" />
+                        <span className="truncate text-left text-[11px] font-medium uppercase tracking-wider">
+                          MANAGE ACCESS
+                        </span>
                       </span>
                       <ChevronRight className="size-4 shrink-0" />
                     </a>
@@ -129,26 +136,30 @@ export function GitHubAppSettings() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="h-10 w-full justify-start gap-2 px-3"
+                    className="h-10 w-full justify-between gap-2 px-3"
                     disabled={disconnectingInstallationId === installation.id}
                     onClick={() => void disconnectInstallation(installation.id)}
                   >
-                    {disconnectingInstallationId === installation.id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Unplug className="size-4" />
-                    )}
-                    <span className="min-w-0 flex-1 truncate text-left">
-                      DISCONNECT
+                    <span className="flex items-center gap-2">
+                      {disconnectingInstallationId === installation.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Unplug className="size-4" />
+                      )}
+                      <span className="truncate text-left text-[11px] font-medium uppercase tracking-wider">
+                        DISCONNECT
+                      </span>
                     </span>
-                    <ChevronRight className="size-4 shrink-0" />
+                    <ChevronRight className="size-4 shrink-0 opacity-60" />
                   </Button>
                 </div>
               </div>
             );
           })
         ) : (
-          <Notice text="No GitHub App installation is connected yet." />
+          <div className="border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+            No GitHub App installation is connected yet.
+          </div>
         )}
       </div>
 

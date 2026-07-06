@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { startBackendDelayToast } from "@/lib/api-delay-toast";
 import { getApiError } from "@/lib/api-response";
+import { useSidebar } from "@repo/ui/components/sidebar";
 import {
   readProgressStream,
   uploadMedia,
@@ -33,11 +34,22 @@ import type {
 export function useGitHubActivityDashboard() {
   const { getToken } = useAuth();
   const { push } = useRouter();
+  const { setOpen, setOpenMobile } = useSidebar();
   const [installations, setInstallations] = useState<GitHubInstallation[]>([]);
   const [canUsePrivateRepos, setCanUsePrivateRepos] = useState(false);
-  const [selectedRepositoryId, setSelectedRepositoryId] = useState("");
-  const [activityType, setActivityType] =
+  const [selectedRepositoryId, setSelectedRepositoryIdState] = useState("");
+  const [activityType, setActivityTypeState] =
     useState<ActivityType>("pull-requests");
+
+  const selectedRepositoryIdRef = useRef(selectedRepositoryId);
+  useEffect(() => {
+    selectedRepositoryIdRef.current = selectedRepositoryId;
+  }, [selectedRepositoryId]);
+
+  const activityTypeRef = useRef(activityType);
+  useEffect(() => {
+    activityTypeRef.current = activityType;
+  }, [activityType]);
   const [items, setItems] = useState<GitHubActivityItem[]>([]);
   const [selectedItemUrl, setSelectedItemUrl] = useState("");
   const [context, setContext] = useState("");
@@ -79,43 +91,6 @@ export function useGitHubActivityDashboard() {
     activityType === "pull-requests" ? "Pull requests" : "Commits";
   const isPremiumXPost = xPostLength === "premium";
 
-  const loadInstallations = useCallback(async () => {
-    setLoadingInstallations(true);
-
-    try {
-      const response = await apiFetch("/github/installations", {}, getToken);
-      const data = (await response.json()) as
-        | GitHubInstallationsResponse
-        | { error?: string };
-
-      if (!response.ok) {
-        throw new Error(getApiError(data, "Could not load repositories"));
-      }
-
-      const githubData = data as GitHubInstallationsResponse;
-      const nextRepositories = githubData.installations.flatMap(
-        (installation) => installation.repositories,
-      );
-      const nextRepositoryIds = new Set(
-        nextRepositories.map((repository) => repository.id),
-      );
-      const firstRepositoryId = nextRepositories[0]?.id ?? "";
-
-      setCanUsePrivateRepos(githubData.canUsePrivateRepos);
-      setInstallations(githubData.installations);
-      setSelectedRepositoryId((current) =>
-        current && nextRepositoryIds.has(current) ? current : firstRepositoryId,
-      );
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not load repositories",
-      );
-    } finally {
-      setLoadingInstallations(false);
-      setHasLoadedInstallations(true);
-    }
-  }, [getToken]);
-
   const loadActivity = useCallback(
     async (repositoryId: string, type: ActivityType) => {
       setLoadingActivity(true);
@@ -152,19 +127,79 @@ export function useGitHubActivityDashboard() {
     [getToken],
   );
 
+  const loadInstallations = useCallback(async () => {
+    setLoadingInstallations(true);
+
+    try {
+      const response = await apiFetch("/github/installations", {}, getToken);
+      const data = (await response.json()) as
+        | GitHubInstallationsResponse
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(getApiError(data, "Could not load repositories"));
+      }
+
+      const githubData = data as GitHubInstallationsResponse;
+      const nextRepositories = githubData.installations.flatMap(
+        (installation) => installation.repositories,
+      );
+      const nextRepositoryIds = new Set(
+        nextRepositories.map((repository) => repository.id),
+      );
+      const firstRepositoryId = nextRepositories[0]?.id ?? "";
+
+      setCanUsePrivateRepos(githubData.canUsePrivateRepos);
+      setInstallations(githubData.installations);
+      
+      const currentSelectedId = selectedRepositoryIdRef.current;
+      const nextActive = currentSelectedId && nextRepositoryIds.has(currentSelectedId)
+        ? currentSelectedId
+        : firstRepositoryId;
+
+      setSelectedRepositoryIdState(nextActive);
+      if (nextActive) {
+        void loadActivity(nextActive, activityTypeRef.current);
+      } else {
+        setItems([]);
+        setSelectedItemUrl("");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not load repositories",
+      );
+    } finally {
+      setLoadingInstallations(false);
+      setHasLoadedInstallations(true);
+    }
+  }, [getToken, loadActivity]);
+
+  const setSelectedRepositoryId = useCallback(
+    (repositoryId: string) => {
+      setSelectedRepositoryIdState(repositoryId);
+      if (!repositoryId) {
+        setItems([]);
+        setSelectedItemUrl("");
+      } else {
+        void loadActivity(repositoryId, activityTypeRef.current);
+      }
+    },
+    [loadActivity],
+  );
+
+  const setActivityType = useCallback(
+    (type: ActivityType) => {
+      setActivityTypeState(type);
+      if (selectedRepositoryIdRef.current) {
+        void loadActivity(selectedRepositoryIdRef.current, type);
+      }
+    },
+    [loadActivity],
+  );
+
   useEffect(() => {
     void loadInstallations();
   }, [loadInstallations]);
-
-  useEffect(() => {
-    if (!selectedRepositoryId) {
-      setItems([]);
-      setSelectedItemUrl("");
-      return;
-    }
-
-    void loadActivity(selectedRepositoryId, activityType);
-  }, [activityType, loadActivity, selectedRepositoryId]);
 
   const generateFromSelectedItem = useCallback(async () => {
     if (!selectedItem) {
@@ -212,6 +247,8 @@ export function useGitHubActivityDashboard() {
 
       await minimumLoaderTime;
       toast.success("Content generated successfully", { id: toastId });
+      setOpen(false);
+      setOpenMobile(false);
       push(`/dashboard/generations/${data.generatedContentId}`);
     } catch (error) {
       const message =

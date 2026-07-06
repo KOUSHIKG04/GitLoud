@@ -1,7 +1,7 @@
 "use client";
 
 import { AppLogo } from "@/assets/AppLogo";
-import { ThemeToggle } from "@/components/ToggleThemeBtn";
+
 import { UserProfileMenu } from "@/components/UserProfileMenu";
 import {
   Sidebar,
@@ -17,6 +17,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@repo/ui/components/sidebar";
 import {
   ChevronDown,
@@ -42,6 +43,7 @@ export function DashboardSidebar({
   onResize: (width: number) => void;
 }) {
   const pathname = usePathname();
+  const { state } = useSidebar();
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(true);
   const isDashboardActive =
@@ -99,31 +101,51 @@ export function DashboardSidebar({
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={isDashboardActive}
-                  tooltip={getSidebarTooltip("Get Generated")}
-                  onClick={() => setDashboardOpen((open) => !open)}
-                  className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
-                >
-                  <LayoutDashboard />
-                  <span>Get Generated</span>
-                  <ChevronDown
-                    className={[
-                      "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
-                      dashboardOpen ? "rotate-180" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  />
-                </SidebarMenuButton>
-                {dashboardOpen ? (
-                  <DashboardOptionsSubmenu
-                    items={dashboardOptions}
-                    pathname={pathname}
-                  />
-                ) : null}
-              </SidebarMenuItem>
+              {state === "collapsed" ? (
+                dashboardOptions.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={item.isActive(pathname)}
+                        tooltip={getSidebarTooltip(item.label)}
+                      >
+                        <Link href={item.href}>
+                          <Icon />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })
+              ) : (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    isActive={isDashboardActive}
+                    tooltip={getSidebarTooltip("Get Generated")}
+                    onClick={() => setDashboardOpen((open) => !open)}
+                    className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
+                  >
+                    <LayoutDashboard />
+                    <span>Get Generated</span>
+                    <ChevronDown
+                      className={[
+                        "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
+                        dashboardOpen ? "rotate-180" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    />
+                  </SidebarMenuButton>
+                  {dashboardOpen ? (
+                    <DashboardOptionsSubmenu
+                      items={dashboardOptions}
+                      pathname={pathname}
+                    />
+                  ) : null}
+                </SidebarMenuItem>
+              )}
 
               {secondaryNavigationItems.map((item) => {
                 const Icon = item.icon;
@@ -150,35 +172,54 @@ export function DashboardSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem className="flex flex-col-reverse">
-            <SidebarMenuButton
-              isActive={isSettingsActive}
-              tooltip={getSidebarTooltip("Settings")}
-              onClick={() => setSettingsOpen((open) => !open)}
-              className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
-            >
-              <Settings />
-              <span>Settings</span>
-              <ChevronUp
-                className={[
-                  "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
-                  settingsOpen ? "" : "rotate-180",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-              />
-            </SidebarMenuButton>
-            {settingsOpen ? (
-              <DashboardOptionsSubmenu
-                items={settingsOptions}
-                pathname={pathname}
-                className="mb-1 mt-0"
-              />
-            ) : null}
-          </SidebarMenuItem>
+          {state === "collapsed" ? (
+            settingsOptions.map((item) => {
+              const Icon = item.icon;
+              return (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={item.isActive(pathname)}
+                    tooltip={getSidebarTooltip(item.label)}
+                  >
+                    <Link href={item.href}>
+                      <Icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })
+          ) : (
+            <SidebarMenuItem className="flex flex-col-reverse">
+              <SidebarMenuButton
+                isActive={isSettingsActive}
+                tooltip={getSidebarTooltip("Settings")}
+                onClick={() => setSettingsOpen((open) => !open)}
+                className="bg-transparent hover:bg-sidebar-accent data-active:bg-transparent data-active:font-normal data-active:text-sidebar-foreground"
+              >
+                <Settings />
+                <span>Settings</span>
+                <ChevronUp
+                  className={[
+                    "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
+                    settingsOpen ? "" : "rotate-180",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                />
+              </SidebarMenuButton>
+              {settingsOpen ? (
+                <DashboardOptionsSubmenu
+                  items={settingsOptions}
+                  pathname={pathname}
+                  className="mb-1 mt-0"
+                />
+              ) : null}
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
         <div className="flex w-full items-center gap-2 group-data-[collapsible=icon]:flex-col">
-          <ThemeToggle className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none" />
           <UserProfileMenu
             accountMenu
             className="h-9 w-0 min-w-0 flex-1 group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:flex-none"

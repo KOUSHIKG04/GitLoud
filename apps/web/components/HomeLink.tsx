@@ -18,7 +18,10 @@ export function HomeLink({ onClick, ...props }: HomeLinkProps) {
         }
 
         event.preventDefault();
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        const appScrollViewport = document.querySelector<HTMLElement>(
+          "#app-scroll-area [data-main-viewport]",
+        );
+        appScrollViewport?.scrollTo({ top: 0, behavior: "smooth" });
       }}
     />
   );

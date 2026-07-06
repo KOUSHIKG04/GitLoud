@@ -3,7 +3,13 @@
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": ".",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "baseUrl": ".",
+    "paths": {
+      "#components/*": ["src/components/*"],
+      "#lib/*": ["src/lib/*"],
+      "#hooks/*": ["src/hooks/*"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

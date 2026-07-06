@@ -1,3 +1,4 @@
+"use client";
 
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
@@ -73,12 +74,14 @@ export function FeedbackSection() {
   return (
     <section
       id="feedback"
-      className="scroll-mt-12 px-4 py-16 sm:px-6 lg:px-8 lg:py-24"
+      className="scroll-mt-12 px-4 py-16 sm:px-6 lg:px-8 lg:py-14"
     >
       <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div className="space-y-4">
-          <p className="text-sm font-semibold">FEEDBACK</p>
-          <h2 className="max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-primary tracking-wider">
+            FEEDBACK
+          </p>
+          <h2 className="max-w-xl text-[22px] font-semibold tracking-tight ">
             Help shape what GitLoud builds next.
           </h2>
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
@@ -87,12 +90,9 @@ export function FeedbackSection() {
             matter to developers using the product.
           </p>
 
-          <div className="flex gap-3 border border-border bg-background p-4 text-sm leading-6 text-muted-foreground shadow-xs">
-            <MessageSquareText className="mt-1 size-4 shrink-0 text-primary" />
-            <p>
-              Do not include repository secrets, API keys, passwords, or private
-              source code in your message.
-            </p>
+          <div className="flex gap-3 border bg-background py-2 px-3 text-xs leading-6 text-muted-foreground shadow-xs">
+            Do not include repository secrets, API keys, passwords, or private
+            source code in your message.
           </div>
         </div>
 
@@ -101,15 +101,17 @@ export function FeedbackSection() {
           onSubmit={submitFeedback}
         >
           <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Feedback type</legend>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <legend className="text-sm font-medium uppercase">
+              Feedback type
+            </legend>
+            <div className=" grid grid-cols-2 gap-2 sm:grid-cols-4">
               {feedbackCategories.map((option) => (
                 <Button
                   key={option.value}
                   type="button"
                   variant={category === option.value ? "default" : "outline"}
                   size="sm"
-                  className="w-full"
+                  className="w-full truncate text-xs"
                   aria-pressed={category === option.value}
                   disabled={submitting}
                   onClick={() => setCategory(option.value)}
@@ -120,13 +122,13 @@ export function FeedbackSection() {
             </div>
           </fieldset>
 
-          <div className="space-y-2">
+          <div>
             <label htmlFor="feedback-message" className="text-sm font-medium">
               Message
             </label>
             <textarea
               id="feedback-message"
-              className="min-h-32 w-full resize-y rounded-none border border-input bg-transparent px-2.5 py-3 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
+              className="mt-2 min-h-32 w-full resize-y rounded-none border border-input bg-transparent px-2.5 py-3 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-0 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30"
               placeholder="What happened, what did you expect, or what should GitLoud add?"
               minLength={10}
               maxLength={2000}
@@ -136,18 +138,24 @@ export function FeedbackSection() {
               onChange={(event) => setMessage(event.target.value)}
             />
             <p className="text-right text-xs text-muted-foreground">
+              <span className="mt-0.5 text-muted-foreground text-xs tracking-tight">
+                (least add 10 character to submit)
+              </span>{" "}
               {message.length}/2000
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div>
             <label htmlFor="feedback-email" className="text-sm font-medium">
-              Contact email, optional
+              Contact email{" "}
+              <span className="text-muted-foreground text-xs tracking-tight">
+                (optional)
+              </span>
             </label>
             <Input
               id="feedback-email"
               type="email"
-              className="rounded-none"
+              className="rounded-none mt-2"
               placeholder="you@example.com"
               maxLength={320}
               disabled={submitting}

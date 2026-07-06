@@ -15,6 +15,7 @@ export function GitHubActivityFooter({
   selectedMedia,
   setXPostLength,
   submitDisabled,
+  onSubmit,
 }: {
   clearSelectedMedia: () => void;
   fileInputRef: RefObject<HTMLInputElement | null>;
@@ -24,6 +25,7 @@ export function GitHubActivityFooter({
   selectedMedia: File | null;
   setXPostLength: (value: XPostLength) => void;
   submitDisabled: boolean;
+  onSubmit: () => void;
 }) {
   return (
     <div className="flex flex-col gap-3 border-t bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
@@ -79,8 +81,9 @@ export function GitHubActivityFooter({
         />
       </div>
       <Button
-        type="submit"
+        type="button"
         disabled={submitDisabled}
+        onClick={onSubmit}
         className="flex min-w-32 items-center justify-center gap-2"
       >
         {isSubmitting ? (

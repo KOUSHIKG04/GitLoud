@@ -11,14 +11,14 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <main className="relative isolate flex min-h-[calc(100dvh-3.5rem)] flex-col">
-      <div className="flex flex-1 justify-center px-4 pb-6 pt-0 sm:px-8">
-        <section className="w-full max-w-5xl space-y-8">
+    <main className="max-w-3xl mx-auto relative isolate">
+      <div className="flex justify-center px-4 pb-6 pt-0 sm:px-8">
+        <section className="w-full space-y-4">
           <div className="space-y-2">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h1 className="font-semibold tracking-tight sm:text-2xl">
               DASHBOARD
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-md text-muted-foreground tracking-normal">
               Paste a GitHub pull request or commit link to start generating
               summaries and share-ready posts for free.
             </p>

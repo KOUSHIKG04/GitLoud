@@ -10,7 +10,10 @@ import {
 } from "@repo/ui/components/dropdown-menu";
 import { useClerk, useUser } from "@clerk/nextjs";
 import { getUserDisplayName } from "@/lib/userDisplayName";
-import { BadgeCheck, Bell, LogOut } from "lucide-react";
+import {
+  // BadgeCheck, Bell,
+  LogOut,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
@@ -20,10 +23,24 @@ export function UserProfileMenu({
   className,
   showLabel = false,
   accountMenu = false,
+  side,
+  variant = "secondary",
+  align = "end",
+  sideOffset = 16,
 }: {
   className?: string;
   showLabel?: boolean;
   accountMenu?: boolean;
+  side?: "top" | "bottom" | "left" | "right";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+  align?: "start" | "center" | "end";
+  sideOffset?: number;
 }) {
   const { push, refresh } = useRouter();
   const { signOut } = useClerk();
@@ -36,6 +53,7 @@ export function UserProfileMenu({
     username: user?.username,
     email,
   });
+
   const initials = getInitials(displayName);
 
   async function handleLogout() {
@@ -59,9 +77,11 @@ export function UserProfileMenu({
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
-          variant="secondary"
+          variant={variant}
           className={cn(
-            "flex size-[31px] items-center justify-center rounded-none border border-border bg-background p-0 outline-none ring-offset-background transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            " flex size-[31px] items-center justify-center rounded-none p-0 outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            variant !== "ghost" &&
+              "border border-border bg-background hover:bg-muted",
             showLabel && "h-9 w-full justify-start gap-2 px-2",
             className,
           )}
@@ -77,16 +97,16 @@ export function UserProfileMenu({
             {initials}
           </span>
           {showLabel ? (
-            <span className="truncate text-sm font-medium">Profile</span>
+            <span className="truncate text-sm font-medium">{displayName}</span>
           ) : null}
         </Button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        align={accountMenu ? "end" : "center"}
-        side={accountMenu ? "right" : "bottom"}
-        sideOffset={16}
-        className={cn("mt-1.5 w-56 rounded-none", accountMenu && "w-48 p-0")}
+        align={align}
+        side={side ?? (accountMenu ? "right" : "bottom")}
+        sideOffset={sideOffset}
+        className={cn("mt-1.5 w-56 rounded-none", accountMenu && "w-59")}
       >
         {accountMenu ? (
           <AccountMenuHeader
@@ -106,8 +126,8 @@ export function UserProfileMenu({
             ) : null}
           </>
         )}
-        <DropdownMenuSeparator className={cn(accountMenu && "my-0")} />
-        {accountMenu ? (
+        <DropdownMenuSeparator className={cn(accountMenu && "my-0 mt-2")} />
+        {/* {accountMenu ? (
           <>
             <div className="p-1">
               <DropdownMenuItem className="h-8 rounded-none" disabled>
@@ -127,12 +147,12 @@ export function UserProfileMenu({
             </div>
             <DropdownMenuSeparator className="my-0" />
           </>
-        ) : null}
+        ) : null} */}
         <DropdownMenuItem
           variant="destructive"
           className={cn(
             "rounded-none focus:rounded-none data-highlighted:rounded-none",
-            accountMenu && "m-1 h-8",
+            accountMenu && "m-1 mt-2 h-8",
           )}
           onSelect={(event) => {
             event.preventDefault();

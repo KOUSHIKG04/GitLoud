@@ -31,9 +31,7 @@ export async function getGenerationHistory(params: {
 }
 
 export async function getGenerationDetail(id: string) {
-  const response = await serverApiFetch(`/generations/${id}`, {
-    next: { revalidate: 300 },
-  });
+  const response = await serverApiFetch(`/generations/${id}`);
 
   if (response.status === 404) {
     return null;

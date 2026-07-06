@@ -10,9 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
-import { Check, ChevronDown, RefreshCw } from "lucide-react";
+import { Check, ChevronDown, RefreshCw, SquarePen } from "lucide-react";
 import type {
   ActivityType,
+  GenerationStep,
+  GitHubActivityItem,
   GitHubRepositoryOption,
 } from "./github-activity-types";
 import { dropdownContentClass, dropdownItemClass } from "./github-activity-ui";
@@ -30,6 +32,9 @@ type GitHubActivityControlsProps = {
   setActivityType: (type: ActivityType) => void;
   setRepositoryMenuOpen: (open: boolean) => void;
   setSelectedRepositoryId: (id: string) => void;
+  generationStep: GenerationStep;
+  selectedItem: GitHubActivityItem | undefined;
+  setGenerationStep: (step: GenerationStep) => void;
 };
 
 export function GitHubActivityControls({
@@ -45,10 +50,12 @@ export function GitHubActivityControls({
   setActivityType,
   setRepositoryMenuOpen,
   setSelectedRepositoryId,
+  generationStep,
+  setGenerationStep,
 }: GitHubActivityControlsProps) {
   return (
-    <div className="grid items-end gap-3 sm:grid-cols-[1.3fr_0.7fr_auto]">
-      <div className="space-y-1.5 text-sm">
+    <div className="flex flex-col gap-3 md:grid md:grid-cols-[1.3fr_0.7fr_auto] md:items-end">
+      <div className="space-y-1.5 text-sm w-full">
         <span className="text-muted-foreground">REPOSITORY</span>
         <DropdownMenu
           modal={false}
@@ -105,60 +112,83 @@ export function GitHubActivityControls({
         </DropdownMenu>
       </div>
 
-      <div className="space-y-1.5 text-sm">
-        <span className="text-muted-foreground">SOURCE TYPE</span>
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
+      {generationStep === "customize" ? (
+        <div className="col-span-2 w-full md:col-span-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 w-full rounded-none border-input bg-background px-4 text-sm font-normal focus-visible:ring-1 uppercase tracking-wider shrink-0"
+            disabled={generating}
+            onClick={() => setGenerationStep("select")}
+          >
+            <SquarePen className="size-4 mr-2 text-muted-foreground" />
+            Change selection
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-[1fr_auto] gap-3 items-end md:contents">
+          <div className="space-y-1.5 text-sm w-full">
+            <span className="text-muted-foreground">SOURCE TYPE</span>
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full justify-between rounded-none border-input bg-background px-3 text-sm font-normal focus-visible:ring-1"
+                  disabled={generating}
+                >
+                  <span>{activityTypeLabel}</span>
+                  <ChevronDown className="size-4 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                className={dropdownContentClass}
+              >
+                <DropdownMenuItem
+                  className={dropdownItemClass}
+                  onSelect={() => setActivityType("pull-requests")}
+                >
+                  Pull requests
+                  {activityType === "pull-requests" ? (
+                    <Check className="ml-auto size-4" />
+                  ) : null}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={dropdownItemClass}
+                  onSelect={() => setActivityType("commits")}
+                >
+                  Commits
+                  {activityType === "commits" ? (
+                    <Check className="ml-auto size-4" />
+                  ) : null}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="space-y-1.5 text-sm w-full">
+            <span className="block text-muted-foreground">REFRESH</span>
             <Button
               type="button"
               variant="outline"
-              className="h-10 w-full justify-between rounded-none border-input bg-background px-3 text-sm font-normal focus-visible:ring-1"
-              disabled={generating}
+              size="sm"
+              className="h-10 w-full rounded-none"
+              onClick={() => void loadInstallations()}
+              disabled={loadingInstallations || generating}
             >
-              <span>{activityTypeLabel}</span>
-              <ChevronDown className="size-4 text-muted-foreground" />
+              <RefreshCw
+                className={[
+                  "size-4",
+                  loadingInstallations ? "animate-spin" : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className={dropdownContentClass}>
-            <DropdownMenuItem
-              className={dropdownItemClass}
-              onSelect={() => setActivityType("pull-requests")}
-            >
-              Pull requests
-              {activityType === "pull-requests" ? (
-                <Check className="ml-auto size-4" />
-              ) : null}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className={dropdownItemClass}
-              onSelect={() => setActivityType("commits")}
-            >
-              Commits
-              {activityType === "commits" ? (
-                <Check className="ml-auto size-4" />
-              ) : null}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      <div className="space-y-1.5 text-sm">
-        <span className="block text-muted-foreground">REFRESH</span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-10 w-full rounded-none"
-          onClick={() => void loadInstallations()}
-          disabled={loadingInstallations || generating}
-        >
-          <RefreshCw
-            className={["size-4", loadingInstallations ? "animate-spin" : ""]
-              .filter(Boolean)
-              .join(" ")}
-          />
-        </Button>
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { getApiUrl } from "@/lib/api-url";
+import { markBackendWoken } from "./api-delay-toast";
 
 type GetToken = () => Promise<string | null>;
 
@@ -14,8 +15,14 @@ export async function apiFetch(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  return fetch(getApiUrl(path), {
+  const response = await fetch(getApiUrl(path), {
     ...options,
     headers,
   });
+
+  if (response.ok) {
+    markBackendWoken();
+  }
+
+  return response;
 }
