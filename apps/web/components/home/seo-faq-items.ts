@@ -1,9 +1,4 @@
 export const seoFaqItems = [
-  // {
-  //   question: "What is GitLoud?",
-  //   answer:
-  //     "GitLoud is a GitHub PR summary generator and commit summary generator for developers who want to explain shipped work faster.",
-  // },
   {
     question: "Can GitLoud generate changelog entries?",
     answer:

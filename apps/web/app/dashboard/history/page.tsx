@@ -32,8 +32,8 @@ export default async function HistoryPage({
   } = await searchParams;
 
   return (
-    <main className="relative isolate min-h-[calc(100dvh-3.5rem)] mx-auto w-full max-w-5xl">
-      <section className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl flex-col gap-6 px-4 pb-6 pt-0">
+    <main className="relative isolate h-[calc(100dvh-3.5rem)] mx-auto w-full max-w-5xl overflow-hidden">
+      <section className="h-full flex flex-col gap-4 px-4 pb-4 pt-4 overflow-hidden">
 
         <Suspense fallback={<DotMatrixLoader className="min-h-64 flex-1" label="Loading history" />}>
           <HistoryList

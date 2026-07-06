@@ -42,7 +42,7 @@ export const generationRoutes: Hono = new Hono()
       Number.parseInt(context.req.query("page") ?? "1", 10) || 1,
       1,
     );
-    const pageSize = 10;
+    const pageSize = 7;
     const skip = (page - 1) * pageSize;
     const legacyDate = parseHistoryDate(context.req.query("date"));
     const rangeStart =
@@ -95,6 +95,18 @@ export const generationRoutes: Hono = new Hono()
       skip,
       take: pageSize + 1,
     });
+    const totalCount = await db.generatedContent.count({
+      where: {
+        userId,
+        AND: [
+          {
+            OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
+          },
+          ...(createdAtFilter ? [createdAtFilter] : []),
+        ],
+      },
+    });
+    const totalPages = Math.ceil(totalCount / pageSize);
     const hasNextPage = generations.length > pageSize;
     const visibleGenerations = generations.slice(0, pageSize);
 
@@ -102,6 +114,8 @@ export const generationRoutes: Hono = new Hono()
       page,
       pageSize,
       hasNextPage,
+      totalPages,
+      totalCount,
       generations: visibleGenerations.map((generation) => ({
         id: generation.id,
         sourceType: generation.sourceType,

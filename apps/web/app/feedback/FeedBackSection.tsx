@@ -3,7 +3,7 @@
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";
-import { Loader2, MessageSquareText } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
@@ -139,7 +139,7 @@ export function FeedbackSection() {
             />
             <p className="text-right text-xs text-muted-foreground">
               <span className="mt-0.5 text-muted-foreground text-xs tracking-tight">
-                (least add 10 character to submit)
+                (Minimum of 10 characters required to submit)
               </span>{" "}
               {message.length}/2000
             </p>

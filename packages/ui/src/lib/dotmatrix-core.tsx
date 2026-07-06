@@ -948,3 +948,39 @@ export function createPathWaveComponent(displayName: string, getPathNorm: NormFn
   PathWaveComponent.displayName = displayName;
   return PathWaveComponent;
 }
+
+export interface DotMatrixWrapperProps extends DotMatrixCommonProps {
+  animationResolver: DotAnimationResolver;
+}
+
+export function DotMatrixWrapper({
+  speed = 1.35,
+  pattern = "full",
+  animated = true,
+  hoverAnimated = false,
+  animationResolver,
+  ...rest
+}: DotMatrixWrapperProps) {
+  const reducedMotion = usePrefersReducedMotion();
+  const { phase: matrixPhase, onMouseEnter, onMouseLeave } = useDotMatrixPhases({
+    animated: Boolean(animated && !reducedMotion),
+    hoverAnimated: Boolean(hoverAnimated && !reducedMotion),
+    speed
+  });
+
+  return (
+    <DotMatrixBase
+      {...rest}
+      size={rest.size ?? 36}
+      dotSize={rest.dotSize ?? 5}
+      speed={speed}
+      pattern={pattern}
+      animated={animated}
+      phase={matrixPhase}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      reducedMotion={reducedMotion}
+      animationResolver={animationResolver}
+    />
+  );
+}

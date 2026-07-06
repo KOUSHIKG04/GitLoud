@@ -44,10 +44,6 @@ export default async function GenerationDetailPage({
     generation.sourceType === "PULL_REQUEST"
       ? `${source.url}/files`
       : source.url;
-  const sourceReference =
-    generation.sourceType === "PULL_REQUEST" && generation.pullRequest
-      ? `#${generation.pullRequest.number}`
-      : generation.commit?.shortSha;
 
   return (
     <main className="relative isolate min-h-[calc(100dvh-3.5rem)] mx-auto w-full max-w-5xl">

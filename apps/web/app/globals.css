@@ -1,5 +1,6 @@
-@import "@repo/ui/globals.css"; @source "../../../packages/ui/src";
+@import "@repo/ui/globals.css";
 @import "../components/dotmatrix-loader.css";
+@source "../../../packages/ui/src";
 
 .gitloud-activity-scroll {
   scrollbar-width: none;
@@ -9,6 +10,29 @@
   display: none;
 }
 
+.history-scroll-container {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent !important;
+}
+
+.history-scroll-container::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+  display: block !important;
+}
+
+.history-scroll-container::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.history-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 9999px !important;
+}
+
+.history-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
 
 ::view-transition-old(root),
 ::view-transition-new(root) {

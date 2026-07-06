@@ -49,6 +49,8 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+import { scrollToTop } from "@/lib/scroll";
+
 function scrollToLandingSection(
   event: MouseEvent<HTMLAnchorElement>,
   sectionId: string,
@@ -60,11 +62,7 @@ function scrollToLandingSection(
   event.preventDefault();
 
   if (sectionId === "home") {
-    const appScrollViewport = document.querySelector<HTMLElement>(
-      "#app-scroll-area [data-main-viewport]",
-    );
-
-    appScrollViewport?.scrollTo({ top: 0, behavior: "smooth" });
+    scrollToTop();
     return;
   }
 

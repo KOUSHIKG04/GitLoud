@@ -42,11 +42,9 @@ export function SourceMetadataPanel({
   sourceType,
 }: SourceMetadataPanelProps) {
   const sourceReference =
-    sourceType === "PULL_REQUEST" && "number" in source
-      ? `#${source.number}`
-      : "shortSha" in source
-        ? source.shortSha
-        : undefined;
+    sourceType === "PULL_REQUEST"
+      ? (source.number ? `#${source.number}` : undefined)
+      : (source.shortSha ?? undefined);
 
   return (
     <div className="space-y-3">
@@ -91,7 +89,7 @@ export function SourceMetadataPanel({
             value={source.author}
           />
         ) : null}
-        {"state" in source && source.state ? (
+        {sourceType === "PULL_REQUEST" && source.state ? (
           <SourceMeta
             icon={<CircleDot className="size-4" />}
             label="State"

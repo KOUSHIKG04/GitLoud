@@ -66,6 +66,8 @@ function useBackendWakeScreen() {
   const doneRef = useRef(false);
 
   useEffect(() => {
+    doneRef.current = false;
+
     if (!shouldShowWakeScreen()) return;
 
     const forcedMode = getForcedWakeMode();
@@ -74,12 +76,14 @@ function useBackendWakeScreen() {
     const controller = new AbortController();
 
     let showTimer: number | null = null;
+    let slowTimer: number | null = null;
     let maxTimer: number | null = null;
     let visibleAt = 0;
     const startedAt = performance.now();
 
     const clearTimers = () => {
       if (showTimer) window.clearTimeout(showTimer);
+      if (slowTimer) window.clearTimeout(slowTimer);
       if (maxTimer) window.clearTimeout(maxTimer);
     };
 
@@ -104,7 +108,9 @@ function useBackendWakeScreen() {
         if (!isForced && (result === "ready" || result === "timeout")) {
           sessionStorage.setItem(STORAGE_KEY, "done");
         }
-      } catch {}
+      } catch {
+        /* ignore session storage errors */
+      }
 
       setVisible(false);
     };
@@ -116,10 +122,13 @@ function useBackendWakeScreen() {
       setStatus("starting");
     }, SHOW_DELAY_MS);
 
+    slowTimer = window.setTimeout(() => {
+      if (doneRef.current) return;
+      setStatus("slow");
+    }, MAX_VISIBLE_MS / 2);
+
     maxTimer = window.setTimeout(() => {
       if (doneRef.current) return;
-      setVisible(true);
-      setStatus("slow");
       void complete("timeout");
     }, MAX_VISIBLE_MS);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 
@@ -15,6 +15,18 @@ const securityControls = [
 
 export function SecurityPrivacyContent() {
   const [activeTab, setActiveTab] = useState<"security" | "privacy">("security");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab === "privacy" || tab === "security") {
+        setActiveTab(tab);
+      } else if (window.location.hash === "#privacy") {
+        setActiveTab("privacy");
+      }
+    }
+  }, []);
 
   return (
     <div>
@@ -37,9 +49,14 @@ export function SecurityPrivacyContent() {
       </section>
 
       <div className="border-t border-b border-border w-full">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-20 flex gap-8">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-20 flex gap-8" role="tablist" aria-label="Legal and Trust Tabs">
           <button
+            id="tab-security"
             type="button"
+            role="tab"
+            aria-selected={activeTab === "security"}
+            aria-controls="panel-security"
+            tabIndex={activeTab === "security" ? 0 : -1}
             onClick={() => setActiveTab("security")}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "security"
@@ -53,7 +70,12 @@ export function SecurityPrivacyContent() {
             )}
           </button>
           <button
+            id="tab-privacy"
             type="button"
+            role="tab"
+            aria-selected={activeTab === "privacy"}
+            aria-controls="panel-privacy"
+            tabIndex={activeTab === "privacy" ? 0 : -1}
             onClick={() => setActiveTab("privacy")}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "privacy"
@@ -71,7 +93,11 @@ export function SecurityPrivacyContent() {
 
       <div className="divide-y divide-border w-full">
         {activeTab === "security" ? (
-          <>
+          <div
+            id="panel-security"
+            role="tabpanel"
+            aria-labelledby="tab-security"
+          >
             <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-10">
               <div className="mx-auto max-w-5xl text-left space-y-4">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
@@ -146,9 +172,13 @@ export function SecurityPrivacyContent() {
                 </div>
               </div>
             </section>
-          </>
+          </div>
         ) : (
-          <>
+          <div
+            id="panel-privacy"
+            role="tabpanel"
+            aria-labelledby="tab-privacy"
+          >
             <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-10">
               <div className="mx-auto max-w-5xl text-left space-y-4">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
@@ -222,7 +252,7 @@ export function SecurityPrivacyContent() {
                 </div>
               </div>
             </section>
-          </>
+          </div>
         )}
       </div>
     </div>

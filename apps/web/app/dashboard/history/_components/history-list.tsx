@@ -51,9 +51,9 @@ export async function HistoryList({
     visibleGenerations.length > 0 || hasActiveDateFilter;
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4 px-2">
+    <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col min-h-0 overflow-hidden px-2">
       {showHistoryActions ? (
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2 pb-4 shrink-0">
           <HistoryDatePicker />
           {visibleGenerations.length > 0 ? (
             <Button asChild>
@@ -66,9 +66,9 @@ export async function HistoryList({
         </div>
       ) : null}
 
-      <div className="flex-1">
+      <div className="history-scroll-container flex-1 min-h-0 overflow-y-auto pr-1">
         {visibleGenerations.length === 0 ? (
-          <div className="flex min-h-[calc(100dvh-12rem)] items-center justify-center gap-1 p-6 text-lg text-muted-foreground">
+          <div className="flex min-h-[250px] items-center justify-center gap-1 p-6 text-lg text-muted-foreground">
             <span>
               {page === 1
                 ? "No generations yet. Create a"
@@ -81,7 +81,7 @@ export async function HistoryList({
             ) : null}
           </div>
         ) : (
-          <div className="space-y-3.5">
+          <div className="space-y-3.5 pl-2 pb-2">
             {visibleGenerations.map((generation) => {
               const source = generation.pullRequest ?? generation.commit;
 
@@ -122,7 +122,12 @@ export async function HistoryList({
                       <span className="text-sm font-medium text-muted-foreground shrink-0">
                         {sourceLabel}:{" "}
                         <span className="text-xs relative z-20">
-                          <a href={source.url} target="_blank" rel="noreferrer" className="hover:underline">
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="hover:underline"
+                          >
                             {source.owner}/{source.repo}
                           </a>
                         </span>
@@ -166,6 +171,7 @@ export async function HistoryList({
                           target="_blank"
                           rel="noreferrer"
                           title="Open on GitHub"
+                          aria-label="Open on GitHub"
                         >
                           <GithubIconIcon className="size-4" />
                         </a>
@@ -200,10 +206,11 @@ export async function HistoryList({
       </div>
 
       {visibleGenerations.length > 0 ? (
-        <div className="pt-4">
+        <div className="pt-4 shrink-0  bg-background mt-auto">
           <HistoryPagination
             page={page}
             hasNextPage={hasNextPage}
+            totalPages={history.totalPages}
             from={rangeStart ? formatHistoryDate(rangeStart) : undefined}
             to={rangeEnd ? formatHistoryDate(rangeEnd) : undefined}
           />
@@ -217,13 +224,17 @@ function HistoryPagination({
   from,
   page,
   hasNextPage,
+  totalPages = 1,
   to,
 }: {
   from?: string;
   page: number;
   hasNextPage: boolean;
+  totalPages?: number;
   to?: string;
 }) {
+  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+
   return (
     <Pagination>
       <PaginationContent>
@@ -240,11 +251,16 @@ function HistoryPagination({
           )}
         </PaginationItem>
 
-        <PaginationItem>
-          <PaginationLink href={getHistoryPageHref(page, from, to)} isActive>
-            {page}
-          </PaginationLink>
-        </PaginationItem>
+        {pageNumbers.map((p) => (
+          <PaginationItem key={p}>
+            <PaginationLink
+              href={getHistoryPageHref(p, from, to)}
+              isActive={p === page}
+            >
+              {p}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
 
         <PaginationItem>
           {hasNextPage ? (

@@ -22,10 +22,12 @@
   border-radius: 999px;
   clip-path: none;
   display: block;
-  background: var(--dmx-dot-fill, currentColor);
+  background: var(--dmx-dot-fill, currentcolor);
   /* Matches prior 0.24 with default base/mid */
   opacity: calc(0.5 * (var(--dmx-opacity-base) + var(--dmx-opacity-mid)));
+
   --dmx-bloom-level: 0;
+
   transform-origin: center;
   transform: none;
   will-change: opacity;
@@ -80,52 +82,17 @@
 
 .dmx-bloom .dmx-dot {
   filter:
-    drop-shadow(
-      0 0
-      calc(
-        var(--dmx-dot-size, 3px) * 0.75 *
-          max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))
-      )
-      currentColor
-    )
-    drop-shadow(
-      0 0
-      calc(
-        var(--dmx-dot-size, 3px) * 1.35 *
-          max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))
-      )
-      currentColor
-    );
+    drop-shadow(0 0 calc(var(--dmx-dot-size, 3px) * 0.75 * max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))) currentcolor)
+    drop-shadow(0 0 calc(var(--dmx-dot-size, 3px) * 1.35 * max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))) currentcolor);
   will-change: opacity, filter;
 }
 
 /* Halo: modestly wider falloff than selective bloom (same --dmx-bloom-level on each dot). */
 .dmx-root.dmx-bloom-halo.dmx-bloom .dmx-dot {
   filter:
-    drop-shadow(
-      0 0
-      calc(
-        var(--dmx-dot-size, 3px) * 0.92 *
-          max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))
-      )
-      currentColor
-    )
-    drop-shadow(
-      0 0
-      calc(
-        var(--dmx-dot-size, 3px) * 1.62 *
-          max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))
-      )
-      currentColor
-    )
-    drop-shadow(
-      0 0
-      calc(
-        var(--dmx-dot-size, 3px) * 2.55 *
-          max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))
-      )
-      currentColor
-    );
+    drop-shadow(0 0 calc(var(--dmx-dot-size, 3px) * 0.92 * max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))) currentcolor)
+    drop-shadow(0 0 calc(var(--dmx-dot-size, 3px) * 1.62 * max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))) currentcolor)
+    drop-shadow(0 0 calc(var(--dmx-dot-size, 3px) * 2.55 * max(var(--dmx-bloom-level, 0), var(--dmx-halo-level, 0))) currentcolor);
   will-change: opacity, filter;
 }
 
@@ -156,11 +123,7 @@
 
 .dmx-ripple-echo {
   animation: dmx-ripple-echo calc(var(--dmx-cycle) * var(--dmx-speed, 1)) ease-in-out infinite;
-  animation-delay: calc(
-    (var(--dmx-ripple-ring, 0) * 0.14 + var(--dmx-ripple-parity, 0) * 0.03) *
-      var(--dmx-cycle) *
-      var(--dmx-speed, 1)
-  );
+  animation-delay: calc((var(--dmx-ripple-ring, 0) * 0.14 + var(--dmx-ripple-parity, 0) * 0.03) * var(--dmx-cycle) * var(--dmx-speed, 1));
   will-change: opacity;
 }
 
@@ -193,11 +156,7 @@
 
 .dmx-diagonal-alt-sweep {
   animation: dmx-diagonal-alt-sweep calc(var(--dmx-cycle) * var(--dmx-speed, 1)) linear infinite;
-  animation-delay: calc(
-    (var(--dmx-path, 0) * 0.2 + var(--dmx-diagonal-parity, 0) * 0.5) *
-      var(--dmx-cycle) *
-      var(--dmx-speed, 1)
-  );
+  animation-delay: calc((var(--dmx-path, 0) * 0.2 + var(--dmx-diagonal-parity, 0) * 0.5) * var(--dmx-cycle) * var(--dmx-speed, 1));
   will-change: opacity;
 }
 
@@ -453,6 +412,7 @@
   animation-name: dmx-square9-d6;
 }
 
+/* stylelint-disable keyframe-block-no-duplicate-selectors */
 @keyframes dmx-square9-d1 {
   0%,
   3.846154% {
@@ -980,6 +940,7 @@
     --dmx-bloom-level: 0;
   }
 }
+/* stylelint-enable keyframe-block-no-duplicate-selectors */
 
 .dmx-square6-col-snake {
   animation: dmx-square6-col-snake calc(var(--dmx-cycle) * var(--dmx-speed, 1)) steps(5, end) infinite;

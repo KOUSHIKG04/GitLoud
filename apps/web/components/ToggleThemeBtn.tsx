@@ -6,13 +6,11 @@
 // import { useTheme } from "@/lib/theme-provider";
 // import { cn } from "@repo/ui/lib/utils";
 
-export function ThemeToggle({
-  className,
-  showLabel = false,
-}: {
+export function ThemeToggle(props: {
   className?: string;
   showLabel?: boolean;
 }) {
+  if (props) return null;
   return null; // Locked to dark/black theme only
   /*
   const { resolvedTheme, setTheme } = useTheme();

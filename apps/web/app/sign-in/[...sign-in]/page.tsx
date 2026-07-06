@@ -30,7 +30,7 @@ export default async function SignInPage({
   const afterAuthUrl = isSafeRedirect ? requestedUrl : "/?auth=sign-in";
 
   if (userId) {
-    redirect("/");
+    redirect(afterAuthUrl);
   }
 
   return (
