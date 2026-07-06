@@ -2,8 +2,7 @@
 
 import type { CSSProperties } from "react";
 
-import { DotMatrixBase, spiralInwardNormFromIndex, spiralInwardOrderValue } from "#lib/dotmatrix-core";
-import { useDotMatrixPhases, usePrefersReducedMotion } from "#lib/dotmatrix-hooks";
+import { spiralInwardNormFromIndex, spiralInwardOrderValue, DotMatrixWrapper } from "#lib/dotmatrix-core";
 import type { DotAnimationResolver, DotMatrixCommonProps } from "#lib/dotmatrix-core";
 
 export type DotmSquare3Props = DotMatrixCommonProps;
@@ -29,32 +28,10 @@ const animationResolver: DotAnimationResolver = ({ isActive, index, reducedMotio
   return { className: "dmx-spiral-snake", style };
 };
 
-export function DotmSquare3({
-  speed = 1.35,
-  pattern = "full",
-  animated = true,
-  hoverAnimated = false,
-  ...rest
-}: DotmSquare3Props) {
-  const reducedMotion = usePrefersReducedMotion();
-  const { phase: matrixPhase, onMouseEnter, onMouseLeave } = useDotMatrixPhases({
-    animated: Boolean(animated && !reducedMotion),
-    hoverAnimated: Boolean(hoverAnimated && !reducedMotion),
-    speed
-  });
-
+export function DotmSquare3(props: DotmSquare3Props) {
   return (
-    <DotMatrixBase
-      {...rest}
-      size={rest.size ?? 36}
-      dotSize={rest.dotSize ?? 5}
-      speed={speed}
-      pattern={pattern}
-      animated={animated}
-      phase={matrixPhase}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      reducedMotion={reducedMotion}
+    <DotMatrixWrapper
+      {...props}
       animationResolver={animationResolver}
     />
   );

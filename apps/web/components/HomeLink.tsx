@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
+import { scrollToTop } from "@/lib/scroll";
 
 type HomeLinkProps = Omit<ComponentPropsWithoutRef<typeof Link>, "href">;
 
@@ -18,10 +19,7 @@ export function HomeLink({ onClick, ...props }: HomeLinkProps) {
         }
 
         event.preventDefault();
-        const appScrollViewport = document.querySelector<HTMLElement>(
-          "#app-scroll-area [data-main-viewport]",
-        );
-        appScrollViewport?.scrollTo({ top: 0, behavior: "smooth" });
+        scrollToTop();
       }}
     />
   );

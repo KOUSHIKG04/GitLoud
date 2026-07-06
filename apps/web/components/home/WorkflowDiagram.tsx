@@ -10,6 +10,60 @@ import {
   XIcon,
 } from "@/assets/social-icons";
 
+interface AnimatedPathProps {
+  d: string;
+  strokeDasharray?: string;
+  strokeDashoffsetValues: number[];
+  duration?: number;
+}
+
+function AnimatedPath({
+  d,
+  strokeDasharray = "45 415",
+  strokeDashoffsetValues,
+  duration = 2.2,
+}: AnimatedPathProps) {
+  return (
+    <>
+      <path
+        d={d}
+        className="stroke-primary opacity-15"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        markerEnd="url(#arrow)"
+      />
+      <m.path
+        d={d}
+        className="stroke-primary opacity-90"
+        strokeWidth="2.5"
+        strokeDasharray={strokeDasharray}
+        strokeLinejoin="miter"
+        strokeLinecap="square"
+        animate={{ strokeDashoffset: strokeDashoffsetValues }}
+        transition={{
+          repeat: Infinity,
+          ease: "linear",
+          duration,
+        }}
+      />
+      <m.path
+        d={d}
+        stroke="#FFF"
+        strokeWidth="1.0"
+        strokeDasharray={strokeDasharray}
+        strokeLinejoin="miter"
+        strokeLinecap="square"
+        animate={{ strokeDashoffset: strokeDashoffsetValues }}
+        transition={{
+          repeat: Infinity,
+          ease: "linear",
+          duration,
+        }}
+      />
+    </>
+  );
+}
+
 export function WorkflowDiagram() {
   return (
     <LazyMotion features={domAnimation}>
@@ -52,149 +106,10 @@ function WorkflowDiagramDesktop() {
           markerEnd="url(#arrow)"
         />
 
-        <path
-          d="M 390 200 L 478 200 L 478 50 L 700 50"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 50 L 700 50"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="45 415"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [460, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 50 L 700 50"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="45 415"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [460, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-
-        <path
-          d="M 390 200 L 478 200 L 478 150 L 700 150"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 150 L 700 150"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="40 320"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [360, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 150 L 700 150"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="40 320"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [360, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-
-        <path
-          d="M 390 200 L 478 200 L 478 250 L 700 250"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 250 L 700 250"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="40 320"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [360, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 250 L 700 250"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="40 320"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [360, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-
-        <path
-          d="M 390 200 L 478 200 L 478 350 L 700 350"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 350 L 700 350"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="45 415"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [460, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-        <m.path
-          d="M 390 200 L 478 200 L 478 350 L 700 350"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="45 415"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [460, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
+        <AnimatedPath d="M 390 200 L 478 200 L 478 50 L 700 50" strokeDashoffsetValues={[460, 0]} duration={2.2} />
+        <AnimatedPath d="M 390 200 L 478 200 L 478 150 L 700 150" strokeDasharray="40 320" strokeDashoffsetValues={[360, 0]} duration={2.2} />
+        <AnimatedPath d="M 390 200 L 478 200 L 478 250 L 700 250" strokeDasharray="40 320" strokeDashoffsetValues={[360, 0]} duration={2.2} />
+        <AnimatedPath d="M 390 200 L 478 200 L 478 350 L 700 350" strokeDashoffsetValues={[460, 0]} duration={2.2} />
 
         <foreignObject
           x="50"
@@ -363,149 +278,10 @@ function WorkflowDiagramMobile() {
           </div>
         </foreignObject>
 
-        <path
-          d="M 150 260 L 150 280 L 75 280 L 75 300"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 150 260 L 150 280 L 75 280 L 75 300"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="20 95"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [115, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.0,
-          }}
-        />
-        <m.path
-          d="M 150 260 L 150 280 L 75 280 L 75 300"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="20 95"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [115, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.0,
-          }}
-        />
-
-        <path
-          d="M 150 260 L 150 280 L 225 280 L 225 300"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 150 260 L 150 280 L 225 280 L 225 300"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="20 95"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [115, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.0,
-          }}
-        />
-        <m.path
-          d="M 150 260 L 150 280 L 225 280 L 225 300"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="20 95"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [115, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.0,
-          }}
-        />
-
-        <path
-          d="M 150 260 L 150 380 L 75 380 L 75 400"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 150 260 L 150 380 L 75 380 L 75 400"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="30 185"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [215, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-        <m.path
-          d="M 150 260 L 150 380 L 75 380 L 75 400"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="30 185"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [215, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-
-        <path
-          d="M 150 260 L 150 380 L 225 380 L 225 400"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          markerEnd="url(#arrow)"
-        />
-        <m.path
-          d="M 150 260 L 150 380 L 225 380 L 225 400"
-          className="stroke-primary opacity-90"
-          strokeWidth="2.5"
-          strokeDasharray="30 185"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [215, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
-        <m.path
-          d="M 150 260 L 150 380 L 225 380 L 225 400"
-          stroke="#FFF"
-          strokeWidth="1.0"
-          strokeDasharray="30 185"
-          strokeLinejoin="miter"
-          strokeLinecap="square"
-          animate={{ strokeDashoffset: [215, 0] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 2.2,
-          }}
-        />
+        <AnimatedPath d="M 150 260 L 150 280 L 75 280 L 75 300" strokeDasharray="20 95" strokeDashoffsetValues={[115, 0]} duration={2.0} />
+        <AnimatedPath d="M 150 260 L 150 280 L 225 280 L 225 300" strokeDasharray="20 95" strokeDashoffsetValues={[115, 0]} duration={2.0} />
+        <AnimatedPath d="M 150 260 L 150 380 L 75 380 L 75 400" strokeDasharray="30 185" strokeDashoffsetValues={[215, 0]} duration={2.2} />
+        <AnimatedPath d="M 150 260 L 150 380 L 225 380 L 225 400" strokeDasharray="30 185" strokeDashoffsetValues={[215, 0]} duration={2.2} />
 
         <foreignObject
           x="50"

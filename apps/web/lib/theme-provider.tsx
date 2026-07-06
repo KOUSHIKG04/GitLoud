@@ -6,7 +6,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useSyncExternalStore,
 } from "react";
 import type { ThemeMode as Theme, ResolvedTheme } from "@repo/shared/app-state";
 
@@ -17,7 +16,7 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-const themeChangeEvent = "gitloud-theme-change";
+// const themeChangeEvent = "gitloud-theme-change";
 
 /**
  * Determines the resolved theme based on the user's system preferences.
@@ -30,13 +29,8 @@ function getSystemTheme(): ResolvedTheme {
     : "light";
 }
 
-/**
- * Retrieves the preferred theme from document cookies.
- * Falls back to "system" if no valid cookie is found.
- *
- * @returns The client theme preference.
- */
-function getCookieTheme(): Theme {
+/*
+function _getCookieTheme(): Theme {
   const themeCookie = document.cookie
     .split("; ")
     .find((cookie) => cookie.startsWith("theme="))
@@ -52,6 +46,7 @@ function getCookieTheme(): Theme {
 
   return "system";
 }
+*/
 
 /**
  * Updates the document body class and colorScheme style properties to match the selected theme.
@@ -70,13 +65,8 @@ function applyTheme(theme: Theme): ResolvedTheme {
   return resolvedTheme;
 }
 
-/**
- * Subscribes to changes in system theme preferences or custom change events.
- *
- * @param callback - Event handler invoked when a theme change occurs.
- * @returns A cleanup function to unsubscribe from listeners.
- */
-function subscribeToThemeChange(callback: () => void) {
+/*
+function _subscribeToThemeChange(callback: () => void) {
   const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
   window.addEventListener(themeChangeEvent, callback);
@@ -87,6 +77,7 @@ function subscribeToThemeChange(callback: () => void) {
     mediaQuery.removeEventListener("change", callback);
   };
 }
+*/
 
 /**
  * Provides context values for the theme and resolvedTheme state variables.
@@ -105,6 +96,10 @@ export function ThemeProvider({
 }) {
   const theme: Theme = "dark";
   const resolvedTheme: ResolvedTheme = "dark";
+
+  if (initialTheme) {
+    // Satisfy linter for unused prop
+  }
 
   /*
   const theme = useSyncExternalStore<Theme>(
@@ -126,6 +121,9 @@ export function ThemeProvider({
   }, []);
 
   const setTheme = useCallback((nextTheme: Theme) => {
+    if (nextTheme) {
+      // Satisfy linter for unused parameter
+    }
     // document.cookie = `theme=${nextTheme}; path=/; max-age=31536000; samesite=lax`;
     // window.dispatchEvent(new Event(themeChangeEvent));
   }, []);

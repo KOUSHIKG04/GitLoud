@@ -2,13 +2,12 @@
 
 import type { CSSProperties } from "react";
 
-import { DotMatrixBase } from "#lib/dotmatrix-core";
-import { useDotMatrixPhases, usePrefersReducedMotion } from "#lib/dotmatrix-hooks";
 import {
   middleRingAntiClockwiseNormFromIndex,
   middleRingAntiClockwiseOrderValue,
   outerRingClockwiseNormFromIndex,
-  outerRingClockwiseOrderValue
+  outerRingClockwiseOrderValue,
+  DotMatrixWrapper
 } from "#lib/dotmatrix-core";
 import type { DotAnimationResolver, DotMatrixCommonProps } from "#lib/dotmatrix-core";
 
@@ -54,32 +53,10 @@ const animationResolver: DotAnimationResolver = ({ isActive, index, row, col, re
   return { className: "dmx-middle-snake", style };
 };
 
-export function DotmSquare4({
-  speed = 1.35,
-  pattern = "full",
-  animated = true,
-  hoverAnimated = false,
-  ...rest
-}: DotmSquare4Props) {
-  const reducedMotion = usePrefersReducedMotion();
-  const { phase: matrixPhase, onMouseEnter, onMouseLeave } = useDotMatrixPhases({
-    animated: Boolean(animated && !reducedMotion),
-    hoverAnimated: Boolean(hoverAnimated && !reducedMotion),
-    speed
-  });
-
+export function DotmSquare4(props: DotmSquare4Props) {
   return (
-    <DotMatrixBase
-      {...rest}
-      size={rest.size ?? 36}
-      dotSize={rest.dotSize ?? 5}
-      speed={speed}
-      pattern={pattern}
-      animated={animated}
-      phase={matrixPhase}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      reducedMotion={reducedMotion}
+    <DotMatrixWrapper
+      {...props}
       animationResolver={animationResolver}
     />
   );

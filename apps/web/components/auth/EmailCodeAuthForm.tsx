@@ -137,14 +137,16 @@ function EmailStep({
                 className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
                 href="/terms"
                 target="_blank"
+                rel="noopener noreferrer"
               >
                 Terms
               </Link>{" "}
               and{" "}
               <Link
                 className="font-medium text-foreground underline underline-offset-4 transition-colors hover:text-primary"
-                href="/security-and-privacy"
+                href="/security-and-privacy?tab=privacy"
                 target="_blank"
+                rel="noopener noreferrer"
               >
                 Privacy Policy
               </Link>
@@ -229,6 +231,7 @@ function EmailStep({
 
 function CodeStep({
   code,
+  email,
   errorMessage,
   isPending,
   isSignIn,
@@ -256,7 +259,7 @@ function CodeStep({
           Enter verification code
         </h2>
         <p className="text-sm leading-6 text-muted-foreground text-center">
-          We sent a six-digit code to email
+          We sent a six-digit code to <span className="font-semibold text-foreground">{email}</span>
         </p>
       </div>
       <InputOTP

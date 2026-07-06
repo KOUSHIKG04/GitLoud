@@ -4,15 +4,22 @@ import { useEffect, useRef, useState } from "react";
 
 export function ResponsiveTitle({ title }: { title: string }) {
   const containerRef = useRef<HTMLSpanElement>(null);
-  const [displayTitle, setDisplayTitle] = useState("");
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [displayTitle, setDisplayTitle] = useState(title);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const parent = container.parentElement;
-    const h1 = container.closest("h1");
-    if (!parent || !h1) return;
+    if (!parent) return;
+
+    if (!canvasRef.current) {
+      canvasRef.current = document.createElement("canvas");
+    }
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    if (!context) return;
 
     const updateTruncation = () => {
       const maxWidth = parent.clientWidth;
@@ -21,10 +28,6 @@ export function ResponsiveTitle({ title }: { title: string }) {
       // 1. Get the computed font styles of the container to measure accurately
       const computedStyle = window.getComputedStyle(container);
       const font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
-
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-      if (!context) return;
       context.font = font;
 
       // 2. Measure full title width synchronously using canvas context
@@ -36,14 +39,15 @@ export function ResponsiveTitle({ title }: { title: string }) {
         return;
       }
 
+      const titleCodePoints = Array.from(title);
       // 3. Binary search to find the maximum characters that fit within maxWidth
       let low = 0;
-      let high = title.length;
+      let high = titleCodePoints.length;
       let bestFit = "";
 
       while (low <= high) {
         const mid = Math.floor((low + high) / 2);
-        const testText = title.slice(0, mid) + "...";
+        const testText = titleCodePoints.slice(0, mid).join("") + "...";
         const testWidth = context.measureText(testText).width;
 
         if (testWidth <= maxWidth) {
@@ -54,19 +58,18 @@ export function ResponsiveTitle({ title }: { title: string }) {
         }
       }
 
-      setDisplayTitle(bestFit || title.slice(0, 5) + "...");
+      setDisplayTitle(bestFit || titleCodePoints.slice(0, 5).join("") + "...");
     };
 
     // Run initial truncation calculation
     updateTruncation();
 
-    // 4. Set up ResizeObserver on the H1 container. Since H1 only changes size
-    // with layout/sidebar changes, it prevents any feedback loops.
+    // 4. Set up ResizeObserver on the parent container.
     const resizeObserver = new ResizeObserver(() => {
       updateTruncation();
     });
     
-    resizeObserver.observe(h1);
+    resizeObserver.observe(parent);
 
     return () => {
       resizeObserver.disconnect();

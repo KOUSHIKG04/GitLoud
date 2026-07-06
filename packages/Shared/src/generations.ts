@@ -112,6 +112,8 @@ export type GenerationHistoryResponse = {
   page: number;
   pageSize: number;
   hasNextPage: boolean;
+  totalPages: number;
+  totalCount: number;
   generations: GenerationHistoryItem[];
 };
 

@@ -42,14 +42,7 @@ export function useGitHubActivityDashboard() {
     useState<ActivityType>("pull-requests");
 
   const selectedRepositoryIdRef = useRef(selectedRepositoryId);
-  useEffect(() => {
-    selectedRepositoryIdRef.current = selectedRepositoryId;
-  }, [selectedRepositoryId]);
-
   const activityTypeRef = useRef(activityType);
-  useEffect(() => {
-    activityTypeRef.current = activityType;
-  }, [activityType]);
   const [items, setItems] = useState<GitHubActivityItem[]>([]);
   const [selectedItemUrl, setSelectedItemUrl] = useState("");
   const [context, setContext] = useState("");
@@ -157,6 +150,7 @@ export function useGitHubActivityDashboard() {
         ? currentSelectedId
         : firstRepositoryId;
 
+      selectedRepositoryIdRef.current = nextActive;
       setSelectedRepositoryIdState(nextActive);
       if (nextActive) {
         void loadActivity(nextActive, activityTypeRef.current);
@@ -176,6 +170,7 @@ export function useGitHubActivityDashboard() {
 
   const setSelectedRepositoryId = useCallback(
     (repositoryId: string) => {
+      selectedRepositoryIdRef.current = repositoryId;
       setSelectedRepositoryIdState(repositoryId);
       if (!repositoryId) {
         setItems([]);
@@ -189,6 +184,7 @@ export function useGitHubActivityDashboard() {
 
   const setActivityType = useCallback(
     (type: ActivityType) => {
+      activityTypeRef.current = type;
       setActivityTypeState(type);
       if (selectedRepositoryIdRef.current) {
         void loadActivity(selectedRepositoryIdRef.current, type);
@@ -268,7 +264,7 @@ export function useGitHubActivityDashboard() {
       clearBackendDelayToast();
       setGenerating(false);
     }
-  }, [context, getToken, push, selectedItem, selectedMedia, xPostLength]);
+  }, [context, getToken, push, selectedItem, selectedMedia, xPostLength, setOpen, setOpenMobile]);
 
   const onMediaChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

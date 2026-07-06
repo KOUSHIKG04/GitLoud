@@ -32,7 +32,7 @@ export default async function SignUpPage({
   const afterAuthUrl = isSafeRedirect ? requestedUrl : "/?auth=sign-up";
 
   if (userId) {
-    redirect("/");
+    redirect(afterAuthUrl);
   }
 
   return (

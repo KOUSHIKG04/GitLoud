@@ -1,7 +1,7 @@
 "use client";
 
 import { animate, useMotionValue, useMotionValueEvent } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
 export function TypingText({
   text,
@@ -12,17 +12,28 @@ export function TypingText({
   duration?: number;
   className?: string;
 }) {
-  const [state, setState] = useState(() => ({ text, displayed: "" }));
   const progress = useMotionValue(0);
-
-  const displayed = state.text === text ? state.displayed : "";
+  const textRef = useRef<HTMLSpanElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
 
   useMotionValueEvent(progress, "change", (latest) => {
-    setState({ text, displayed: text.slice(0, Math.round(latest)) });
+    const round = Math.round(latest);
+    if (textRef.current) {
+      textRef.current.textContent = text.slice(0, round);
+    }
+    if (cursorRef.current) {
+      cursorRef.current.style.display = round < text.length ? "inline" : "none";
+    }
   });
 
   useEffect(() => {
     progress.jump(0);
+    if (textRef.current) {
+      textRef.current.textContent = "";
+    }
+    if (cursorRef.current) {
+      cursorRef.current.style.display = "inline";
+    }
 
     const controls = animate(progress, text.length, {
       duration,
@@ -34,10 +45,8 @@ export function TypingText({
 
   return (
     <p className={className}>
-      {displayed}
-      {displayed.length < text.length && (
-        <span className="animate-pulse">▋</span>
-      )}
+      <span ref={textRef} />
+      <span ref={cursorRef} className="animate-pulse">▋</span>
     </p>
   );
 }
