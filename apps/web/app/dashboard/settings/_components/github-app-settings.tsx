@@ -111,21 +111,24 @@ export function GitHubAppSettings() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 min-w-0 gap-3 border-border xl:border-l xl:pl-4">
+                <div className="grid grid-cols-2 min-w-0 gap-3 border-border xl:grid-cols-1 xl:border-l xl:pl-4 xl:w-48">
                   <Button
                     asChild
                     variant="outline"
                     size="sm"
-                    className="h-10 w-full justify-start gap-2 px-3"
+                    className="h-10 w-full justify-between gap-2 px-3"
                   >
                     <a
                       href={installation.manageUrl}
                       target="_blank"
                       rel="noreferrer"
+                      className="flex items-center justify-between w-full"
                     >
-                      <ExternalLink className="size-4" />
-                      <span className="min-w-0 flex-1 truncate text-left">
-                        MANAGE ACCESS
+                      <span className="flex items-center gap-2">
+                        <ExternalLink className="size-4" />
+                        <span className="truncate text-left text-[11px] font-medium uppercase tracking-wider">
+                          MANAGE ACCESS
+                        </span>
                       </span>
                       <ChevronRight className="size-4 shrink-0" />
                     </a>
@@ -133,19 +136,21 @@ export function GitHubAppSettings() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    className="h-10 w-full justify-start gap-2 px-3"
+                    className="h-10 w-full justify-between gap-2 px-3"
                     disabled={disconnectingInstallationId === installation.id}
                     onClick={() => void disconnectInstallation(installation.id)}
                   >
-                    {disconnectingInstallationId === installation.id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Unplug className="size-4" />
-                    )}
-                    <span className="min-w-0 flex-1 truncate text-left">
-                      DISCONNECT
+                    <span className="flex items-center gap-2">
+                      {disconnectingInstallationId === installation.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Unplug className="size-4" />
+                      )}
+                      <span className="truncate text-left text-[11px] font-medium uppercase tracking-wider">
+                        DISCONNECT
+                      </span>
                     </span>
-                    <ChevronRight className="size-4 shrink-0" />
+                    <ChevronRight className="size-4 shrink-0 opacity-60" />
                   </Button>
                 </div>
               </div>
