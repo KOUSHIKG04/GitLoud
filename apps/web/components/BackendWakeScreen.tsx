@@ -36,10 +36,8 @@ export function BackendWakeScreen() {
   if (!visible) return null;
 
   return (
-    <div
+    <output
       className="fixed inset-0 z-[9999] flex items-center justify-center bg-background"
-      role="status"
-      aria-live="polite"
       aria-busy="true"
     >
       <div className="flex flex-col items-center gap-6">
@@ -49,7 +47,7 @@ export function BackendWakeScreen() {
         </p>
         <span className="sr-only">Loading workspace</span>
       </div>
-    </div>
+    </output>
   );
 }
 

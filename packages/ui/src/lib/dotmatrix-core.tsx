@@ -851,33 +851,25 @@ export function DotMatrixBase({
 
   if (useWrapper) {
     return (
-      <div
-        role="status"
-        aria-live="polite"
+      <output
         aria-label={ariaLabel}
-        className={className}
+        className={cx("inline-flex items-center justify-center overflow-hidden", className)}
         style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
           width: outerDim,
           height: outerDim,
           minWidth: minSize,
-          minHeight: minSize,
-          overflow: "hidden"
+          minHeight: minSize
         }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >
         {matrix}
-      </div>
+      </output>
     );
   }
 
   return (
-    <div
-      role="status"
-      aria-live="polite"
+    <output
       aria-label={ariaLabel}
       className={cx(
         "dmx-root",
@@ -892,7 +884,7 @@ export function DotMatrixBase({
       onMouseLeave={onMouseLeave}
     >
       <div className="dmx-grid" style={{ gap }}>{dots}</div>
-    </div>
+    </output>
   );
 }
 

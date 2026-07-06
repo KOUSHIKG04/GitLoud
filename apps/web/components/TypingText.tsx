@@ -12,15 +12,16 @@ export function TypingText({
   duration?: number;
   className?: string;
 }) {
-  const [displayed, setDisplayed] = useState("");
+  const [state, setState] = useState(() => ({ text, displayed: "" }));
   const progress = useMotionValue(0);
 
+  const displayed = state.text === text ? state.displayed : "";
+
   useMotionValueEvent(progress, "change", (latest) => {
-    setDisplayed(text.slice(0, Math.round(latest)));
+    setState({ text, displayed: text.slice(0, Math.round(latest)) });
   });
 
   useEffect(() => {
-    setDisplayed("");
     progress.jump(0);
 
     const controls = animate(progress, text.length, {

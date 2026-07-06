@@ -74,7 +74,7 @@ export default function Home() {
       <ProfileSync />
 
       <script type="application/ld+json">
-        {JSON.stringify(structuredData)}
+        {safeJsonLd(structuredData)}
       </script>
 
       <div className="w-full max-w-5xl mx-auto md:border-x md:border-border bg-background">

@@ -1,3 +1,5 @@
+"use client";
+
 import { useAuth } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
 import { Input } from "@repo/ui/components/input";

@@ -25,11 +25,13 @@
   "engines": {
     "node": ">=20.9"
   },
-  "packageManager": "npm@10.9.7",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
+  "overrides": {
+    "next": "16.2.6"
+  },
   "dependencies": {
     "next-cloudinary": "^6.17.5",
     "zod": "4.3.6"

@@ -50,14 +50,13 @@ app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
 The separated backend is the source of truth for generation, media, profile, and
 history workflows so web and desktop clients can call the same API.
 
-## Demo
+<!-- ## Demo
 
-https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
+https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454 -->
 
 ## Contents
 
 - [Overview](#overview)
-- [Demo](#demo)
 - [Contents](#contents)
 - [Features](#features)
 - [Architecture](#architecture)
@@ -72,7 +71,6 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454
 - [Commands](#commands)
 - [Deployment](#deployment)
 - [Security Notes](#security-notes)
-- [Roadmap](#roadmap)
 - [License](#license)
 
 ## Features
@@ -289,20 +287,24 @@ that owns them.
 
 ## Web Routes
 
-| Route                        | Purpose                                    |
-| ---------------------------- | ------------------------------------------ |
-| `/`                          | Home page and generator entry              |
-| `/examples`                  | Example generated content                  |
-| `/dashboard`                 | Authenticated generation dashboard         |
-| `/dashboard/history`         | Authenticated generation history           |
-| `/dashboard/generations/:id` | Authenticated generation detail            |
-| `/dashboard/github-activity` | Generate from synced GitHub App activity   |
-| `/dashboard/settings`        | GitHub App and custom AI key settings      |
-| `/sign-in`                   | Sign-in page                               |
-| `/sign-up`                   | Sign-up page                               |
-| `/sso-callback`              | Clerk SSO callback                         |
-| `/privacy`                   | Privacy policy                             |
-| `/terms`                     | Terms page                                 |
+| Route                                 | Purpose                                    |
+| ------------------------------------- | ------------------------------------------ |
+| `/`                                   | Home page and generator entry              |
+| `/examples`                           | Example generated content                  |
+| `/faq`                                | Frequently Asked Questions                 |
+| `/feedback`                           | User feedback section                      |
+| `/dashboard`                          | Authenticated generation dashboard         |
+| `/dashboard/history`                  | Authenticated generation history           |
+| `/dashboard/generations/:id`          | Authenticated generation detail            |
+| `/dashboard/github-activity`          | Generate from synced GitHub App activity   |
+| `/dashboard/settings`                 | Settings entry page                        |
+| `/dashboard/settings/api-key`         | Custom AI provider credentials settings    |
+| `/dashboard/settings/github-app`      | Connected GitHub App details               |
+| `/sign-in`                            | Sign-in page                               |
+| `/sign-up`                            | Sign-up page                               |
+| `/sso-callback`                       | Clerk SSO callback                         |
+| `/security-and-privacy`               | Security and privacy policy page           |
+| `/terms`                              | Terms page                                 |
 
 Protected dashboard routes are enforced by Clerk middleware in
 `apps/web/proxy.ts`.
@@ -360,9 +362,21 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="..."
 CLERK_SECRET_KEY="..."
 
+# Primary AI Provider
 GEMINI_API_KEY="..."
 GEMINI_MODEL="gemini-2.5-flash"
 
+# Custom AI Credentials Settings (Encryption Key)
+AI_CREDENTIAL_ENCRYPTION_KEY="32-byte-base64-encryption-key"
+
+# OpenRouter AI Provider (Fallback / Custom Option)
+OPENROUTER_API_KEY="..."
+OPENROUTER_MODEL="nvidia/nemotron-3-super-120b-a12b:free"
+OPENROUTER_SITE_URL="http://localhost:3000"
+OPENROUTER_APP_NAME="GitLoud"
+OPENROUTER_FALLBACK_MODELS="nvidia/nemotron-nano-9b-v2:free,qwen/qwen3-next-80b-a3b-instruct:free,openrouter/free"
+
+# GitHub App Integration
 GITHUB_PUBLIC_TOKEN="..."
 GITHUB_APP_NAME="..."
 GITHUB_APP_ID="..."
@@ -372,6 +386,7 @@ GITHUB_APP_CLIENT_SECRET="..."
 GITHUB_APP_STATE_SECRET="at-least-32-random-characters"
 WEB_APP_URL="http://localhost:3000"
 
+# Media Storage
 CLOUDINARY_CLOUD_NAME="..."
 CLOUDINARY_API_KEY="..."
 CLOUDINARY_API_SECRET="..."
@@ -511,8 +526,8 @@ Recommended setup:
 
 1. Deploy the API first.
 2. Set API secrets: `DATABASE_URL`, `CLERK_SECRET_KEY`, `GEMINI_API_KEY`,
-   GitHub App credentials, `GITHUB_APP_STATE_SECRET`, and Cloudinary
-   credentials.
+   `AI_CREDENTIAL_ENCRYPTION_KEY`, GitHub App credentials, 
+   `GITHUB_APP_STATE_SECRET`, and Cloudinary credentials.
 3. Set `NODE_ENV=production` on the API.
 4. Set `API_ALLOWED_ORIGINS` on the API to the deployed web origin.
 5. Deploy the web app to Vercel.
@@ -550,7 +565,7 @@ users get feedback when an API request takes longer than expected.
 - AI output is parsed and validated with shared Zod schemas.
 - Media uploads are handled separately and stored as attachment metadata.
 
-## Roadmap
+<!-- ## Roadmap
 
 - Editable saved generations
 - Draft/version history
@@ -559,7 +574,7 @@ users get feedback when an API request takes longer than expected.
 - Webhook-triggered generation
 - Export to Markdown, JSON, and plain text
 - Production monitoring and structured logging
-- Mobile app support
+- Mobile app support -->
 
 ## License
 

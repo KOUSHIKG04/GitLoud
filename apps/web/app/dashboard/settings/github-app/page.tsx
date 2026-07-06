@@ -14,7 +14,7 @@ export default function GitHubAppSettingsPage() {
     <main className="flex min-h-[calc(100dvh-3.5rem)] flex-col max-w-3xl mx-auto">
       <div className="flex flex-1 justify-center px-4 pb-6 pt-0 sm:px-8">
         <section className="w-full space-y-6">
-          <div className="space-y-1">
+          <div className="space-y-1 mt-5">
             <h1 className="font-semibold tracking-tight sm:text-2xl">
               GITHUB APP
             </h1>

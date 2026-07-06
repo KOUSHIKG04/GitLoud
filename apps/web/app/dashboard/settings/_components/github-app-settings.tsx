@@ -33,17 +33,22 @@ export function GitHubAppSettings() {
 
   useEffect(() => {
     toast.info(
-      "Review the security notes before connecting private repositories.",
+      <p className="text-[12px] font-light tracking-tight ml-2">
+        Review security notes before connecting private repositories.
+      </p>,
       {
         id: "github-app-security-notes",
         duration: 8000,
         action: {
-          label: "Read security notes",
-          onClick: () => router.push("/security"),
+          label: (
+            <p className="uppercase font-medium text-[10px]">Review notes</p>
+          ),
+          onClick: () => router.push("/security-and-privacy"),
         },
       },
     );
-  }, [router]);
+    }, [router]);
+
 
   if (loading) {
     return <DotMatrixLoader className="min-h-64" label="Loading settings" />;

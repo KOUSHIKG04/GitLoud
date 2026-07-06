@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { startBackendDelayToast } from "@/lib/api-delay-toast";
 import { getApiError } from "@/lib/api-response";
+import { useSidebar } from "@repo/ui/components/sidebar";
 import {
   readProgressStream,
   uploadMedia,
@@ -33,6 +34,7 @@ import type {
 export function useGitHubActivityDashboard() {
   const { getToken } = useAuth();
   const { push } = useRouter();
+  const { setOpen, setOpenMobile } = useSidebar();
   const [installations, setInstallations] = useState<GitHubInstallation[]>([]);
   const [canUsePrivateRepos, setCanUsePrivateRepos] = useState(false);
   const [selectedRepositoryId, setSelectedRepositoryIdState] = useState("");
@@ -245,6 +247,8 @@ export function useGitHubActivityDashboard() {
 
       await minimumLoaderTime;
       toast.success("Content generated successfully", { id: toastId });
+      setOpen(false);
+      setOpenMobile(false);
       push(`/dashboard/generations/${data.generatedContentId}`);
     } catch (error) {
       const message =

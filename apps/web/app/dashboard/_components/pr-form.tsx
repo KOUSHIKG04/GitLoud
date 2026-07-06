@@ -19,6 +19,7 @@ import { PrFormFooter } from "./pr-form-footer";
 import { readProgressStream, uploadMedia, wait } from "./pr-form-generation";
 import { formSchema, type FormValues } from "./pr-form.schema";
 import { getMediaValidationError, onInvalid } from "./pr-form-validation";
+import { useSidebar } from "@repo/ui/components/sidebar";
 
 /**
  * Renders the PR generation form and coordinates media upload before generation.
@@ -29,6 +30,7 @@ export function PrForm({
 }: ComponentPropsWithoutRef<"div">) {
   const { push } = useRouter();
   const { getToken } = useAuth();
+  const { setOpen, setOpenMobile } = useSidebar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaAttachmentIdRef = useRef<string | null>(null);
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
@@ -98,6 +100,9 @@ export function PrForm({
       toast.success("Content generated successfully", {
         id: toastId,
       });
+
+      setOpen(false);
+      setOpenMobile(false);
 
       push(`/dashboard/generations/${data.generatedContentId}`);
     } catch (error) {

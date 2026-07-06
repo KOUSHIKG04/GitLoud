@@ -37,7 +37,6 @@ export function useCyclePhase({ active, cycleMsBase, speed = 1 }: UseCyclePhaseO
 
   useEffect(() => {
     if (!active) {
-      setPhase(0);
       return;
     }
 
@@ -57,7 +56,7 @@ export function useCyclePhase({ active, cycleMsBase, speed = 1 }: UseCyclePhaseO
     return () => cancelAnimationFrame(rafId);
   }, [active, cycleMsBase, speed]);
 
-  return phase;
+  return active ? phase : 0;
 }
 
 interface UseSteppedCycleOptions {
@@ -124,8 +123,7 @@ export function useSteppedCycle({
   useEffect(() => {
     if (!active) {
       activeRef.current = false;
-      currentStepRef.current = idleStep;
-      setStep(idleStep);
+      currentStepRef.current = -1;
       return;
     }
 
@@ -143,11 +141,10 @@ export function useSteppedCycle({
       }
     };
 
-    updateStep(performance.now());
     return subscribeFrame(updateStep);
   }, [active, cycleMs, idleStep, safeSteps, stepMs]);
 
-  return active ? step : idleStep;
+  return active ? (activeRef.current ? step : 0) : idleStep;
 }
 
 interface UseDotMatrixPhasesOptions {

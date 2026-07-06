@@ -135,7 +135,7 @@ function MockContentBlock({
         <div className="space-y-6 pb-4">
           <div className="min-h-[180px]">
             <TypingText
-              key={`${valueKey}-${typeof window !== "undefined" ? performance.now() : 0}`}
+              key={valueKey}
               text={value}
               duration={5.5}
               className="whitespace-pre-wrap wrap-break-word text-base leading-7 text-muted-foreground"

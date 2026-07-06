@@ -19,13 +19,11 @@ export function DotMatrixLoader({
   label = "Loading...",
 }: DotMatrixLoaderProps) {
   return (
-    <div
+    <output
       className={cn("flex items-center justify-center", className)}
-      role="status"
       aria-label={label}
-      aria-live="polite"
     >
       <DotmSquare4 color={color} size={size} dotSize={dotSize} />
-    </div>
+    </output>
   );
 }
