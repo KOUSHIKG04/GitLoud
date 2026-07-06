@@ -55,16 +55,18 @@ export const generationRoutes: Hono = new Hono()
         ? { createdAt: { gte: rangeStart, lt: exclusiveRangeEnd } }
         : undefined;
 
+    const whereFilter = {
+      userId,
+      AND: [
+        {
+          OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
+        },
+        ...(createdAtFilter ? [createdAtFilter] : []),
+      ],
+    };
+
     const generations = await db.generatedContent.findMany({
-      where: {
-        userId,
-        AND: [
-          {
-            OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
-          },
-          ...(createdAtFilter ? [createdAtFilter] : []),
-        ],
-      },
+      where: whereFilter,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -93,22 +95,13 @@ export const generationRoutes: Hono = new Hono()
         },
       },
       skip,
-      take: pageSize + 1,
+      take: pageSize,
     });
     const totalCount = await db.generatedContent.count({
-      where: {
-        userId,
-        AND: [
-          {
-            OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
-          },
-          ...(createdAtFilter ? [createdAtFilter] : []),
-        ],
-      },
+      where: whereFilter,
     });
     const totalPages = Math.ceil(totalCount / pageSize);
-    const hasNextPage = generations.length > pageSize;
-    const visibleGenerations = generations.slice(0, pageSize);
+    const hasNextPage = page < totalPages;
 
     return context.json({
       page,
@@ -116,7 +109,7 @@ export const generationRoutes: Hono = new Hono()
       hasNextPage,
       totalPages,
       totalCount,
-      generations: visibleGenerations.map((generation) => ({
+      generations: generations.map((generation) => ({
         id: generation.id,
         sourceType: generation.sourceType,
         createdAt: generation.createdAt.toISOString(),

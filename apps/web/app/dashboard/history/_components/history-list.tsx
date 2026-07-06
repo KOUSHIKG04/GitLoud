@@ -233,7 +233,37 @@ function HistoryPagination({
   totalPages?: number;
   to?: string;
 }) {
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const getPages = () => {
+    const pages: (number | "ellipsis")[] = [];
+    const maxPagesToShow = 5;
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      pages.push(1);
+
+      const start = Math.max(2, page - 1);
+      const end = Math.min(totalPages - 1, page + 1);
+
+      if (start > 2) {
+        pages.push("ellipsis");
+      }
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (end < totalPages - 1) {
+        pages.push("ellipsis");
+      }
+
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  const pageNumbers = getPages();
 
   return (
     <Pagination>
@@ -251,16 +281,27 @@ function HistoryPagination({
           )}
         </PaginationItem>
 
-        {pageNumbers.map((p) => (
-          <PaginationItem key={p}>
-            <PaginationLink
-              href={getHistoryPageHref(p, from, to)}
-              isActive={p === page}
-            >
-              {p}
-            </PaginationLink>
-          </PaginationItem>
-        ))}
+        {pageNumbers.map((p, idx) => {
+          if (p === "ellipsis") {
+            return (
+              <PaginationItem key={`ellipsis-${idx}`}>
+                <span className="flex h-9 w-9 items-center justify-center text-sm select-none opacity-50">
+                  ...
+                </span>
+              </PaginationItem>
+            );
+          }
+          return (
+            <PaginationItem key={p}>
+              <PaginationLink
+                href={getHistoryPageHref(p, from, to)}
+                isActive={p === page}
+              >
+                {p}
+              </PaginationLink>
+            </PaginationItem>
+          );
+        })}
 
         <PaginationItem>
           {hasNextPage ? (

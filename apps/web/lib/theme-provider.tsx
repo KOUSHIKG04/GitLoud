@@ -16,44 +16,13 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
-// const themeChangeEvent = "gitloud-theme-change";
 
-/**
- * Determines the resolved theme based on the user's system preferences.
- *
- * @returns The resolved theme string ("dark" or "light").
- */
 function getSystemTheme(): ResolvedTheme {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
 
-/*
-function _getCookieTheme(): Theme {
-  const themeCookie = document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith("theme="))
-    ?.split("=")[1];
-
-  if (
-    themeCookie === "light" ||
-    themeCookie === "dark" ||
-    themeCookie === "system"
-  ) {
-    return themeCookie;
-  }
-
-  return "system";
-}
-*/
-
-/**
- * Updates the document body class and colorScheme style properties to match the selected theme.
- *
- * @param theme - The theme key to apply.
- * @returns The resolved theme applied to the document.
- */
 function applyTheme(theme: Theme): ResolvedTheme {
   const resolvedTheme = theme === "system" ? getSystemTheme() : theme;
   const root = document.documentElement;
@@ -65,30 +34,10 @@ function applyTheme(theme: Theme): ResolvedTheme {
   return resolvedTheme;
 }
 
-/*
-function _subscribeToThemeChange(callback: () => void) {
-  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-  window.addEventListener(themeChangeEvent, callback);
-  mediaQuery.addEventListener("change", callback);
-
-  return () => {
-    window.removeEventListener(themeChangeEvent, callback);
-    mediaQuery.removeEventListener("change", callback);
-  };
-}
-*/
-
-/**
- * Provides context values for the theme and resolvedTheme state variables.
- *
- * @param props - React element properties.
- * @param props.children - Child elements to render.
- * @param props.initialTheme - The default theme to render initially.
- * @returns ThemeContext provider container.
- */
+// NOTE: GitLoud is currently hardcoded to dark mode only.
 export function ThemeProvider({
   children,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   initialTheme,
 }: {
   children: React.ReactNode;
@@ -97,35 +46,13 @@ export function ThemeProvider({
   const theme: Theme = "dark";
   const resolvedTheme: ResolvedTheme = "dark";
 
-  if (initialTheme) {
-    // Satisfy linter for unused prop
-  }
-
-  /*
-  const theme = useSyncExternalStore<Theme>(
-    subscribeToThemeChange,
-    getCookieTheme,
-    () => initialTheme,
-  );
-  const systemTheme = useSyncExternalStore<ResolvedTheme>(
-    subscribeToThemeChange,
-    getSystemTheme,
-    () => "light",
-  );
-  const resolvedTheme: ResolvedTheme =
-    theme === "system" ? systemTheme : theme;
-  */
-
   useEffect(() => {
     applyTheme("dark");
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const setTheme = useCallback((nextTheme: Theme) => {
-    if (nextTheme) {
-      // Satisfy linter for unused parameter
-    }
-    // document.cookie = `theme=${nextTheme}; path=/; max-age=31536000; samesite=lax`;
-    // window.dispatchEvent(new Event(themeChangeEvent));
+    // App is locked to dark mode, theme toggling is disabled.
   }, []);
 
   const value = useMemo<ThemeContextValue>(
@@ -151,8 +78,8 @@ export function ThemeProvider({
 export function useTheme() {
   const context = use(ThemeContext);
 
-  if (!context) {
-    throw new Error("useTheme must be used within ThemeProvider");
+  if (context === undefined) {
+    throw new Error("useTheme must be used within a ThemeProvider");
   }
 
   return context;
