@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { EmailCodeAuthForm } from "@/components/auth/EmailCodeAuthForm";
+import { getSafeRedirect } from "@/lib/safe-redirect";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -21,13 +22,7 @@ export default async function SignInPage({
   const [{ callbackUrl, redirect_url: redirectUrl }, { userId }] =
     await Promise.all([searchParams, auth()]);
 
-  const requestedUrl = callbackUrl ?? redirectUrl;
-  
-  const isSafeRedirect =
-    typeof requestedUrl === "string" &&
-    requestedUrl.startsWith("/") && !requestedUrl.startsWith("//") && !requestedUrl.startsWith("/\\");
-
-  const afterAuthUrl = isSafeRedirect ? requestedUrl : "/?auth=sign-in";
+  const afterAuthUrl = getSafeRedirect(callbackUrl, redirectUrl, "/?auth=sign-in");
 
   if (userId) {
     redirect(afterAuthUrl);

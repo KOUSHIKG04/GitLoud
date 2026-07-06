@@ -11,27 +11,26 @@
 }
 
 .history-scroll-container {
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 .history-scroll-container::-webkit-scrollbar {
-  width: 6px !important;
-  height: 6px !important;
-  display: block !important;
+  width: 6px;
+  height: 6px;
 }
 
 .history-scroll-container::-webkit-scrollbar-track {
-  background: transparent !important;
+  background: transparent;
 }
 
 .history-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15) !important;
-  border-radius: 9999px !important;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
 }
 
 .history-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 ::view-transition-old(root),

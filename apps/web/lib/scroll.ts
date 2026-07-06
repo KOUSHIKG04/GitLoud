@@ -3,5 +3,9 @@ export function scrollToTop() {
   const appScrollViewport = document.querySelector<HTMLElement>(
     "#app-scroll-area [data-main-viewport]"
   );
-  appScrollViewport?.scrollTo({ top: 0, behavior: "smooth" });
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  appScrollViewport?.scrollTo({
+    top: 0,
+    behavior: prefersReducedMotion ? "auto" : "smooth",
+  });
 }

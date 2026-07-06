@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 
@@ -15,6 +15,28 @@ const securityControls = [
 
 export function SecurityPrivacyContent() {
   const [activeTab, setActiveTab] = useState<"security" | "privacy">("security");
+  const securityTabRef = useRef<HTMLButtonElement>(null);
+  const privacyTabRef = useRef<HTMLButtonElement>(null);
+
+  const handleSecurityKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      setActiveTab("privacy");
+      setTimeout(() => {
+        privacyTabRef.current?.focus();
+      }, 0);
+    }
+  };
+
+  const handlePrivacyKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      setActiveTab("security");
+      setTimeout(() => {
+        securityTabRef.current?.focus();
+      }, 0);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,6 +73,7 @@ export function SecurityPrivacyContent() {
       <div className="border-t border-b border-border w-full">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-20 flex gap-8" role="tablist" aria-label="Legal and Trust Tabs">
           <button
+            ref={securityTabRef}
             id="tab-security"
             type="button"
             role="tab"
@@ -58,6 +81,7 @@ export function SecurityPrivacyContent() {
             aria-controls="panel-security"
             tabIndex={activeTab === "security" ? 0 : -1}
             onClick={() => setActiveTab("security")}
+            onKeyDown={handleSecurityKeyDown}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "security"
                 ? "text-foreground font-bold"
@@ -70,6 +94,7 @@ export function SecurityPrivacyContent() {
             )}
           </button>
           <button
+            ref={privacyTabRef}
             id="tab-privacy"
             type="button"
             role="tab"
@@ -77,6 +102,7 @@ export function SecurityPrivacyContent() {
             aria-controls="panel-privacy"
             tabIndex={activeTab === "privacy" ? 0 : -1}
             onClick={() => setActiveTab("privacy")}
+            onKeyDown={handlePrivacyKeyDown}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "privacy"
                 ? "text-foreground font-bold"
@@ -97,6 +123,7 @@ export function SecurityPrivacyContent() {
             id="panel-security"
             role="tabpanel"
             aria-labelledby="tab-security"
+            tabIndex={0}
           >
             <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-10">
               <div className="mx-auto max-w-5xl text-left space-y-4">
@@ -178,6 +205,7 @@ export function SecurityPrivacyContent() {
             id="panel-privacy"
             role="tabpanel"
             aria-labelledby="tab-privacy"
+            tabIndex={0}
           >
             <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-10">
               <div className="mx-auto max-w-5xl text-left space-y-4">
