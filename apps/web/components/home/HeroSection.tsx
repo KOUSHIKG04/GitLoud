@@ -43,10 +43,10 @@ export function HeroSection() {
             </MotionItem>
 
             <MotionItem>
-              <p className="mt-3 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-6 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md tracking-tighter">
-                Drop a GitHub PR or commit link. Public repos work instantly,
-                and signed-in users can connect selected private repos through
-                the GitHub App.
+              <p className="mt-3 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-5.5 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md tracking-tighter md:block">
+                Paste a GitHub PR or commit link. GitLoud turns it into crisp
+                summaries, changelog notes, portfolio bullets and posts. Public repos work instantly; signed-in
+                users can connect selected private repos.
               </p>
             </MotionItem>
 
