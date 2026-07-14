@@ -1,17 +1,16 @@
 "use client";
 
 import { getApiUrl } from "@/lib/api-url";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { DotmSquare4 } from "@repo/ui/components/dotm-square-4";
 
 const STORAGE_KEY = "gitloud:backend-wake-screen:v1";
 
-const SHOW_DELAY_MS = 400;
 const MIN_VISIBLE_MS = 2_500;
 const MAX_VISIBLE_MS = 15_000;
 
 const INITIAL_RETRY_DELAY_MS = 900;
-const MAX_RETRY_DELAY_MS = 4_000;
 const REQUEST_TIMEOUT_MS = 4_000;
 
 type WakeStatus = "idle" | "starting" | "ready" | "slow";
@@ -23,11 +22,11 @@ export function BackendWakeScreen() {
   const message = useMemo(() => {
     switch (status) {
       case "ready":
-        return "Workspace ready…";
+        return "Workspace ready...";
       case "slow":
-        return "Still warming up…";
+        return "Still warming up...";
       case "starting":
-        return "Starting services…";
+        return "Starting services...";
       default:
         return "";
     }
@@ -60,29 +59,39 @@ function getForcedWakeMode(): string | null {
 }
 
 function useBackendWakeScreen() {
-  const [visible, setVisible] = useState(false);
-  const [status, setStatus] = useState<WakeStatus>("idle");
+  const shouldWake = useShouldShowWakeScreen();
+  const forcedMode = getForcedWakeMode();
+  const isForced = forcedMode !== null;
+  const [visible, setVisible] = useState(true);
+  const [status, setStatus] = useState<WakeStatus>("starting");
 
   const doneRef = useRef(false);
+  const startedAtRef = useRef(0);
+  const visibleAtRef = useRef(0);
+
+  const healthQuery = useQuery({
+    queryKey: ["backend-health"],
+    queryFn: ({ signal }) => pingBackendHealth(signal),
+    enabled: shouldWake && visible && !doneRef.current,
+    refetchInterval: (query) =>
+      query.state.data === true ? false : INITIAL_RETRY_DELAY_MS,
+    retry: false,
+    staleTime: 0,
+  });
 
   useEffect(() => {
     doneRef.current = false;
+    startedAtRef.current = performance.now();
+    visibleAtRef.current = performance.now();
 
-    if (!shouldShowWakeScreen()) return;
-
-    const forcedMode = getForcedWakeMode();
-    const isForced = forcedMode !== null;
+    if (!shouldWake) return;
 
     const controller = new AbortController();
 
-    let showTimer: number | null = null;
     let slowTimer: number | null = null;
     let maxTimer: number | null = null;
-    let visibleAt = 0;
-    const startedAt = performance.now();
 
     const clearTimers = () => {
-      if (showTimer) window.clearTimeout(showTimer);
       if (slowTimer) window.clearTimeout(slowTimer);
       if (maxTimer) window.clearTimeout(maxTimer);
     };
@@ -93,8 +102,8 @@ function useBackendWakeScreen() {
 
       clearTimers();
 
-      if (result === "ready" && visibleAt > 0) {
-        const shownFor = performance.now() - visibleAt;
+      if (result === "ready") {
+        const shownFor = performance.now() - visibleAtRef.current;
         const remaining = Math.max(MIN_VISIBLE_MS - shownFor, 0);
 
         try {
@@ -105,7 +114,10 @@ function useBackendWakeScreen() {
       }
 
       try {
-        if (!isForced && (result === "ready" || result === "timeout")) {
+        if (
+          !isForced &&
+          (result === "skipped" || result === "ready" || result === "timeout")
+        ) {
           sessionStorage.setItem(STORAGE_KEY, "done");
         }
       } catch {
@@ -114,13 +126,6 @@ function useBackendWakeScreen() {
 
       setVisible(false);
     };
-
-    showTimer = window.setTimeout(() => {
-      if (doneRef.current) return;
-      visibleAt = performance.now();
-      setVisible(true);
-      setStatus("starting");
-    }, SHOW_DELAY_MS);
 
     slowTimer = window.setTimeout(() => {
       if (doneRef.current) return;
@@ -132,62 +137,64 @@ function useBackendWakeScreen() {
       void complete("timeout");
     }, MAX_VISIBLE_MS);
 
-    const run = async () => {
-      let retryDelay = INITIAL_RETRY_DELAY_MS;
-
-      while (!doneRef.current) {
-        const elapsed = performance.now() - startedAt;
-        if (elapsed >= MAX_VISIBLE_MS) return;
-
-        const isReady = await pingBackendHealth(controller.signal);
-        if (doneRef.current) return;
-
-        // If forced with 'slow' or 'timeout', simulate that the backend is never ready
-        // If forced normally, simulate that the backend takes 3 seconds to wake up so you can see the UI transition
-        let simulatedReady = isReady;
-        if (isForced) {
-          if (forcedMode === "slow" || forcedMode === "timeout") {
-            simulatedReady = false;
-          } else {
-            simulatedReady = isReady && elapsed >= 3000;
-          }
-        }
-
-        if (simulatedReady) {
-          if (!isForced && performance.now() - startedAt < SHOW_DELAY_MS) {
-            await complete("skipped");
-            return;
-          }
-
-          if (visibleAt === 0) {
-            visibleAt = performance.now();
-            setVisible(true);
-          }
-          setStatus("ready");
-          await complete("ready");
-          return;
-        }
-
-        try {
-          await sleep(retryDelay, controller.signal);
-        } catch {
-          return;
-        }
-
-        retryDelay = Math.min(Math.round(retryDelay * 1.6), MAX_RETRY_DELAY_MS);
-      }
-    };
-
-    void run();
-
     return () => {
       doneRef.current = true;
       controller.abort();
       clearTimers();
     };
-  }, [setVisible, setStatus]);
+  }, [isForced, setVisible, setStatus, shouldWake]);
 
-  return { visible, status };
+  useEffect(() => {
+    if (!shouldWake || doneRef.current || healthQuery.data !== true) return;
+
+    const elapsed = performance.now() - startedAtRef.current;
+    let simulatedReady = true;
+
+    if (isForced) {
+      simulatedReady =
+        forcedMode !== "slow" && forcedMode !== "timeout" && elapsed >= 3000;
+    }
+
+    if (!simulatedReady) return;
+
+    doneRef.current = true;
+    setStatus("ready");
+
+    const remaining = Math.max(
+      MIN_VISIBLE_MS - (performance.now() - visibleAtRef.current),
+      0,
+    );
+
+    const timer = window.setTimeout(() => {
+      try {
+        if (!isForced) {
+          sessionStorage.setItem(STORAGE_KEY, "done");
+        }
+      } catch {
+        /* ignore session storage errors */
+      }
+
+      setVisible(false);
+    }, remaining);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [forcedMode, healthQuery.data, isForced, setStatus, setVisible, shouldWake]);
+
+  return { visible: shouldWake && visible, status };
+}
+
+function useShouldShowWakeScreen() {
+  return useSyncExternalStore(
+    subscribeToWakeScreenStore,
+    shouldShowWakeScreen,
+    () => true,
+  );
+}
+
+function subscribeToWakeScreenStore() {
+  return () => {};
 }
 
 function shouldShowWakeScreen() {
@@ -201,28 +208,21 @@ function shouldShowWakeScreen() {
   }
 }
 
-async function pingBackendHealth(parentSignal?: AbortSignal) {
-  const controller = new AbortController();
-  const timeout = window.setTimeout(
-    () => controller.abort(),
-    REQUEST_TIMEOUT_MS,
-  );
-
-  const onAbort = () => controller.abort();
-  parentSignal?.addEventListener("abort", onAbort, { once: true });
+async function pingBackendHealth(signal?: AbortSignal) {
+  const timeoutSignal = AbortSignal.timeout(REQUEST_TIMEOUT_MS);
+  const requestSignal = signal
+    ? AbortSignal.any([signal, timeoutSignal])
+    : timeoutSignal;
 
   try {
     const response = await fetch(getApiUrl("/health"), {
       cache: "no-store",
-      signal: controller.signal,
+      signal: requestSignal,
     });
 
     return response.ok;
   } catch {
     return false;
-  } finally {
-    window.clearTimeout(timeout);
-    parentSignal?.removeEventListener("abort", onAbort);
   }
 }
 

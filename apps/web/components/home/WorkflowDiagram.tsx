@@ -152,7 +152,7 @@ function WorkflowDiagramDesktop() {
         >
           <div className="relative w-full h-full">
             <div className="absolute -inset-1 rounded-none bg-neutral-700/50 opacity-10 blur-sm animate-pulse"></div>
-            <div className="relative border border-border px-4 py-4 rounded-none flex items-center justify-center w-full h-full">
+            <div className="relative border border-border p-4 rounded-none flex items-center justify-center w-full h-full">
               <span className="text-primary text-base tracking-wider font-sans">
                 GitLoud
               </span>
@@ -270,7 +270,7 @@ function WorkflowDiagramMobile() {
         >
           <div className="relative group w-full h-full">
             <div className="absolute -inset-1 rounded-none bg-neutral-700/50 opacity-10 blur-sm animate-pulse"></div>
-            <div className="relative border border-border px-3 py-3 rounded-none flex items-center justify-center shadow-lg w-full h-full">
+            <div className="relative border border-border p-3 rounded-none flex items-center justify-center shadow-lg w-full h-full">
               <span className="text-primary text-sm tracking-wider">
                 GitLoud
               </span>

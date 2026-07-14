@@ -1,12 +1,14 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
   type ChangeEvent,
   useCallback,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from "react";
@@ -24,12 +26,69 @@ import { getMediaValidationError } from "../_components/pr-form-validation";
 import type {
   ActivityType,
   GenerationStep,
-  GitHubActivityItem,
   GitHubActivityResponse,
   GitHubInstallation,
   GitHubInstallationsResponse,
   XPostLength,
 } from "../_components/github-activity-types";
+
+type DashboardSelectionState = {
+  activityType: ActivityType;
+  generationStep: GenerationStep;
+  selectedItemUrl: string;
+  selectedRepositoryId: string;
+};
+
+type DashboardSelectionAction =
+  | { type: "activity-type-selected"; activityType: ActivityType }
+  | { type: "generation-step-selected"; generationStep: GenerationStep }
+  | { type: "item-url-selected"; selectedItemUrl: string }
+  | { type: "repository-loaded"; selectedRepositoryId: string }
+  | { type: "repository-selected"; selectedRepositoryId: string };
+
+const initialDashboardSelection: DashboardSelectionState = {
+  activityType: "pull-requests",
+  generationStep: "select",
+  selectedItemUrl: "",
+  selectedRepositoryId: "",
+};
+
+function dashboardSelectionReducer(
+  state: DashboardSelectionState,
+  action: DashboardSelectionAction,
+): DashboardSelectionState {
+  switch (action.type) {
+    case "activity-type-selected":
+      return {
+        ...state,
+        activityType: action.activityType,
+        generationStep: "select",
+        selectedItemUrl: "",
+      };
+    case "generation-step-selected":
+      return {
+        ...state,
+        generationStep: action.generationStep,
+      };
+    case "item-url-selected":
+      return {
+        ...state,
+        selectedItemUrl: action.selectedItemUrl,
+      };
+    case "repository-loaded":
+      return {
+        ...state,
+        selectedRepositoryId: action.selectedRepositoryId,
+      };
+    case "repository-selected":
+      return {
+        ...state,
+        generationStep: "select",
+        selectedItemUrl: "",
+        selectedRepositoryId: action.selectedRepositoryId,
+      };
+  }
+}
 
 export function useGitHubActivityDashboard() {
   const { getToken } = useAuth();
@@ -37,23 +96,24 @@ export function useGitHubActivityDashboard() {
   const { setOpen, setOpenMobile } = useSidebar();
   const [installations, setInstallations] = useState<GitHubInstallation[]>([]);
   const [canUsePrivateRepos, setCanUsePrivateRepos] = useState(false);
-  const [selectedRepositoryId, setSelectedRepositoryIdState] = useState("");
-  const [activityType, setActivityTypeState] =
-    useState<ActivityType>("pull-requests");
+  const [selection, dispatchSelection] = useReducer(
+    dashboardSelectionReducer,
+    initialDashboardSelection,
+  );
+  const {
+    activityType,
+    generationStep,
+    selectedItemUrl,
+    selectedRepositoryId,
+  } = selection;
 
   const selectedRepositoryIdRef = useRef(selectedRepositoryId);
-  const activityTypeRef = useRef(activityType);
-  const [items, setItems] = useState<GitHubActivityItem[]>([]);
-  const [selectedItemUrl, setSelectedItemUrl] = useState("");
   const [context, setContext] = useState("");
   const [xPostLength, setXPostLength] = useState<XPostLength>("standard");
   const [selectedMedia, setSelectedMedia] = useState<File | null>(null);
-  const [generationStep, setGenerationStep] =
-    useState<GenerationStep>("select");
   const [repositoryMenuOpen, setRepositoryMenuOpen] = useState(false);
   const [loadingInstallations, setLoadingInstallations] = useState(false);
   const [hasLoadedInstallations, setHasLoadedInstallations] = useState(false);
-  const [loadingActivity, setLoadingActivity] = useState(false);
   const [generating, setGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mediaAttachmentIdRef = useRef<string | null>(null);
@@ -75,6 +135,36 @@ export function useGitHubActivityDashboard() {
     [repositories, selectedRepositoryId],
   );
 
+  const activityQuery = useQuery({
+    queryKey: ["github-activity", selectedRepositoryId, activityType],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        repositoryId: selectedRepositoryId,
+        type: activityType,
+      });
+      const response = await apiFetch(
+        `/github/activity?${params.toString()}`,
+        {},
+        getToken,
+      );
+      const data = (await response.json()) as
+        | GitHubActivityResponse
+        | { error?: string };
+
+      if (!response.ok) {
+        const message = getApiError(data, "Could not load GitHub items");
+        toast.error(message);
+        throw new Error(message);
+      }
+
+      return (data as GitHubActivityResponse).items;
+    },
+    enabled: hasLoadedInstallations && Boolean(selectedRepositoryId),
+    retry: false,
+  });
+
+  const items = useMemo(() => activityQuery.data ?? [], [activityQuery.data]);
+
   const selectedItem = useMemo(
     () => items.find((item) => item.url === selectedItemUrl),
     [items, selectedItemUrl],
@@ -83,42 +173,6 @@ export function useGitHubActivityDashboard() {
   const activityTypeLabel =
     activityType === "pull-requests" ? "Pull requests" : "Commits";
   const isPremiumXPost = xPostLength === "premium";
-
-  const loadActivity = useCallback(
-    async (repositoryId: string, type: ActivityType) => {
-      setLoadingActivity(true);
-      setSelectedItemUrl("");
-      setGenerationStep("select");
-
-      try {
-        const params = new URLSearchParams({ repositoryId, type });
-        const response = await apiFetch(
-          `/github/activity?${params.toString()}`,
-          {},
-          getToken,
-        );
-        const data = (await response.json()) as
-          | GitHubActivityResponse
-          | { error?: string };
-
-        if (!response.ok) {
-          throw new Error(getApiError(data, "Could not load GitHub items"));
-        }
-
-        setItems((data as GitHubActivityResponse).items);
-      } catch (error) {
-        setItems([]);
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Could not load GitHub items",
-        );
-      } finally {
-        setLoadingActivity(false);
-      }
-    },
-    [getToken],
-  );
 
   const loadInstallations = useCallback(async () => {
     setLoadingInstallations(true);
@@ -144,20 +198,18 @@ export function useGitHubActivityDashboard() {
 
       setCanUsePrivateRepos(githubData.canUsePrivateRepos);
       setInstallations(githubData.installations);
-      
+
       const currentSelectedId = selectedRepositoryIdRef.current;
-      const nextActive = currentSelectedId && nextRepositoryIds.has(currentSelectedId)
-        ? currentSelectedId
-        : firstRepositoryId;
+      const nextActive =
+        currentSelectedId && nextRepositoryIds.has(currentSelectedId)
+          ? currentSelectedId
+          : firstRepositoryId;
 
       selectedRepositoryIdRef.current = nextActive;
-      setSelectedRepositoryIdState(nextActive);
-      if (nextActive) {
-        void loadActivity(nextActive, activityTypeRef.current);
-      } else {
-        setItems([]);
-        setSelectedItemUrl("");
-      }
+      dispatchSelection({
+        type: "repository-loaded",
+        selectedRepositoryId: nextActive,
+      });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Could not load repositories",
@@ -166,32 +218,42 @@ export function useGitHubActivityDashboard() {
       setLoadingInstallations(false);
       setHasLoadedInstallations(true);
     }
-  }, [getToken, loadActivity]);
+  }, [getToken]);
 
-  const setSelectedRepositoryId = useCallback(
+  const handleSelectedRepositoryIdChange = useCallback(
     (repositoryId: string) => {
       selectedRepositoryIdRef.current = repositoryId;
-      setSelectedRepositoryIdState(repositoryId);
-      if (!repositoryId) {
-        setItems([]);
-        setSelectedItemUrl("");
-      } else {
-        void loadActivity(repositoryId, activityTypeRef.current);
-      }
+      dispatchSelection({
+        type: "repository-selected",
+        selectedRepositoryId: repositoryId,
+      });
     },
-    [loadActivity],
+    [],
   );
 
-  const setActivityType = useCallback(
+  const handleActivityTypeChange = useCallback(
     (type: ActivityType) => {
-      activityTypeRef.current = type;
-      setActivityTypeState(type);
-      if (selectedRepositoryIdRef.current) {
-        void loadActivity(selectedRepositoryIdRef.current, type);
-      }
+      dispatchSelection({
+        type: "activity-type-selected",
+        activityType: type,
+      });
     },
-    [loadActivity],
+    [],
   );
+
+  const handleSelectedItemUrlChange = useCallback((url: string) => {
+    dispatchSelection({
+      type: "item-url-selected",
+      selectedItemUrl: url,
+    });
+  }, []);
+
+  const handleGenerationStepChange = useCallback((step: GenerationStep) => {
+    dispatchSelection({
+      type: "generation-step-selected",
+      generationStep: step,
+    });
+  }, []);
 
   useEffect(() => {
     void loadInstallations();
@@ -303,8 +365,8 @@ export function useGitHubActivityDashboard() {
       return;
     }
 
-    setGenerationStep("customize");
-  }, [selectedItem]);
+    handleGenerationStepChange("customize");
+  }, [handleGenerationStepChange, selectedItem]);
 
   return {
     activityType,
@@ -321,7 +383,7 @@ export function useGitHubActivityDashboard() {
     isPremiumXPost,
     items,
     loadInstallations,
-    loadingActivity,
+    loadingActivity: activityQuery.isFetching,
     loadingInstallations,
     onMediaChange,
     repositories,
@@ -331,12 +393,12 @@ export function useGitHubActivityDashboard() {
     selectedMedia,
     selectedRepository,
     selectedRepositoryId,
-    setActivityType,
+    setActivityType: handleActivityTypeChange,
     setContext,
-    setGenerationStep,
+    setGenerationStep: handleGenerationStepChange,
     setRepositoryMenuOpen,
-    setSelectedItemUrl,
-    setSelectedRepositoryId,
+    setSelectedItemUrl: handleSelectedItemUrlChange,
+    setSelectedRepositoryId: handleSelectedRepositoryIdChange,
     setXPostLength,
   };
 }

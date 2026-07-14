@@ -21,15 +21,11 @@ export function RegenerateButton({
 }) {
   const { refresh } = useRouter();
   const { getToken } = useAuth();
-  const [isRegenerating, setIsRegenerating] = useState(false);
-
-  function setRegenerating(value: boolean) {
-    setIsRegenerating(value);
-    onRegeneratingChange?.(value);
-  }
+  const [isRegenerating, updateIsRegenerating] = useState(false);
 
   async function regenerate() {
-    setRegenerating(true);
+    updateIsRegenerating(true);
+    onRegeneratingChange?.(true);
 
     const toastId = toast.loading("Regenerating content...");
     const clearBackendDelayToast = startBackendDelayToast(toastId);
@@ -75,7 +71,8 @@ export function RegenerateButton({
       });
     } finally {
       clearBackendDelayToast();
-      setRegenerating(false);
+      updateIsRegenerating(false);
+      onRegeneratingChange?.(false);
     }
   }
 

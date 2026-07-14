@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
+
+type LegalTab = "security" | "privacy";
 
 const securityControls = [
   "Private repository access is optional and available only through the GitLoud GitHub App.",
@@ -13,15 +15,21 @@ const securityControls = [
   "Private repository reads use short-lived, server-side GitHub App installation tokens generated only when needed.",
 ] as const;
 
-export function SecurityPrivacyContent() {
-  const [activeTab, setActiveTab] = useState<"security" | "privacy">("security");
+export function SecurityPrivacyContent({
+  initialTab,
+}: {
+  initialTab: LegalTab;
+}) {
+  const hashTab = usePrivacyHashTab();
+  const [selectedTab, setSelectedTab] = useState<LegalTab | null>(null);
+  const activeTab = selectedTab ?? hashTab ?? initialTab;
   const securityTabRef = useRef<HTMLButtonElement>(null);
   const privacyTabRef = useRef<HTMLButtonElement>(null);
 
   const handleSecurityKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
       e.preventDefault();
-      setActiveTab("privacy");
+      setSelectedTab("privacy");
       setTimeout(() => {
         privacyTabRef.current?.focus();
       }, 0);
@@ -31,24 +39,12 @@ export function SecurityPrivacyContent() {
   const handlePrivacyKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
       e.preventDefault();
-      setActiveTab("security");
+      setSelectedTab("security");
       setTimeout(() => {
         securityTabRef.current?.focus();
       }, 0);
     }
   };
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get("tab");
-      if (tab === "privacy" || tab === "security") {
-        setActiveTab(tab);
-      } else if (window.location.hash === "#privacy") {
-        setActiveTab("privacy");
-      }
-    }
-  }, []);
 
   return (
     <div>
@@ -80,7 +76,7 @@ export function SecurityPrivacyContent() {
             aria-selected={activeTab === "security"}
             aria-controls="panel-security"
             tabIndex={activeTab === "security" ? 0 : -1}
-            onClick={() => setActiveTab("security")}
+            onClick={() => setSelectedTab("security")}
             onKeyDown={handleSecurityKeyDown}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "security"
@@ -101,7 +97,7 @@ export function SecurityPrivacyContent() {
             aria-selected={activeTab === "privacy"}
             aria-controls="panel-privacy"
             tabIndex={activeTab === "privacy" ? 0 : -1}
-            onClick={() => setActiveTab("privacy")}
+            onClick={() => setSelectedTab("privacy")}
             onKeyDown={handlePrivacyKeyDown}
             className={`py-4 text-sm font-semibold tracking-tight transition-colors relative ${
               activeTab === "privacy"
@@ -285,4 +281,20 @@ export function SecurityPrivacyContent() {
       </div>
     </div>
   );
+}
+
+function usePrivacyHashTab() {
+  return useSyncExternalStore(subscribeToHashChanges, getHashTab, () => null);
+}
+
+function subscribeToHashChanges(onStoreChange: () => void) {
+  window.addEventListener("hashchange", onStoreChange);
+
+  return () => {
+    window.removeEventListener("hashchange", onStoreChange);
+  };
+}
+
+function getHashTab(): LegalTab | null {
+  return window.location.hash === "#privacy" ? "privacy" : null;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { GitHubInstallationsResponse } from "@repo/shared/github-app";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -9,11 +10,10 @@ import { getApiError } from "@/lib/api-response";
 
 export function useGitHubAppSettings() {
   const { getToken } = useAuth();
+  const queryClient = useQueryClient();
   const [data, setData] = useState<GitHubInstallationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [disconnectingInstallationId, setDisconnectingInstallationId] =
-    useState<string | null>(null);
 
   const hasConnectedGitHub = useMemo(
     () => (data?.installations.length ?? 0) > 0,
@@ -46,6 +46,31 @@ export function useGitHubAppSettings() {
   useEffect(() => {
     void loadSettings();
   }, [loadSettings]);
+
+  const disconnectInstallationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiFetch(
+        `/github/installations/${id}`,
+        { method: "DELETE" },
+        getToken,
+      );
+      const value = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(getApiError(value, "Could not disconnect GitHub App"));
+      }
+    },
+    onSuccess: async () => {
+      toast.success("GitHub App disconnected");
+      await queryClient.invalidateQueries({ queryKey: ["github-installations"] });
+      await loadSettings();
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error ? error.message : "Could not disconnect GitHub",
+      );
+    },
+  });
 
   const connectGitHub = useCallback(async () => {
     const response = await apiFetch("/github/install-url", {}, getToken);
@@ -97,42 +122,18 @@ export function useGitHubAppSettings() {
   }, [getToken, loadSettings]);
 
   const disconnectInstallation = useCallback(
-    async (id: string) => {
-      setDisconnectingInstallationId(id);
-
-      try {
-        const response = await apiFetch(
-          `/github/installations/${id}`,
-          { method: "DELETE" },
-          getToken,
-        );
-        const value = (await response.json()) as { error?: string };
-
-        if (!response.ok) {
-          throw new Error(
-            getApiError(value, "Could not disconnect GitHub App"),
-          );
-        }
-
-        toast.success("GitHub App disconnected");
-        await loadSettings();
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Could not disconnect GitHub",
-        );
-      } finally {
-        setDisconnectingInstallationId(null);
-      }
+    (id: string) => {
+      disconnectInstallationMutation.mutate(id);
     },
-    [getToken, loadSettings],
+    [disconnectInstallationMutation],
   );
 
   return {
     connectGitHub,
     data,
-    disconnectingInstallationId,
+    disconnectingInstallationId: disconnectInstallationMutation.isPending
+      ? (disconnectInstallationMutation.variables ?? null)
+      : null,
     disconnectInstallation,
     hasConnectedGitHub,
     loading,

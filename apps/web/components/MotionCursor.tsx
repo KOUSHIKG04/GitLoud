@@ -7,44 +7,29 @@ import {
   useMotionValue,
   useSpring,
 } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 
 export function MotionCursor() {
-  const [enabled, setEnabled] = useState(false);
+  const enabled = useCursorEnabled();
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
   const springX = useSpring(cursorX, { damping: 28, stiffness: 450 });
   const springY = useSpring(cursorY, { damping: 28, stiffness: 450 });
 
   useEffect(() => {
-    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    function updateEnabled() {
-      const matches = canHover.matches && !reduceMotion.matches;
-      setEnabled(matches);
-      if (matches) {
-        window.addEventListener("pointermove", updatePosition);
-      } else {
-        window.removeEventListener("pointermove", updatePosition);
-      }
-    }
-
     function updatePosition(event: PointerEvent) {
       cursorX.set(event.clientX - 10);
       cursorY.set(event.clientY - 10);
     }
 
-    updateEnabled();
-    canHover.addEventListener("change", updateEnabled);
-    reduceMotion.addEventListener("change", updateEnabled);
+    if (!enabled) return;
+
+    window.addEventListener("pointermove", updatePosition);
 
     return () => {
       window.removeEventListener("pointermove", updatePosition);
-      canHover.removeEventListener("change", updateEnabled);
-      reduceMotion.removeEventListener("change", updateEnabled);
     };
-  }, [cursorX, cursorY]);
+  }, [cursorX, cursorY, enabled]);
 
   if (!enabled) {
     return null;
@@ -62,4 +47,32 @@ export function MotionCursor() {
       />
     </LazyMotion>
   );
+}
+
+function useCursorEnabled() {
+  return useSyncExternalStore(
+    subscribeToCursorPreference,
+    getCursorPreference,
+    () => false,
+  );
+}
+
+function subscribeToCursorPreference(onStoreChange: () => void) {
+  const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  canHover.addEventListener("change", onStoreChange);
+  reduceMotion.addEventListener("change", onStoreChange);
+
+  return () => {
+    canHover.removeEventListener("change", onStoreChange);
+    reduceMotion.removeEventListener("change", onStoreChange);
+  };
+}
+
+function getCursorPreference() {
+  const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  return canHover.matches && !reduceMotion.matches;
 }

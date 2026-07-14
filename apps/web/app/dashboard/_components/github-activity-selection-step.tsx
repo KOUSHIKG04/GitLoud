@@ -95,10 +95,13 @@ export function GitHubActivitySelectionStep({
                   : null;
                 const formattedDate =
                   updatedAt && Number.isFinite(updatedAt.valueOf())
-                    ? `${updatedAt.toLocaleDateString()} ${updatedAt.toLocaleTimeString(
-                        undefined,
-                        { hour: "2-digit", minute: "2-digit" },
-                      )}`
+                    ? `${updatedAt.toLocaleDateString("en-US", {
+                        timeZone: "UTC",
+                      })} ${updatedAt.toLocaleTimeString("en-US", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        timeZone: "UTC",
+                      })}`
                     : "";
 
                 return (

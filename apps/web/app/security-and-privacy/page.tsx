@@ -12,12 +12,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function SecurityPage() {
+type SecurityPageSearchParams = {
+  tab?: string;
+};
+
+export default async function SecurityPage({
+  searchParams,
+}: {
+  searchParams: Promise<SecurityPageSearchParams>;
+}) {
+  const { tab } = await searchParams;
+  const initialTab = tab === "privacy" ? "privacy" : "security";
+
   return (
     <main className="min-h-dvh text-foreground">
       <div className="w-full max-w-5xl mx-auto md:border-x md:border-border bg-background">
         <Header />
-        <SecurityPrivacyContent />
+        <SecurityPrivacyContent initialTab={initialTab} />
       </div>
       <Footer />
     </main>

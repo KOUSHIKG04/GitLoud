@@ -13,13 +13,12 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useGitHubAppSettings } from "../_hooks/use-github-app-settings";
 import { DotMatrixLoader } from "@/components/DotMatrixLoader";
 
 export function GitHubAppSettings() {
-  const router = useRouter();
   const {
     connectGitHub,
     data,
@@ -33,21 +32,21 @@ export function GitHubAppSettings() {
 
   useEffect(() => {
     toast.info(
-      <p className="text-[12px] font-light tracking-tight ml-2">
-        Review security notes before connecting private repositories.
-      </p>,
+      <div className="ml-2 space-y-1 text-[12px] font-light tracking-tight">
+        <p>Review security notes before connecting private repositories.</p>
+        <Link
+          href="/security-and-privacy"
+          className="inline-block text-[10px] font-medium uppercase text-primary underline underline-offset-2"
+        >
+          Review notes
+        </Link>
+      </div>,
       {
         id: "github-app-security-notes",
         duration: 8000,
-        action: {
-          label: (
-            <p className="uppercase font-medium text-[10px]">Review notes</p>
-          ),
-          onClick: () => router.push("/security-and-privacy"),
-        },
       },
     );
-    }, [router]);
+  }, []);
 
 
   if (loading) {
@@ -94,7 +93,7 @@ export function GitHubAppSettings() {
                     </div>
                   </div>
 
-                  <div className="border border-border bg-muted/20 px-3 py-3">
+                  <div className="border border-border bg-muted/20 p-3">
                     <div className="flex items-center gap-3">
                       <span className="flex size-8 items-center justify-center bg-primary/10 text-primary">
                         <Database className="size-3.5" />

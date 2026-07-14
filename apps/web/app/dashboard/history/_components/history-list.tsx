@@ -234,7 +234,7 @@ function HistoryPagination({
   to?: string;
 }) {
   const getPages = () => {
-    const pages: (number | "ellipsis")[] = [];
+    const pages: (number | "start-ellipsis" | "end-ellipsis")[] = [];
     const maxPagesToShow = 5;
     if (totalPages <= maxPagesToShow) {
       for (let i = 1; i <= totalPages; i++) {
@@ -247,7 +247,7 @@ function HistoryPagination({
       const end = Math.min(totalPages - 1, page + 1);
 
       if (start > 2) {
-        pages.push("ellipsis");
+        pages.push("start-ellipsis");
       }
 
       for (let i = start; i <= end; i++) {
@@ -255,7 +255,7 @@ function HistoryPagination({
       }
 
       if (end < totalPages - 1) {
-        pages.push("ellipsis");
+        pages.push("end-ellipsis");
       }
 
       pages.push(totalPages);
@@ -281,11 +281,11 @@ function HistoryPagination({
           )}
         </PaginationItem>
 
-        {pageNumbers.map((p, idx) => {
-          if (p === "ellipsis") {
+        {pageNumbers.map((p) => {
+          if (p === "start-ellipsis" || p === "end-ellipsis") {
             return (
-              <PaginationItem key={`ellipsis-${idx}`}>
-                <span className="flex h-9 w-9 items-center justify-center text-sm select-none opacity-50">
+              <PaginationItem key={p}>
+                <span className="flex size-9 items-center justify-center text-sm select-none opacity-50">
                   ...
                 </span>
               </PaginationItem>

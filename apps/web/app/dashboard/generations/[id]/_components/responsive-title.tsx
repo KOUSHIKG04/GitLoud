@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 export function ResponsiveTitle({ title }: { title: string }) {
   const containerRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [displayTitle, setDisplayTitle] = useState(title);
+  const [displayTitle, setDisplayTitle] = useState("");
 
   useEffect(() => {
     const container = containerRef.current;
@@ -21,9 +21,11 @@ export function ResponsiveTitle({ title }: { title: string }) {
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    const updateTruncation = () => {
+    const getDisplayTitle = () => {
       const maxWidth = parent.clientWidth;
-      if (maxWidth === 0) return;
+      if (maxWidth === 0) {
+        return title;
+      }
 
       // 1. Get the computed font styles of the container to measure accurately
       const computedStyle = window.getComputedStyle(container);
@@ -35,8 +37,7 @@ export function ResponsiveTitle({ title }: { title: string }) {
 
       // If it fits inside the true client width, show the full title
       if (fullWidth <= maxWidth) {
-        setDisplayTitle(title);
-        return;
+        return title;
       }
 
       const titleCodePoints = Array.from(title);
@@ -58,7 +59,11 @@ export function ResponsiveTitle({ title }: { title: string }) {
         }
       }
 
-      setDisplayTitle(bestFit || titleCodePoints.slice(0, 5).join("") + "...");
+      return bestFit || titleCodePoints.slice(0, 5).join("") + "...";
+    };
+
+    const updateTruncation = () => {
+      setDisplayTitle(getDisplayTitle());
     };
 
     // Run initial truncation calculation
