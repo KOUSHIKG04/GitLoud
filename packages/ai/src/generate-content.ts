@@ -98,7 +98,10 @@ const CONTEXT_BUDGETS = [
   { maxFiles: 6, maxPatchChars: 900 },
 ] as const;
 
-type ContextBudget = (typeof CONTEXT_BUDGETS)[number];
+type ContextBudget = {
+  maxFiles: number;
+  maxPatchChars: number;
+};
 
 type OpenRouterChatCompletionResponse = {
   error?: {
@@ -957,4 +960,164 @@ export async function generateContentFromCommit(
     ),
     options,
   );
+}
+
+export async function generateContentFromPullRequests(
+  pullRequests: PullRequestResult[],
+  userContext?: string,
+  options?: GenerationOptions,
+) {
+  const requiredSources = pullRequests.map((pullRequest) => ({
+    reference: `#${pullRequest.number}`,
+    title: pullRequest.title,
+  }));
+  const inputs = CONTEXT_BUDGETS.map((budget) => {
+    const perSourceBudget = divideContextBudget(budget, pullRequests.length);
+    const sources = pullRequests
+      .map(
+        (pr, index) => `Pull request ${index + 1}
+Repository: ${pr.owner}/${pr.repo}
+PR number: ${pr.number}
+Title: ${pr.title}
+Description: ${pr.body ?? "No description"}
+Author: ${pr.author ?? "Unknown"}
+Stats: +${pr.additions} -${pr.deletions}, ${pr.changedFiles} changed files
+URL: ${pr.url}
+Files:${buildFilesContext(pr.files, perSourceBudget)}`,
+      )
+      .join("\n\n---\n\n");
+
+    return `Generate one cohesive piece of content for this related set of GitHub pull requests.
+Treat the pull requests as parts of one combined update. Explain the overall outcome while preserving important distinctions between the individual changes.
+${buildCombinedCoverageRequirement(requiredSources)}
+User extra context requirements: ${userContext ?? "No extra context provided"}
+X post length requirement: ${getXPostLengthInstruction(options)}
+
+${sources}`;
+  });
+
+  return generateCombinedContentWithCoverage(inputs, requiredSources, options);
+}
+
+export async function generateContentFromCommits(
+  commits: CommitResult[],
+  userContext?: string,
+  options?: GenerationOptions,
+) {
+  const requiredSources = commits.map((commit) => ({
+    reference: commit.shortSha,
+    title: commit.message.split("\n")[0] || commit.shortSha,
+  }));
+  const inputs = CONTEXT_BUDGETS.map((budget) => {
+    const perSourceBudget = divideContextBudget(budget, commits.length);
+    const sources = commits
+      .map(
+        (commit, index) => `Commit ${index + 1}
+Repository: ${commit.owner}/${commit.repo}
+SHA: ${commit.sha}
+Message: ${commit.message}
+Author: ${commit.author ?? "Unknown"}
+Stats: +${commit.additions} -${commit.deletions}, ${commit.changedFiles} changed files
+URL: ${commit.url}
+Files:${buildFilesContext(commit.files, perSourceBudget)}`,
+      )
+      .join("\n\n---\n\n");
+
+    return `Generate one cohesive piece of content for this related set of GitHub commits.
+Treat the commits as parts of one combined update. Explain the overall outcome while preserving important distinctions between the individual changes.
+${buildCombinedCoverageRequirement(requiredSources)}
+User extra context requirements: ${userContext ?? "No extra context provided"}
+X post length requirement: ${getXPostLengthInstruction(options)}
+
+${sources}`;
+  });
+
+  return generateCombinedContentWithCoverage(inputs, requiredSources, options);
+}
+
+type RequiredCombinedSource = {
+  reference: string;
+  title: string;
+};
+
+function buildCombinedCoverageRequirement(sources: RequiredCombinedSource[]) {
+  const checklist = sources
+    .map((source) => `- ${source.reference}: ${source.title}`)
+    .join("\n");
+
+  return `Mandatory source coverage:
+- Cover every source in the checklist below, including small configuration, revert, refactor, documentation, and dependency changes.
+- Mention each exact source reference in technicalSummary, features, or changelogEntry and describe what that source changed.
+- Do not let the largest or first source dominate the response so completely that another source is omitted.
+Required sources:
+${checklist}`;
+}
+
+async function generateCombinedContentWithCoverage(
+  inputs: string[],
+  requiredSources: RequiredCombinedSource[],
+  options?: GenerationOptions,
+) {
+  const generatedContent = await generateContent(inputs, options);
+  const missingSources = getMissingCombinedSources(
+    generatedContent,
+    requiredSources,
+  );
+
+  if (missingSources.length === 0) {
+    return generatedContent;
+  }
+
+  options?.onProgress?.(
+    `Ensuring coverage for ${missingSources.map((source) => source.reference).join(", ")}...`,
+  );
+
+  const correctionRequirement = `Correction required: the previous response omitted these selected sources: ${missingSources
+    .map((source) => `${source.reference} (${source.title})`)
+    .join(", ")}.
+Regenerate the full response. Explicitly mention every exact source reference from the mandatory checklist in technicalSummary, features, or changelogEntry and accurately describe its change.`;
+  const correctedContent = await generateContent(
+    inputs.map((input) => `${input}\n\n${correctionRequirement}`),
+    options,
+  );
+  const stillMissingSources = getMissingCombinedSources(
+    correctedContent,
+    requiredSources,
+  );
+
+  if (stillMissingSources.length > 0) {
+    throw new Error(
+      `AI could not cover every selected source. Missing: ${stillMissingSources
+        .map((source) => source.reference)
+        .join(", ")}`,
+    );
+  }
+
+  return correctedContent;
+}
+
+function getMissingCombinedSources(
+  content: GeneratedContent,
+  requiredSources: RequiredCombinedSource[],
+) {
+  const coverageText = [
+    content.technicalSummary,
+    content.features.join("\n"),
+    content.changelogEntry,
+  ]
+    .join("\n")
+    .toLowerCase();
+
+  return requiredSources.filter(
+    (source) => !coverageText.includes(source.reference.toLowerCase()),
+  );
+}
+
+function divideContextBudget(budget: ContextBudget, sourceCount: number) {
+  const divisor = Math.max(sourceCount, 1);
+
+  return {
+    maxFiles: Math.max(2, Math.floor(budget.maxFiles / divisor)),
+    maxPatchChars: Math.max(500, Math.floor(budget.maxPatchChars / divisor)),
+  };
 }

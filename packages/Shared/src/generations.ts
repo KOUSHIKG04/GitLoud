@@ -26,7 +26,21 @@ export type GenerationMediaAttachment = {
   duration: number | null;
 };
 export type StoredXPostLength = "STANDARD" | "PREMIUM";
-export type GeneratedSourceType = "PULL_REQUEST" | "COMMIT";
+export type GeneratedSourceType = "PULL_REQUEST" | "COMMIT" | "COMBINED";
+
+export type CombinedGenerationSource = {
+  sourceType: "pull-request" | "commit";
+  owner: string;
+  repo: string;
+  url: string;
+  title: string;
+  reference: string;
+  author: string | null;
+  additions: number;
+  deletions: number;
+  changedFiles: number;
+  createdAt: string;
+};
 
 export type PullRequestGenerateResponse = {
   sourceType: "pull-request";
@@ -68,10 +82,9 @@ export type GenerateResponse =
   | PullRequestGenerateResponse
   | CommitGenerateResponse;
 
-export type GenerateDoneResponse = Pick<
-  GenerateResponse,
-  "sourceType" | "generatedContentId"
-> & {
+export type GenerateDoneResponse = {
+  sourceType: "pull-request" | "commit" | "combined";
+  generatedContentId: string;
   reused?: boolean;
 };
 
@@ -105,6 +118,7 @@ export type GenerationHistoryItem = {
     repo: string;
     url: string;
   } | null;
+  combinedSources: CombinedGenerationSource[];
   mediaAttachmentCount: number;
 };
 
@@ -138,6 +152,7 @@ export type GenerationDetail = GeneratedContent & {
   sourceType: GeneratedSourceType;
   pullRequest: GenerationSource | null;
   commit: GenerationSource | null;
+  combinedSources: CombinedGenerationSource[];
   mediaAttachments: GenerationMediaAttachment[];
 };
 

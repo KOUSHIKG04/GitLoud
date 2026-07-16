@@ -1,6 +1,8 @@
 import {
   generateContentFromCommit,
+  generateContentFromCommits,
   generateContentFromPullRequest,
+  generateContentFromPullRequests,
 } from "@repo/ai/generate-content";
 import { db } from "@repo/db/client";
 import { fetchCommit } from "@repo/github/fetch-commit";
@@ -10,6 +12,7 @@ import {
 } from "@repo/github/fetch-pr";
 import type { CommitResult } from "@repo/shared/commit";
 import type {
+  CombinedGenerationSource,
   GenerationProgressEvent,
   StoredXPostLength,
 } from "@repo/shared/generations";
@@ -38,9 +41,18 @@ const requestBodySchema = z.object({
   xPostLength: z.enum(["standard", "premium"]).default("standard"),
 });
 
+const combinedRequestBodySchema = z.object({
+  urls: z.array(githubPrOrCommitUrlSchema).min(2).max(5),
+  context: z.string().trim().max(1000).optional(),
+  mediaAttachmentId: z.string().trim().min(1).max(128).optional(),
+  xPostLength: z.enum(["standard", "premium"]).default("standard"),
+});
+
 type SendProgress = (event: GenerationProgressEvent) => void;
 
-export const prRoutes = new Hono().post("/", async (context) => {
+export const prRoutes = new Hono();
+
+prRoutes.post("/", async (context) => {
   const appUserId = await getCurrentUserId(context.req.raw);
 
   if (!appUserId) {
@@ -474,6 +486,277 @@ export const prRoutes = new Hono().post("/", async (context) => {
     send({
       type: "error",
       message: "Enter a valid GitHub PR or commit URL",
+    });
+  });
+});
+
+prRoutes.post("/combined", async (context) => {
+  const appUserId = await getCurrentUserId(context.req.raw);
+
+  if (!appUserId) {
+    return context.json({ error: "Unauthorized" }, 401);
+  }
+
+  const ip = getRequestIp(context.req.raw);
+  const limit = await persistentRateLimit({
+    key: `generate:${appUserId}:${ip}`,
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!limit.success) {
+    return context.json(
+      { error: "Too many generation requests. Please try again later." },
+      429,
+      {
+        "Retry-After": Math.ceil(
+          (limit.resetAt.getTime() - Date.now()) / 1000,
+        ).toString(),
+      },
+    );
+  }
+
+  let body: unknown;
+
+  try {
+    body = await context.req.json();
+  } catch {
+    return context.json({ error: "Invalid JSON body" }, 400);
+  }
+
+  const parsedBody = combinedRequestBodySchema.safeParse(body);
+
+  if (!parsedBody.success) {
+    return context.json(
+      {
+        error:
+          parsedBody.error.issues[0]?.message ??
+          "Select between 2 and 5 GitHub items",
+      },
+      400,
+    );
+  }
+
+  const urls = [...new Set(parsedBody.data.urls)];
+
+  if (urls.length < 2) {
+    return context.json({ error: "Select at least 2 different items" }, 400);
+  }
+
+  const urlTypes = urls.map(getGithubUrlType);
+  const firstType = urlTypes[0];
+
+  if (
+    !firstType ||
+    urlTypes.some((urlType) => urlType !== firstType) ||
+    (firstType !== "pull-request" && firstType !== "commit")
+  ) {
+    return context.json(
+      { error: "Combine pull requests or commits, not a mixture of both" },
+      400,
+    );
+  }
+
+  const coordinates = urls.map((url) =>
+    firstType === "pull-request"
+      ? parseGithubPullRequestUrl(url)
+      : parseGithubCommitUrl(url),
+  );
+  const { owner, repo } = coordinates[0]!;
+
+  if (
+    coordinates.some(
+      (coordinate) =>
+        coordinate.owner.toLowerCase() !== owner.toLowerCase() ||
+        coordinate.repo.toLowerCase() !== repo.toLowerCase(),
+    )
+  ) {
+    return context.json(
+      { error: "Combined items must come from the same repository" },
+      400,
+    );
+  }
+
+  const features = await getUserFeatures(appUserId);
+
+  if (!features.canUsePrivateRepos) {
+    return context.json(
+      { error: "GitHub activity browser is unavailable for this account." },
+      402,
+    );
+  }
+
+  const githubToken = await getGitHubTokenForRepo({
+    userId: appUserId,
+    owner,
+    repo,
+  });
+
+  if (!githubToken) {
+    return context.json(
+      {
+        error:
+          "Connect and sync the GitLoud GitHub App for this repository before combining items",
+      },
+      403,
+    );
+  }
+
+  const userContext = parsedBody.data.context?.trim() || undefined;
+  const xPostLength = parsedBody.data.xPostLength;
+  const storedXPostLength: StoredXPostLength =
+    xPostLength === "premium" ? "PREMIUM" : "STANDARD";
+
+  return createProgressStream(async (send) => {
+    send({
+      type: "progress",
+      message: `Fetching ${urls.length} GitHub ${firstType === "pull-request" ? "pull requests" : "commits"}...`,
+    });
+
+    const aiGenerationOptions = await getAiGenerationOptionsForUser(
+      appUserId,
+      features,
+    );
+    let generatedContent;
+    let combinedSources: CombinedGenerationSource[];
+
+    if (firstType === "pull-request") {
+      const pullRequests = await Promise.all(
+        coordinates.map(async (coordinate) => {
+          if (!("number" in coordinate)) {
+            throw new Error("Invalid pull request selection");
+          }
+
+          const metadata = await fetchPullRequestMetadata({
+            owner: coordinate.owner,
+            repo: coordinate.repo,
+            number: coordinate.number,
+            githubToken,
+          });
+
+          return fetchPullRequestHydrated(metadata, {
+            owner: coordinate.owner,
+            repo: coordinate.repo,
+            number: coordinate.number,
+            githubToken,
+          });
+        }),
+      );
+
+      send({
+        type: "progress",
+        message: "Generating one combined update with AI...",
+      });
+      generatedContent = await generateContentFromPullRequests(
+        pullRequests,
+        userContext,
+        {
+          xPostLength,
+          ...aiGenerationOptions,
+          onProgress: (message) => send({ type: "progress", message }),
+        },
+      );
+      combinedSources = pullRequests.map((pullRequest) => ({
+        sourceType: "pull-request",
+        owner: pullRequest.owner,
+        repo: pullRequest.repo,
+        url: pullRequest.url,
+        title: pullRequest.title,
+        reference: `#${pullRequest.number}`,
+        author: pullRequest.author ?? null,
+        additions: pullRequest.additions,
+        deletions: pullRequest.deletions,
+        changedFiles: pullRequest.changedFiles,
+        createdAt: new Date().toISOString(),
+      }));
+    } else {
+      const commits = await Promise.all(
+        coordinates.map(async (coordinate) => {
+          if (!("sha" in coordinate)) {
+            throw new Error("Invalid commit selection");
+          }
+
+          return fetchCommit({
+            owner: coordinate.owner,
+            repo: coordinate.repo,
+            sha: coordinate.sha,
+            githubToken,
+          });
+        }),
+      );
+
+      send({
+        type: "progress",
+        message: "Generating one combined update with AI...",
+      });
+      generatedContent = await generateContentFromCommits(
+        commits,
+        userContext,
+        {
+          xPostLength,
+          ...aiGenerationOptions,
+          onProgress: (message) => send({ type: "progress", message }),
+        },
+      );
+      combinedSources = commits.map((commit) => ({
+        sourceType: "commit",
+        owner: commit.owner,
+        repo: commit.repo,
+        url: commit.url,
+        title: commit.message.split("\n")[0] || commit.shortSha,
+        reference: commit.shortSha,
+        author: commit.author,
+        additions: commit.additions,
+        deletions: commit.deletions,
+        changedFiles: commit.changedFiles,
+        createdAt: new Date().toISOString(),
+      }));
+    }
+
+    send({ type: "progress", message: "Saving combined content..." });
+
+    const savedGeneratedContent = await db.generatedContent.create({
+      data: {
+        user: { connect: { id: appUserId } },
+        sourceType: "COMBINED",
+        combinedSources,
+        contextHash: getContextHash(userContext),
+        ...getStoredXPostLengthData(storedXPostLength),
+        shortSummary: generatedContent.shortSummary,
+        technicalSummary: generatedContent.technicalSummary,
+        features: generatedContent.features,
+        techUsed: generatedContent.techUsed,
+        tweet: generatedContent.tweet,
+        linkedInPost: generatedContent.linkedInPost,
+        redditPost: generatedContent.redditPost,
+        discordPost: generatedContent.discordPost,
+        portfolioBullet: generatedContent.portfolioBullet,
+        changelogEntry: generatedContent.changelogEntry,
+        beginnerSummary: generatedContent.beginnerSummary,
+      },
+      select: { id: true },
+    });
+
+    await attachMediaToGeneration({
+      mediaAttachmentId: parsedBody.data.mediaAttachmentId,
+      generatedContentId: savedGeneratedContent.id,
+      userId: appUserId,
+    });
+
+    logger.info("Generated combined GitHub content", {
+      owner,
+      repo,
+      sourceType: firstType,
+      sourceCount: combinedSources.length,
+      generatedContentId: savedGeneratedContent.id,
+    });
+
+    send({
+      type: "done",
+      data: {
+        sourceType: "combined",
+        generatedContentId: savedGeneratedContent.id,
+      },
     });
   });
 });

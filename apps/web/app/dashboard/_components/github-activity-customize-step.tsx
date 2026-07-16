@@ -12,46 +12,56 @@ import type { GitHubActivityItem } from "./github-activity-types";
 export function GitHubActivityCustomizeStep({
   context,
   generating,
-  selectedItem,
+  selectedItems,
   selectedMedia,
   setContext,
 }: {
   context: string;
   generating: boolean;
-  selectedItem: GitHubActivityItem | undefined;
+  selectedItems: GitHubActivityItem[];
   selectedMedia?: File | null;
   setContext: (value: string) => void;
 }) {
   return (
     <div className="space-y-4">
-      {selectedItem ? (
+      {selectedItems[0] ? (
         <div className="border bg-background p-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               <span className="flex size-6 items-center justify-center bg-primary/10 text-primary">
-                {selectedItem.sourceType === "pull-request" ? (
+                {selectedItems[0].sourceType === "pull-request" ? (
                   <GitPullRequest className="size-3.5" />
                 ) : (
                   <CommitBranchIcon className="size-3.5" />
                 )}
               </span>
-              Selected{" "}
-              {selectedItem.sourceType === "pull-request" ? "PR" : "commit"}
+              Selected {selectedItems.length}{" "}
+              {selectedItems[0].sourceType === "pull-request"
+                ? selectedItems.length === 1
+                  ? "PR"
+                  : "PRs"
+                : selectedItems.length === 1
+                  ? "commit"
+                  : "commits"}
             </div>
 
             <div className="relative mt-2 bg-muted/20 py-1.5 pl-4 pr-3">
               <span className="absolute inset-y-0 left-0 w-1 bg-primary" />
               <p className="truncate text-sm font-semibold">
-                {selectedItem.title}
+                {selectedItems.length === 1
+                  ? selectedItems[0].title
+                  : `${selectedItems[0].title} and ${selectedItems.length - 1} more`}
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                 <span className="bg-primary/10 px-2 py-0.5 font-medium text-primary">
-                  {selectedItem.subtitle}
+                  {selectedItems.length === 1
+                    ? selectedItems[0].subtitle
+                    : "Combined update"}
                 </span>
-                {selectedItem.author ? (
+                {selectedItems.length === 1 && selectedItems[0].author ? (
                   <span className="flex items-center gap-1">
                     <UserRound className="size-3.5 text-primary" />
-                    {selectedItem.author}
+                    {selectedItems[0].author}
                   </span>
                 ) : null}
               </div>

@@ -22,10 +22,10 @@ export function HowItWorksSection() {
 
           <MotionItem>
             <p className=" max-w-4xl text-sm leading-relaxed text-muted-foreground">
-              GitLoud reads GitHub pull requests and commits, plus
-              authorized private repository changes, summarizes the technical
-              work, and creates platform-ready content for sharing your
-              progress.
+              GitLoud reads one GitHub change or combines up to five PRs or
+              commits from a connected repository, summarizes the complete
+              technical work, and creates platform-ready content for sharing
+              your progress.
             </p>
           </MotionItem>
         </MotionViewportStagger>
