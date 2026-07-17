@@ -1108,9 +1108,15 @@ function getMissingCombinedSources(
     .join("\n")
     .toLowerCase();
 
-  return requiredSources.filter(
-    (source) => !coverageText.includes(source.reference.toLowerCase()),
-  );
+  return requiredSources.filter((source) => {
+    const reference = source.reference.toLowerCase();
+    const isPullRequestReference = /^#\d+$/.test(reference);
+    const isCovered = isPullRequestReference
+      ? new RegExp(`${reference}(?!\\d)`, "i").test(coverageText)
+      : coverageText.includes(reference);
+
+    return !isCovered;
+  });
 }
 
 function divideContextBudget(budget: ContextBudget, sourceCount: number) {

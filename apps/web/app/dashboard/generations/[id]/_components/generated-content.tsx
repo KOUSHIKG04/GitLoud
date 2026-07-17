@@ -14,6 +14,7 @@ import { getShareableFiles, withMediaLinks } from "./generated-content-share";
 import type { ShareMediaAttachment } from "./generated-content-types";
 
 type GeneratedContentViewProps = {
+  generationId: string;
   content: GeneratedContent;
   isRegenerating?: boolean;
   mediaAttachments?: ShareMediaAttachment[];
@@ -94,6 +95,7 @@ async function shareNative(
 }
 
 export function GeneratedContentView({
+  generationId,
   content,
   isRegenerating = false,
   mediaAttachments = EMPTY_MEDIA_ATTACHMENTS,
@@ -138,6 +140,7 @@ export function GeneratedContentView({
               mediaAttachments={mediaAttachments}
               onCopy={copyText}
               onShare={shareNative}
+              generationId={generationId}
             />
 
             {isReducedFallbackContent ? (
@@ -159,6 +162,7 @@ export function GeneratedContentView({
                   mediaAttachments={mediaAttachments}
                   onCopy={copyText}
                   onShare={shareNative}
+                  generationId={generationId}
                 />
 
                 <SocialPostCard
@@ -168,6 +172,7 @@ export function GeneratedContentView({
                   mediaAttachments={mediaAttachments}
                   onCopy={copyText}
                   onShare={shareNative}
+                  generationId={generationId}
                 />
 
                 <SocialPostCard
@@ -177,6 +182,7 @@ export function GeneratedContentView({
                   mediaAttachments={mediaAttachments}
                   onCopy={copyText}
                   onShare={shareNative}
+                  generationId={generationId}
                 />
               </>
             ) : null}

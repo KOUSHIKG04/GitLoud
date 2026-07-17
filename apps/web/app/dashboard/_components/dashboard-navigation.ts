@@ -1,6 +1,12 @@
 import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
 import type { ComponentType } from "react";
-import { GitBranch, History, KeyRound, LayoutDashboard } from "lucide-react";
+import {
+  GitBranch,
+  History,
+  KeyRound,
+  LayoutDashboard,
+  Share2,
+} from "lucide-react";
 
 export type DashboardSidebarItem = {
   label: string;
@@ -46,6 +52,12 @@ export const settingsOptions: DashboardSidebarItem[] = [
     href: "/dashboard/settings/api-key",
     icon: KeyRound,
     isActive: (pathname) => pathname.startsWith("/dashboard/settings/api-key"),
+  },
+  {
+    label: "Social Accounts",
+    href: "/dashboard/settings/social",
+    icon: Share2,
+    isActive: (pathname) => pathname.startsWith("/dashboard/settings/social"),
   },
 ];
 

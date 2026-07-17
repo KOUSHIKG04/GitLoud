@@ -8,10 +8,10 @@
   </p>
 
   <p>
-    GitLoud reads public GitHub work and authorized private repository changes,
-    then transforms them into summaries, changelog notes, beginner explanations,
-    portfolio bullets, and share-ready posts for LinkedIn, X, Reddit, and
-    Discord.
+    GitLoud reads one GitHub pull request or commit, or combines up to five pull
+    requests or five commits from a connected repository. It transforms those
+    changes into summaries, changelog notes, portfolio bullets, and social posts,
+    with direct one-click publishing to Discord.
   </p>
 
   <p>
@@ -41,9 +41,14 @@
 ## Overview
 
 GitLoud is built for developers who ship useful work but do not want to rewrite
-the same GitHub context for every platform. Submit a pull request or commit URL,
-and the app produces structured content from real GitHub metadata and code
-changes.
+the same GitHub context for every platform. Paste one pull request or commit URL
+for immediate generation, or connect the GitHub App and combine up to five pull
+requests or five commits from one repository into a single cohesive update.
+
+The generated output includes summaries, changelog notes, portfolio bullets,
+and posts for X, LinkedIn, Reddit, and Discord. X, LinkedIn, and Reddit open their
+native composers, while connected Discord webhooks support direct publishing
+from GitLoud after a final preview and confirmation.
 
 The project is a Turborepo workspace with a standalone Hono API, a Next.js web
 app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
@@ -71,6 +76,7 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454 
 - [Commands](#commands)
 - [Deployment](#deployment)
 - [Security Notes](#security-notes)
+- [Roadmap](#roadmap)
 - [License](#license)
 
 ## Features
@@ -84,6 +90,16 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454 
     <td width="50%">
       <h3>Platform-ready output</h3>
       <p>Create summaries, technical notes, beginner explanations, changelog entries, portfolio bullets, and social posts.</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <h3>Combined repository updates</h3>
+      <p>Connect a repository and combine between two and five pull requests or between two and five commits into one source-aware generation.</p>
+    </td>
+    <td width="50%">
+      <h3>Direct Discord publishing</h3>
+      <p>Connect encrypted Discord webhooks, preview the generated Discord post, publish it in one click, and review recent publication attempts.</p>
     </td>
   </tr>
   <tr>
@@ -132,6 +148,7 @@ Standalone Hono API (apps/api)
         +-- Shared schemas/types (packages/shared)
         +-- Prisma/PostgreSQL (packages/db)
         +-- Cloudinary media upload
+        +-- Encrypted Discord webhook publishing
 ```
 
 The web app no longer owns the backend business logic. It calls the standalone
@@ -300,6 +317,7 @@ that owns them.
 | `/dashboard/settings`                 | Settings entry page                        |
 | `/dashboard/settings/api-key`         | Custom AI provider credentials settings    |
 | `/dashboard/settings/github-app`      | Connected GitHub App details               |
+| `/dashboard/settings/social`          | Discord connections and publication history |
 | `/sign-in`                            | Sign-in page                               |
 | `/sign-up`                            | Sign-up page                               |
 | `/sso-callback`                       | Clerk SSO callback                         |
@@ -325,6 +343,7 @@ Current active routes:
 | `GET`    | `/health`                               | Health check                                              |
 | `POST`   | `/profile/sync`                         | Sync authenticated Clerk profile                          |
 | `POST`   | `/pr`                                   | Generate content from a PR or commit URL                  |
+| `POST`   | `/pr/combined`                          | Generate from 2-5 PRs or 2-5 commits in one repository    |
 | `POST`   | `/media`                                | Upload a media attachment                                 |
 | `GET`    | `/generations`                          | Read saved generation history                             |
 | `GET`    | `/generations/:id`                      | Read one saved generation                                 |
@@ -339,6 +358,11 @@ Current active routes:
 | `GET`    | `/ai-credentials`                       | List supported AI providers and saved key previews        |
 | `POST`   | `/ai-credentials`                       | Save a custom AI provider key                             |
 | `DELETE` | `/ai-credentials/:provider`             | Delete a saved custom AI provider key                     |
+| `GET`    | `/social/connections`                   | List connected social publishing destinations             |
+| `POST`   | `/social/discord/connect`               | Verify and securely connect a Discord webhook              |
+| `DELETE` | `/social/connections/:id`               | Disconnect a social publishing destination                |
+| `POST`   | `/social/publish/discord`               | Publish generated Discord content with idempotency         |
+| `GET`    | `/social/publications`                  | Read recent direct publication attempts                    |
 | `POST`   | `/feedback`                             | Submit product feedback                                   |
 
 The API expects protected requests to include a Clerk bearer token. CORS is
@@ -366,7 +390,7 @@ CLERK_SECRET_KEY="..."
 GEMINI_API_KEY="..."
 GEMINI_MODEL="gemini-2.5-flash"
 
-# Custom AI Credentials Settings (Encryption Key)
+# Custom AI credentials and Discord webhook encryption
 AI_CREDENTIAL_ENCRYPTION_KEY="32-byte-base64-encryption-key"
 
 # OpenRouter AI Provider (Fallback / Custom Option)
@@ -526,7 +550,7 @@ Recommended setup:
 
 1. Deploy the API first.
 2. Set API secrets: `DATABASE_URL`, `CLERK_SECRET_KEY`, `GEMINI_API_KEY`,
-   `AI_CREDENTIAL_ENCRYPTION_KEY`, GitHub App credentials, 
+   `AI_CREDENTIAL_ENCRYPTION_KEY`, GitHub App credentials,
    `GITHUB_APP_STATE_SECRET`, and Cloudinary credentials.
 3. Set `NODE_ENV=production` on the API.
 4. Set `API_ALLOWED_ORIGINS` on the API to the deployed web origin.
@@ -561,20 +585,27 @@ users get feedback when an API request takes longer than expected.
 - GitHub App installation tokens are generated server-side, short-lived, scoped
   to one repository when generating content, and restricted to read permissions.
 - `GITHUB_PUBLIC_TOKEN` is optional and must not grant private repository access.
+- Discord webhook URLs are validated against official Discord hosts, encrypted
+  before storage, excluded from AI prompts, and never returned by the API.
+- Discord publishing uses idempotency keys for best-effort duplicate protection
+  when a request is retried or a publish action is clicked more than once.
+  Timed-out deliveries are marked as unknown and must be checked in Discord
+  before publishing again.
 - GitLoud does not currently claim SOC 2 or ISO/IEC 27001 certification.
 - AI output is parsed and validated with shared Zod schemas.
 - Media uploads are handled separately and stored as attachment metadata.
 
-<!-- ## Roadmap
+## Roadmap
 
-- Editable saved generations
-- Draft/version history
-- Repository-level filters
-- Background generation jobs
-- Webhook-triggered generation
+- Direct LinkedIn publishing through OAuth, with post preview and confirmation
+- Automatic generation from GitHub App events when a pull request is merged or
+  a selected repository receives a qualifying commit
+- Background generation jobs and delivery status for automated workflows
+- Editable saved generations and draft/version history
+- Repository-level automation filters and per-repository publishing rules
 - Export to Markdown, JSON, and plain text
 - Production monitoring and structured logging
-- Mobile app support -->
+- Mobile app support
 
 ## License
 

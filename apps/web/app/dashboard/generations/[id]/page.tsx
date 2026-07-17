@@ -61,6 +61,7 @@ export default async function GenerationDetailPage({
     generation.sourceType === "COMBINED"
       ? {
           ...source,
+          author: null,
           additions: generation.combinedSources.reduce(
             (total, item) => total + item.additions,
             0,

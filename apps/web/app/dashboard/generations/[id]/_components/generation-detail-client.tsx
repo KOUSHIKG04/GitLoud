@@ -78,6 +78,7 @@ export function GenerationDetailClient({
       </div>
 
       <GeneratedContentView
+        generationId={generationId}
         content={content}
         isRegenerating={isRegenerating}
         mediaAttachments={mediaAttachments}

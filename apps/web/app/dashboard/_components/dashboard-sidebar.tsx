@@ -19,13 +19,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@repo/ui/components/sidebar";
-import {
-  ChevronDown,
-  ChevronUp,
-  Home,
-  LayoutDashboard,
-  Settings,
-} from "lucide-react";
+import { ChevronDown, Home, LayoutDashboard, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -55,7 +49,7 @@ export function DashboardSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="border-border/70 [&_[data-sidebar=group-action]]:rounded-none [&_[data-sidebar=group-label]]:rounded-none [&_[data-sidebar=menu-action]]:rounded-none [&_[data-sidebar=menu-button]]:rounded-none [&_[data-sidebar=menu-sub-button]]:rounded-none"
+      className="border-border/70 **:data-[sidebar=group-action]:rounded-none **:data-[sidebar=group-label]:rounded-none **:data-[sidebar=menu-action]:rounded-none **:data-[sidebar=menu-button]:rounded-none **:data-[sidebar=menu-sub-button]:rounded-none"
     >
       <SidebarHeader>
         <SidebarMenu>
@@ -191,7 +185,7 @@ export function DashboardSidebar({
               );
             })
           ) : (
-            <SidebarMenuItem className="flex flex-col-reverse">
+            <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={isSettingsActive}
                 tooltip={getSidebarTooltip("Settings")}
@@ -200,10 +194,10 @@ export function DashboardSidebar({
               >
                 <Settings />
                 <span>Settings</span>
-                <ChevronUp
+                <ChevronDown
                   className={[
                     "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
-                    settingsOpen ? "" : "rotate-180",
+                    settingsOpen ? "rotate-180" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
@@ -213,7 +207,7 @@ export function DashboardSidebar({
                 <DashboardOptionsSubmenu
                   items={settingsOptions}
                   pathname={pathname}
-                  className="mb-1 mt-0"
+                  className="mt-1"
                 />
               ) : null}
             </SidebarMenuItem>

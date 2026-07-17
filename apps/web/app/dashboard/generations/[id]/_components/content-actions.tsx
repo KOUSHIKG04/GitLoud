@@ -16,6 +16,7 @@ import type {
   SharePlatform,
 } from "./generated-content-types";
 import { createShareUrls, withMediaLinks } from "./generated-content-share";
+import { DiscordPublishButton } from "./discord-publish-button";
 
 export function ContentActions({
   title,
@@ -24,6 +25,7 @@ export function ContentActions({
   mediaAttachments,
   onCopy,
   onShare,
+  generationId,
 }: {
   title: string;
   text: string;
@@ -31,6 +33,7 @@ export function ContentActions({
   mediaAttachments: ShareMediaAttachment[];
   onCopy: CopyContentHandler;
   onShare: ShareContentHandler;
+  generationId?: string;
 }) {
   const shareText = withMediaLinks(text, mediaAttachments);
   const shareUrls = createShareUrls({ title, text: shareText });
@@ -92,6 +95,14 @@ export function ContentActions({
         />
       ))}
 
+      {platform === "discord" && generationId ? (
+        <DiscordPublishButton
+          generationId={generationId}
+          preview={shareText}
+          className={iconButtonClass}
+        />
+      ) : null}
+
       <Button
         type="button"
         variant="outline"
@@ -124,22 +135,22 @@ function PlatformShareButton({
   const config = {
     twitter: {
       href: shareUrls.twitter,
-      label: "Share on X",
+      label: "Open X composer",
       icon: <XIcon />,
     },
     linkedIn: {
       href: shareUrls.linkedIn,
-      label: "Share on LinkedIn",
+      label: "Open LinkedIn composer",
       icon: <LinkedInIcon />,
     },
     reddit: {
       href: shareUrls.reddit,
-      label: "Share on Reddit",
+      label: "Open Reddit composer",
       icon: <RedditIcon />,
     },
     discord: {
       href: shareUrls.discord,
-      label: "Open Discord",
+      label: "Open Discord app",
       icon: <DiscordIcon />,
     },
   }[platform];
