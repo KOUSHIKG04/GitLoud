@@ -15,6 +15,7 @@ export function SocialPostCard({
   mediaAttachments,
   onCopy,
   onShare,
+  generationId,
 }: {
   title: string;
   value: string;
@@ -22,6 +23,7 @@ export function SocialPostCard({
   mediaAttachments: ShareMediaAttachment[];
   onCopy: CopyContentHandler;
   onShare: ShareContentHandler;
+  generationId?: string;
 }) {
   return (
     <section className="flex h-full flex-col gap-4 bg-card p-5 text-card-foreground shadow-sm">
@@ -39,6 +41,7 @@ export function SocialPostCard({
           mediaAttachments={mediaAttachments}
           onCopy={onCopy}
           onShare={onShare}
+          generationId={generationId}
         />
       </div>
     </section>

@@ -31,6 +31,8 @@ model User {
   accounts            Account[]
   githubInstallations GitHubInstallation[]
   aiCredentials       UserAiCredential[]
+  socialConnections   SocialConnection[]
+  socialPublications  SocialPublication[]
   feedback            Feedback[]
 
 }
@@ -161,10 +163,11 @@ model GeneratedContent {
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pullRequest      PullRequest?      @relation(fields: [pullRequestId, userId], references: [id, userId], onDelete: Cascade)
-  commit           Commit?           @relation(fields: [commitId, userId], references: [id, userId], onDelete: Cascade)
-  mediaAttachments MediaAttachment[]
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pullRequest        PullRequest?      @relation(fields: [pullRequestId, userId], references: [id, userId], onDelete: Cascade)
+  commit             Commit?           @relation(fields: [commitId, userId], references: [id, userId], onDelete: Cascade)
+  mediaAttachments   MediaAttachment[]
+  socialPublications SocialPublication[]
 
   @@index([userId, createdAt])
   @@index([sourceType])
@@ -176,6 +179,49 @@ model GeneratedContent {
   @@unique([id, userId])
   @@unique([userId, sourceType, contextHash, xPostLength, pullRequestId], map: "GeneratedContent_pr_reuse_key")
   @@unique([userId, sourceType, contextHash, xPostLength, commitId], map: "GeneratedContent_commit_reuse_key")
+}
+
+model SocialConnection {
+  id                String         @id @default(cuid())
+  userId            String
+  provider          SocialProvider
+  displayName       String
+  externalAccountId String
+  secretEnc         String
+  secretIv          String
+  secretTag         String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publications SocialPublication[]
+
+  @@unique([userId, provider, externalAccountId])
+  @@index([userId, updatedAt])
+}
+
+model SocialPublication {
+  id                 String                  @id @default(cuid())
+  userId             String
+  connectionId       String?
+  generatedContentId String?
+  provider           SocialProvider
+  status             SocialPublicationStatus @default(PENDING)
+  idempotencyKey     String
+  externalPostId     String?
+  externalPostUrl    String?
+  errorMessage       String?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connection       SocialConnection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
+  generatedContent GeneratedContent? @relation(fields: [generatedContentId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, idempotencyKey])
+  @@index([userId, createdAt])
+  @@index([connectionId])
+  @@index([generatedContentId])
 }
 
 model MediaAttachment {
@@ -298,4 +344,14 @@ enum AiProvider {
   OPENAI
   ANTHROPIC
   OPENROUTER
+}
+
+enum SocialProvider {
+  DISCORD
+}
+
+enum SocialPublicationStatus {
+  PENDING
+  PUBLISHED
+  FAILED
 }

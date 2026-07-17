@@ -14,7 +14,8 @@
     "./github-app": "./src/github-app.ts",
     "./ai-credentials": "./src/ai-credentials.ts",
     "./app-state": "./src/app-state.ts",
-    "./electron": "./src/electron.ts"
+    "./electron": "./src/electron.ts",
+    "./social": "./src/social.ts"
   },
   "scripts": {
     "build": "tsc && tsc-alias -p tsconfig.json --resolve-full-paths",
