@@ -171,6 +171,7 @@ export function DiscordPublishButton({
                 <button
                   key={connection.id}
                   type="button"
+                  aria-pressed={selectedConnectionId === connection.id}
                   className={`w-full border p-3 text-left transition-colors ${
                     selectedConnectionId === connection.id
                       ? "border-foreground bg-muted"

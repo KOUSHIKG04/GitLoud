@@ -197,6 +197,7 @@ model SocialConnection {
   publications SocialPublication[]
 
   @@unique([userId, provider, externalAccountId])
+  @@unique([id, userId])
   @@index([userId, updatedAt])
 }
 
@@ -215,13 +216,13 @@ model SocialPublication {
   updatedAt          DateTime                @updatedAt
 
   user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  connection       SocialConnection? @relation(fields: [connectionId], references: [id], onDelete: SetNull)
-  generatedContent GeneratedContent? @relation(fields: [generatedContentId], references: [id], onDelete: SetNull)
+  connection       SocialConnection? @relation(fields: [connectionId, userId], references: [id, userId], onDelete: SetNull)
+  generatedContent GeneratedContent? @relation(fields: [generatedContentId, userId], references: [id, userId], onDelete: SetNull)
 
   @@unique([userId, idempotencyKey])
   @@index([userId, createdAt])
-  @@index([connectionId])
-  @@index([generatedContentId])
+  @@index([connectionId, userId])
+  @@index([generatedContentId, userId])
 }
 
 model MediaAttachment {
@@ -354,4 +355,5 @@ enum SocialPublicationStatus {
   PENDING
   PUBLISHED
   FAILED
+  UNKNOWN
 }

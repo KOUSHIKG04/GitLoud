@@ -110,7 +110,7 @@ export function SocialAccountsSettings() {
                     <h3 className="text-base font-semibold">
                       Add a Discord destination
                     </h3>
-                    <p className="mt-1 break-words text-sm leading-5 text-muted-foreground">
+                    <p className="mt-1 wrap-break-words text-sm leading-5 text-muted-foreground">
                       Create a webhook under Server Settings &gt; Integrations
                       &gt; Webhooks, then paste its URL below.
                     </p>
@@ -216,7 +216,7 @@ export function SocialAccountsSettings() {
         </AccordionItem>
       </Accordion>
 
-      <section className="break-words border border-border bg-muted/15 p-3 text-sm leading-6 text-muted-foreground sm:p-5">
+      <section className="wrap-break-words border border-border bg-muted/15 p-3 text-sm leading-6 text-muted-foreground sm:p-5">
         <h2 className="mb-1 font-semibold text-foreground">
           X, Reddit, and LinkedIn
         </h2>
@@ -257,7 +257,7 @@ export function SocialAccountsSettings() {
                         ? ` / ${publication.connectionName}`
                         : ""}
                     </div>
-                    <div className="break-words text-xs text-muted-foreground">
+                    <div className="wrap-break-words text-xs text-muted-foreground">
                       {publication.status.toUpperCase()} ·{" "}
                       {new Date(publication.createdAt).toLocaleString()}
                     </div>

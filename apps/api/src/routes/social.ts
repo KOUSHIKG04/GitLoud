@@ -5,6 +5,7 @@ import { getCurrentUserId } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import {
   composeDiscordContent,
+  DiscordDeliveryUnknownError,
   publishDiscordMessage,
   saveDiscordConnection,
 } from "@/lib/social-publishing";
@@ -26,6 +27,25 @@ const publicationQuerySchema = z.object({
 });
 
 export const socialRoutes = new Hono();
+
+type SocialPublishDependencies = {
+  db: typeof db;
+  getCurrentUserId: typeof getCurrentUserId;
+  publishDiscordMessage: typeof publishDiscordMessage;
+};
+
+export function createSocialPublishHandler(
+  overrides: Partial<SocialPublishDependencies> = {},
+) {
+  const dependencies: SocialPublishDependencies = {
+    db,
+    getCurrentUserId,
+    publishDiscordMessage,
+    ...overrides,
+  };
+
+  return (context: Context) => publish(context, dependencies);
+}
 
 socialRoutes.get("/connections", async (context) => {
   const userId = await getCurrentUserId(context.req.raw);
@@ -58,8 +78,10 @@ socialRoutes.delete("/connections/:connectionId", async (context) => {
   return context.json({ connections: await listConnections(userId) });
 });
 
-socialRoutes.post("/publish", publish);
-socialRoutes.post("/publish/discord", publish);
+const socialPublishHandler = createSocialPublishHandler();
+
+socialRoutes.post("/publish", socialPublishHandler);
+socialRoutes.post("/publish/discord", socialPublishHandler);
 
 socialRoutes.get("/publications", async (context) => {
   const userId = await getCurrentUserId(context.req.raw);
@@ -131,8 +153,11 @@ async function connectDiscord(context: Context) {
   }
 }
 
-async function publish(context: Context) {
-  const userId = await getCurrentUserId(context.req.raw);
+async function publish(
+  context: Context,
+  dependencies: SocialPublishDependencies,
+) {
+  const userId = await dependencies.getCurrentUserId(context.req.raw);
 
   if (!userId) {
     return context.json({ error: "Unauthorized" }, 401);
@@ -146,7 +171,7 @@ async function publish(context: Context) {
     return context.json({ error: "Invalid Discord publish request." }, 400);
   }
 
-  const existing = await db.socialPublication.findUnique({
+  const existing = await dependencies.db.socialPublication.findUnique({
     where: {
       userId_idempotencyKey: {
         userId,
@@ -154,6 +179,13 @@ async function publish(context: Context) {
       },
     },
   });
+
+  if (existing && !hasMatchingPublishPayload(existing, body.data)) {
+    return context.json(
+      { error: "This idempotency key belongs to a different publish request." },
+      409,
+    );
+  }
 
   if (existing?.status === "PUBLISHED") {
     return context.json({
@@ -169,15 +201,25 @@ async function publish(context: Context) {
     );
   }
 
+  if (existing?.status === "UNKNOWN") {
+    return context.json(
+      {
+        error:
+          "Discord may already have published this post. Check the channel before trying again with a new idempotency key.",
+      },
+      409,
+    );
+  }
+
   const [connection, generation] = await Promise.all([
-    db.socialConnection.findFirst({
+    dependencies.db.socialConnection.findFirst({
       where: {
         id: body.data.connectionId,
         userId,
         provider: "DISCORD",
       },
     }),
-    db.generatedContent.findFirst({
+    dependencies.db.generatedContent.findFirst({
       where: { id: body.data.generationId, userId },
       select: {
         id: true,
@@ -195,18 +237,38 @@ async function publish(context: Context) {
     return context.json({ error: "Generation not found." }, 404);
   }
 
-  const publication = existing
-    ? await db.socialPublication.update({
-        where: { id: existing.id },
-        data: {
-          connectionId: connection.id,
-          generatedContentId: generation.id,
-          provider: "DISCORD",
-          status: "PENDING",
-          errorMessage: null,
+  let publication: { id: string };
+
+  if (existing) {
+    const claim = await dependencies.db.socialPublication.updateMany({
+      where: {
+        id: existing.id,
+        userId,
+        connectionId: connection.id,
+        generatedContentId: generation.id,
+        provider: "DISCORD",
+        status: "FAILED",
+      },
+      data: { status: "PENDING", errorMessage: null },
+    });
+
+    if (claim.count === 0) {
+      const current = await dependencies.db.socialPublication.findUnique({
+        where: {
+          userId_idempotencyKey: {
+            userId,
+            idempotencyKey: body.data.idempotencyKey,
+          },
         },
-      })
-    : await db.socialPublication.create({
+      });
+
+      return respondToConcurrentPublication(context, current, body.data);
+    }
+
+    publication = existing;
+  } else {
+    try {
+      publication = await dependencies.db.socialPublication.create({
         data: {
           userId,
           connectionId: connection.id,
@@ -215,16 +277,33 @@ async function publish(context: Context) {
           idempotencyKey: body.data.idempotencyKey,
         },
       });
+    } catch (error) {
+      if (!isPrismaUniqueConstraintError(error)) {
+        throw error;
+      }
+
+      const current = await dependencies.db.socialPublication.findUnique({
+        where: {
+          userId_idempotencyKey: {
+            userId,
+            idempotencyKey: body.data.idempotencyKey,
+          },
+        },
+      });
+
+      return respondToConcurrentPublication(context, current, body.data);
+    }
+  }
 
   try {
-    const result = await publishDiscordMessage({
+    const result = await dependencies.publishDiscordMessage({
       connection,
       content: composeDiscordContent(
         generation.discordPost,
         generation.mediaAttachments.map((attachment) => attachment.secureUrl),
       ),
     });
-    const published = await db.socialPublication.update({
+    const published = await dependencies.db.socialPublication.update({
       where: { id: publication.id },
       data: {
         status: "PUBLISHED",
@@ -249,9 +328,12 @@ async function publish(context: Context) {
     const message =
       error instanceof Error ? error.message : "Could not publish to Discord.";
 
-    await db.socialPublication.update({
+    const status =
+      error instanceof DiscordDeliveryUnknownError ? "UNKNOWN" : "FAILED";
+
+    await dependencies.db.socialPublication.update({
       where: { id: publication.id },
-      data: { status: "FAILED", errorMessage: message.slice(0, 500) },
+      data: { status, errorMessage: message.slice(0, 500) },
     });
 
     logger.warn("Discord publication failed", {
@@ -264,6 +346,71 @@ async function publish(context: Context) {
 
     return context.json({ error: message }, 502);
   }
+}
+
+function hasMatchingPublishPayload(
+  publication: {
+    connectionId: string | null;
+    generatedContentId: string | null;
+    provider: "DISCORD";
+  },
+  request: z.infer<typeof publishSchema>,
+) {
+  return (
+    publication.provider === "DISCORD" &&
+    publication.connectionId === request.connectionId &&
+    publication.generatedContentId === request.generationId
+  );
+}
+
+function respondToConcurrentPublication(
+  context: Context,
+  publication: {
+    connectionId: string | null;
+    generatedContentId: string | null;
+    provider: "DISCORD";
+    status: "PENDING" | "PUBLISHED" | "FAILED" | "UNKNOWN";
+    id: string;
+    externalPostUrl: string | null;
+    errorMessage: string | null;
+    createdAt: Date;
+  } | null,
+  request: z.infer<typeof publishSchema>,
+) {
+  if (!publication || !hasMatchingPublishPayload(publication, request)) {
+    return context.json(
+      { error: "This idempotency key belongs to a different publish request." },
+      409,
+    );
+  }
+
+  if (publication.status === "PUBLISHED") {
+    return context.json({
+      publication: serializePublication(publication),
+      reused: true,
+    });
+  }
+
+  if (publication.status === "UNKNOWN") {
+    return context.json(
+      {
+        error:
+          "Discord may already have published this post. Check the channel before trying again with a new idempotency key.",
+      },
+      409,
+    );
+  }
+
+  return context.json({ error: "This post is already being published." }, 409);
+}
+
+function isPrismaUniqueConstraintError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  );
 }
 
 async function listConnections(userId: string) {
@@ -290,7 +437,7 @@ async function listConnections(userId: string) {
 function serializePublication(
   publication: {
     id: string;
-    status: "PENDING" | "PUBLISHED" | "FAILED";
+    status: "PENDING" | "PUBLISHED" | "FAILED" | "UNKNOWN";
     externalPostUrl: string | null;
     errorMessage: string | null;
     createdAt: Date;
@@ -304,7 +451,8 @@ function serializePublication(
     status: publication.status.toLowerCase() as
       | "pending"
       | "published"
-      | "failed",
+      | "failed"
+      | "unknown",
     externalPostUrl: publication.externalPostUrl,
     errorMessage: publication.errorMessage,
     connectionName:

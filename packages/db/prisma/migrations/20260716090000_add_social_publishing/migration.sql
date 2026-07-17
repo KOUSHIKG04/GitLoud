@@ -2,7 +2,7 @@
 CREATE TYPE "SocialProvider" AS ENUM ('DISCORD');
 
 -- CreateEnum
-CREATE TYPE "SocialPublicationStatus" AS ENUM ('PENDING', 'PUBLISHED', 'FAILED');
+CREATE TYPE "SocialPublicationStatus" AS ENUM ('PENDING', 'PUBLISHED', 'FAILED', 'UNKNOWN');
 
 -- CreateTable
 CREATE TABLE "SocialConnection" (
@@ -42,6 +42,9 @@ CREATE TABLE "SocialPublication" (
 CREATE UNIQUE INDEX "SocialConnection_userId_provider_externalAccountId_key" ON "SocialConnection"("userId", "provider", "externalAccountId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "SocialConnection_id_userId_key" ON "SocialConnection"("id", "userId");
+
+-- CreateIndex
 CREATE INDEX "SocialConnection_userId_updatedAt_idx" ON "SocialConnection"("userId", "updatedAt");
 
 -- CreateIndex
@@ -51,10 +54,10 @@ CREATE UNIQUE INDEX "SocialPublication_userId_idempotencyKey_key" ON "SocialPubl
 CREATE INDEX "SocialPublication_userId_createdAt_idx" ON "SocialPublication"("userId", "createdAt");
 
 -- CreateIndex
-CREATE INDEX "SocialPublication_connectionId_idx" ON "SocialPublication"("connectionId");
+CREATE INDEX "SocialPublication_connectionId_userId_idx" ON "SocialPublication"("connectionId", "userId");
 
 -- CreateIndex
-CREATE INDEX "SocialPublication_generatedContentId_idx" ON "SocialPublication"("generatedContentId");
+CREATE INDEX "SocialPublication_generatedContentId_userId_idx" ON "SocialPublication"("generatedContentId", "userId");
 
 -- AddForeignKey
 ALTER TABLE "SocialConnection" ADD CONSTRAINT "SocialConnection_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -63,7 +66,7 @@ ALTER TABLE "SocialConnection" ADD CONSTRAINT "SocialConnection_userId_fkey" FOR
 ALTER TABLE "SocialPublication" ADD CONSTRAINT "SocialPublication_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SocialPublication" ADD CONSTRAINT "SocialPublication_connectionId_fkey" FOREIGN KEY ("connectionId") REFERENCES "SocialConnection"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "SocialPublication" ADD CONSTRAINT "SocialPublication_connectionId_userId_fkey" FOREIGN KEY ("connectionId", "userId") REFERENCES "SocialConnection"("id", "userId") ON DELETE SET NULL ("connectionId") ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "SocialPublication" ADD CONSTRAINT "SocialPublication_generatedContentId_fkey" FOREIGN KEY ("generatedContentId") REFERENCES "GeneratedContent"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "SocialPublication" ADD CONSTRAINT "SocialPublication_generatedContentId_userId_fkey" FOREIGN KEY ("generatedContentId", "userId") REFERENCES "GeneratedContent"("id", "userId") ON DELETE SET NULL ("generatedContentId") ON UPDATE CASCADE;

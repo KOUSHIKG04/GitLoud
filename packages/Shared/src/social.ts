@@ -17,7 +17,7 @@ export type SocialConnectionsResponse = {
 export type SocialPublication = {
   id: string;
   provider: SocialProvider;
-  status: "pending" | "published" | "failed";
+  status: "pending" | "published" | "failed" | "unknown";
   externalPostUrl: string | null;
   errorMessage: string | null;
   connectionName: string | null;

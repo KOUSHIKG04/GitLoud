@@ -24,6 +24,22 @@ type DiscordMessage = {
   guild_id?: string | null;
 };
 
+class DiscordRequestTimeoutError extends Error {
+  constructor() {
+    super("Discord did not respond in time.");
+    this.name = "DiscordRequestTimeoutError";
+  }
+}
+
+export class DiscordDeliveryUnknownError extends Error {
+  constructor() {
+    super(
+      "Discord may have accepted this post, but its response timed out. Check the channel before publishing again.",
+    );
+    this.name = "DiscordDeliveryUnknownError";
+  }
+}
+
 export function normalizeDiscordWebhookUrl(value: string) {
   let url: URL;
 
@@ -58,8 +74,9 @@ export function normalizeDiscordWebhookUrl(value: string) {
 }
 
 export async function verifyDiscordWebhook(webhookUrl: string) {
-  const response = await fetchWithTimeout(webhookUrl, { method: "GET" });
-  const value = await readJson(response);
+  const { response, data: value } = await fetchWithTimeout(webhookUrl, {
+    method: "GET",
+  });
 
   if (!response.ok || !isDiscordWebhook(value)) {
     throw new Error("Discord could not verify this webhook URL.");
@@ -129,15 +146,26 @@ export async function publishDiscordMessage({
     throw new Error("Discord content must be 2,000 characters or fewer.");
   }
 
-  const response = await fetchWithTimeout(publishUrl.toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      content,
-      allowed_mentions: { parse: [] },
-    }),
-  });
-  const value = await readJson(response);
+  let result: Awaited<ReturnType<typeof fetchWithTimeout>>;
+
+  try {
+    result = await fetchWithTimeout(publishUrl.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content,
+        allowed_mentions: { parse: [] },
+      }),
+    });
+  } catch (error) {
+    if (error instanceof DiscordRequestTimeoutError) {
+      throw new DiscordDeliveryUnknownError();
+    }
+
+    throw error;
+  }
+
+  const { response, data: value } = result;
 
   if (!response.ok || !isDiscordMessage(value)) {
     throw new Error(getDiscordErrorMessage(value));
@@ -171,10 +199,17 @@ async function fetchWithTimeout(url: string, init: RequestInit) {
   );
 
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    const response = await fetch(url, { ...init, signal: controller.signal });
+    const data = await readJson(response, controller.signal);
+
+    return { response, data };
   } catch (error) {
+    if (error instanceof DiscordRequestTimeoutError) {
+      throw error;
+    }
+
     if (error instanceof Error && error.name === "AbortError") {
-      throw new Error("Discord did not respond in time.");
+      throw new DiscordRequestTimeoutError();
     }
 
     throw new Error("Could not reach Discord.");
@@ -183,10 +218,17 @@ async function fetchWithTimeout(url: string, init: RequestInit) {
   }
 }
 
-async function readJson(response: Response): Promise<unknown> {
+async function readJson(response: Response, signal: AbortSignal): Promise<unknown> {
   try {
     return await response.json();
-  } catch {
+  } catch (error) {
+    if (
+      signal.aborted ||
+      (error instanceof Error && error.name === "AbortError")
+    ) {
+      throw new DiscordRequestTimeoutError();
+    }
+
     return null;
   }
 }

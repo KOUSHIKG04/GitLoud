@@ -587,8 +587,10 @@ users get feedback when an API request takes longer than expected.
 - `GITHUB_PUBLIC_TOKEN` is optional and must not grant private repository access.
 - Discord webhook URLs are validated against official Discord hosts, encrypted
   before storage, excluded from AI prompts, and never returned by the API.
-- Discord publishing uses idempotency keys to prevent duplicate messages when a
-  request is retried or a publish action is clicked more than once.
+- Discord publishing uses idempotency keys for best-effort duplicate protection
+  when a request is retried or a publish action is clicked more than once.
+  Timed-out deliveries are marked as unknown and must be checked in Discord
+  before publishing again.
 - GitLoud does not currently claim SOC 2 or ISO/IEC 27001 certification.
 - AI output is parsed and validated with shared Zod schemas.
 - Media uploads are handled separately and stored as attachment metadata.
