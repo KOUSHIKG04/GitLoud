@@ -83,7 +83,8 @@ export async function HistoryList({
         ) : (
           <div className="space-y-3.5 pl-2 pb-2">
             {visibleGenerations.map((generation) => {
-              const combinedSource = generation.combinedSources[0];
+              const combinedSources = generation.combinedSources ?? [];
+              const combinedSource = combinedSources[0];
               const source =
                 generation.pullRequest ?? generation.commit ?? combinedSource;
 
@@ -93,7 +94,7 @@ export async function HistoryList({
 
               const title =
                 generation.sourceType === "COMBINED"
-                  ? `${generation.combinedSources.length} changes: ${combinedSource?.title ?? "Combined GitHub update"}`
+                  ? `${combinedSources.length} changes: ${combinedSource?.title ?? "Combined GitHub update"}`
                   : generation.sourceType === "PULL_REQUEST" &&
                       generation.pullRequest
                     ? generation.pullRequest.title
@@ -101,7 +102,7 @@ export async function HistoryList({
 
               const sourceLabel =
                 generation.sourceType === "COMBINED"
-                  ? `Combined ${generation.combinedSources.length}`
+                  ? `Combined ${combinedSources.length}`
                   : generation.sourceType === "PULL_REQUEST"
                     ? "Pull Request"
                     : "Commit";
@@ -119,7 +120,9 @@ export async function HistoryList({
                   <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                       <span className="flex size-7 shrink-0 items-center justify-center text-primary">
-                        {generation.sourceType === "PULL_REQUEST" ? (
+                        {generation.sourceType === "PULL_REQUEST" ||
+                        (generation.sourceType === "COMBINED" &&
+                          combinedSource?.sourceType === "pull-request") ? (
                           <GitPullRequest className="size-4" />
                         ) : (
                           <GitBranch className="size-4" />

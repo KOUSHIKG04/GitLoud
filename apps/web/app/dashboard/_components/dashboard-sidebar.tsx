@@ -19,13 +19,7 @@ import {
   SidebarMenuSubItem,
   useSidebar,
 } from "@repo/ui/components/sidebar";
-import {
-  ChevronDown,
-  ChevronUp,
-  Home,
-  LayoutDashboard,
-  Settings,
-} from "lucide-react";
+import { ChevronDown, Home, LayoutDashboard, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -191,7 +185,7 @@ export function DashboardSidebar({
               );
             })
           ) : (
-            <SidebarMenuItem className="flex flex-col-reverse">
+            <SidebarMenuItem>
               <SidebarMenuButton
                 isActive={isSettingsActive}
                 tooltip={getSidebarTooltip("Settings")}
@@ -200,10 +194,10 @@ export function DashboardSidebar({
               >
                 <Settings />
                 <span>Settings</span>
-                <ChevronUp
+                <ChevronDown
                   className={[
                     "ms-auto transition-transform group-data-[collapsible=icon]:hidden",
-                    settingsOpen ? "" : "rotate-180",
+                    settingsOpen ? "rotate-180" : "",
                   ]
                     .filter(Boolean)
                     .join(" ")}
@@ -213,7 +207,7 @@ export function DashboardSidebar({
                 <DashboardOptionsSubmenu
                   items={settingsOptions}
                   pathname={pathname}
-                  className="mb-1 mt-0"
+                  className="mt-1"
                 />
               ) : null}
             </SidebarMenuItem>

@@ -537,12 +537,7 @@ prRoutes.post("/combined", async (context) => {
     );
   }
 
-  const urls = [...new Set(parsedBody.data.urls)];
-
-  if (urls.length < 2) {
-    return context.json({ error: "Select at least 2 different items" }, 400);
-  }
-
+  const urls = parsedBody.data.urls;
   const urlTypes = urls.map(getGithubUrlType);
   const firstType = urlTypes[0];
 
@@ -557,11 +552,29 @@ prRoutes.post("/combined", async (context) => {
     );
   }
 
-  const coordinates = urls.map((url) =>
+  const parsedCoordinates = urls.map((url) =>
     firstType === "pull-request"
       ? parseGithubPullRequestUrl(url)
       : parseGithubCommitUrl(url),
   );
+  const coordinatesByIdentity = new Map(
+    parsedCoordinates.map((coordinate) => {
+      const repositoryKey =
+        `${coordinate.owner}/${coordinate.repo}`.toLowerCase();
+      const sourceKey =
+        "number" in coordinate
+          ? `${repositoryKey}#${coordinate.number}`
+          : `${repositoryKey}@${coordinate.sha.toLowerCase()}`;
+
+      return [sourceKey, coordinate] as const;
+    }),
+  );
+
+  if (coordinatesByIdentity.size < 2) {
+    return context.json({ error: "Select at least 2 different items" }, 400);
+  }
+
+  const coordinates = [...coordinatesByIdentity.values()];
   const { owner, repo } = coordinates[0]!;
 
   if (

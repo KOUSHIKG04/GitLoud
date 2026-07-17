@@ -438,6 +438,7 @@ export const generationRoutes: Hono = new Hono()
           : getPublicGitHubToken();
         const sourceType = firstSource.sourceType;
         let generatedContent;
+        let refreshedCombinedSources: CombinedGenerationSource[] | undefined;
 
         if (sourceType === "pull-request") {
           const pullRequests = await Promise.all(
@@ -450,6 +451,20 @@ export const generationRoutes: Hono = new Hono()
               });
             }),
           );
+          const refreshedAt = new Date().toISOString();
+          refreshedCombinedSources = pullRequests.map((pullRequest) => ({
+            sourceType: "pull-request",
+            owner: pullRequest.owner,
+            repo: pullRequest.repo,
+            url: pullRequest.url,
+            title: pullRequest.title,
+            reference: `#${pullRequest.number}`,
+            author: pullRequest.author ?? null,
+            additions: pullRequest.additions,
+            deletions: pullRequest.deletions,
+            changedFiles: pullRequest.changedFiles,
+            createdAt: refreshedAt,
+          }));
           generatedContent = await generateContentFromPullRequests(
             pullRequests,
             undefined,
@@ -485,6 +500,9 @@ export const generationRoutes: Hono = new Hono()
           data: {
             ...buildGeneratedContentUpdate(generatedContent),
             discordPost: generatedContent.discordPost,
+            ...(refreshedCombinedSources
+              ? { combinedSources: refreshedCombinedSources }
+              : {}),
           },
         });
 
