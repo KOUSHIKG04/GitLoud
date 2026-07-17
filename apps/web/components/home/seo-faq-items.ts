@@ -24,6 +24,11 @@ export const seoFaqItems = [
     answer:
       "GitLoud creates short summaries, technical summaries, beginner explanations, portfolio bullets, changelog entries, and social posts for X, LinkedIn, Reddit, and Discord.",
   },
+  {
+    question: "Can I use my own AI API key?",
+    answer:
+      "Yes. GitLoud supports your own Gemini, OpenAI, Anthropic, or OpenRouter API key for content generation. Saved credentials are encrypted before storage, and the API returns only a masked preview of each key.",
+  },
 ] as const;
 
 export function getSeoFaqItems() {

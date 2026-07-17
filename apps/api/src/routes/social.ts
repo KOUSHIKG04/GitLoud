@@ -237,7 +237,7 @@ async function publish(
     return context.json({ error: "Generation not found." }, 404);
   }
 
-  let publication: { id: string };
+  let publication: { id: string; attemptVersion: number };
 
   if (existing) {
     const claim = await dependencies.db.socialPublication.updateMany({
@@ -248,8 +248,13 @@ async function publish(
         generatedContentId: generation.id,
         provider: "DISCORD",
         status: "FAILED",
+        attemptVersion: existing.attemptVersion,
       },
-      data: { status: "PENDING", errorMessage: null },
+      data: {
+        status: "PENDING",
+        attemptVersion: { increment: 1 },
+        errorMessage: null,
+      },
     });
 
     if (claim.count === 0) {
@@ -265,7 +270,10 @@ async function publish(
       return respondToConcurrentPublication(context, current, body.data);
     }
 
-    publication = existing;
+    publication = {
+      id: existing.id,
+      attemptVersion: existing.attemptVersion + 1,
+    };
   } else {
     try {
       publication = await dependencies.db.socialPublication.create({
@@ -295,34 +303,15 @@ async function publish(
     }
   }
 
+  let result: Awaited<ReturnType<typeof publishDiscordMessage>>;
+
   try {
-    const result = await dependencies.publishDiscordMessage({
+    result = await dependencies.publishDiscordMessage({
       connection,
       content: composeDiscordContent(
         generation.discordPost,
         generation.mediaAttachments.map((attachment) => attachment.secureUrl),
       ),
-    });
-    const published = await dependencies.db.socialPublication.update({
-      where: { id: publication.id },
-      data: {
-        status: "PUBLISHED",
-        externalPostId: result.externalPostId,
-        externalPostUrl: result.externalPostUrl,
-        errorMessage: null,
-      },
-    });
-
-    logger.info("Published generated content to Discord", {
-      userId,
-      generationId: generation.id,
-      connectionId: connection.id,
-      publicationId: published.id,
-    });
-
-    return context.json({
-      publication: serializePublication(published, connection.displayName),
-      reused: false,
     });
   } catch (error) {
     const message =
@@ -346,6 +335,69 @@ async function publish(
 
     return context.json({ error: message }, 502);
   }
+
+  const publishedData = {
+    status: "PUBLISHED" as const,
+    externalPostId: result.externalPostId,
+    externalPostUrl: result.externalPostUrl,
+    errorMessage: null,
+  };
+  let published;
+
+  try {
+    published = await dependencies.db.socialPublication.update({
+      where: { id: publication.id },
+      data: publishedData,
+    });
+  } catch (error) {
+    logger.warn("Discord delivery confirmed but persistence failed", {
+      userId,
+      generationId: generation.id,
+      connectionId: connection.id,
+      publicationId: publication.id,
+      externalPostId: result.externalPostId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    try {
+      published = await dependencies.db.socialPublication.update({
+        where: { id: publication.id },
+        data: publishedData,
+      });
+    } catch (reconciliationError) {
+      logger.error("Could not reconcile confirmed Discord publication", {
+        userId,
+        generationId: generation.id,
+        connectionId: connection.id,
+        publicationId: publication.id,
+        externalPostId: result.externalPostId,
+        error:
+          reconciliationError instanceof Error
+            ? reconciliationError.message
+            : String(reconciliationError),
+      });
+
+      return context.json(
+        {
+          error:
+            "Discord published this post, but GitLoud could not save the confirmation. This request will not be retried automatically.",
+        },
+        500,
+      );
+    }
+  }
+
+  logger.info("Published generated content to Discord", {
+    userId,
+    generationId: generation.id,
+    connectionId: connection.id,
+    publicationId: published.id,
+  });
+
+  return context.json({
+    publication: serializePublication(published, connection.displayName),
+    reused: false,
+  });
 }
 
 function hasMatchingPublishPayload(
