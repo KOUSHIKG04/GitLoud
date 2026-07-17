@@ -10,14 +10,14 @@ import { safeJsonLd } from "@/lib/safe-json-ld";
 export const metadata: Metadata = {
   title: "GitHub PR Summary and Social Post Generator",
   description:
-    "Use GitLoud to turn GitHub pull requests and commits into clear summaries, feature notes, changelog entries, portfolio bullets, and social posts.",
+    "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     title: "GitHub PR Summary and Social Post Generator",
     description:
-      "Use GitLoud to turn GitHub pull requests and commits into clear summaries, feature notes, changelog entries, portfolio bullets, and social posts.",
+      "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key.",
     url: "/",
     images: [
       {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GitHub PR Summary and Social Post Generator",
     description:
-      "Use GitLoud to turn GitHub pull requests and commits into clear summaries, feature notes, changelog entries, portfolio bullets, and social posts.",
+      "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key.",
     images: ["/twitter-image"],
   },
 };
@@ -48,7 +48,7 @@ const structuredData = {
   operatingSystem: "Web",
   url: siteUrl,
   description:
-    "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts for developers.",
+    "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts with support for your own AI API key.",
   offers: [
     {
       "@type": "Offer",

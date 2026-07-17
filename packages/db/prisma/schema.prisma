@@ -208,6 +208,7 @@ model SocialPublication {
   generatedContentId String?
   provider           SocialProvider
   status             SocialPublicationStatus @default(PENDING)
+  attemptVersion     Int                     @default(0)
   idempotencyKey     String
   externalPostId     String?
   externalPostUrl    String?

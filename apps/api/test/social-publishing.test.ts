@@ -25,6 +25,7 @@ type TestPublication = {
   generatedContentId: string | null;
   provider: "DISCORD";
   status: PublicationStatus;
+  attemptVersion: number;
   idempotencyKey: string;
   externalPostId: string | null;
   externalPostUrl: string | null;
@@ -84,13 +85,9 @@ test("atomically claims concurrent retries for a failed publication", async () =
     releaseInitialReads = resolve;
   });
   let initialReadCount = 0;
-  let notifyPublishStarted: (() => void) | undefined;
-  const publishStarted = new Promise<void>((resolve) => {
-    notifyPublishStarted = resolve;
-  });
-  let releasePublish: (() => void) | undefined;
-  const publishReleased = new Promise<void>((resolve) => {
-    releasePublish = resolve;
+  let notifyFailureRecorded: (() => void) | undefined;
+  const failureRecorded = new Promise<void>((resolve) => {
+    notifyFailureRecorded = resolve;
   });
   const harness = createPublishRouteHarness({
     initialPublication: createPublication("FAILED"),
@@ -101,38 +98,30 @@ test("atomically claims concurrent retries for a failed publication", async () =
       }
       await initialReadsReady;
     },
+    beforeUpdateMany: async (callNumber) => {
+      if (callNumber === 2) {
+        await failureRecorded;
+      }
+    },
+    afterUpdate: (_publication, data) => {
+      if (data.status === "FAILED") {
+        notifyFailureRecorded?.();
+      }
+    },
     publish: async () => {
-      notifyPublishStarted?.();
-      await publishReleased;
-      return {
-        externalPostId: "discord-message-1",
-        externalPostUrl: "https://discord.com/channels/1/2/discord-message-1",
-      };
+      throw new Error("Discord rejected the post.");
     },
   });
 
-  const pendingResponses = [harness.publish(), harness.publish()];
-  await publishStarted;
-  const concurrentResponse = await Promise.race(pendingResponses);
-  assert.equal(concurrentResponse.status, 409);
-  releasePublish?.();
-  const responses = await Promise.all(pendingResponses);
-  const bodies = await Promise.all(
-    responses.map(
-      (response) => response.json() as Promise<Record<string, unknown>>,
-    ),
-  );
+  const responses = await Promise.all([harness.publish(), harness.publish()]);
 
   assert.equal(harness.publishCount, 1);
   assert.deepEqual(
     responses.map((response) => response.status).sort(),
-    [200, 409],
+    [409, 502],
   );
-  assert.equal(
-    bodies.some((body) => body.reused === false),
-    true,
-  );
-  assert.equal(harness.publication?.status, "PUBLISHED");
+  assert.equal(harness.publication?.status, "FAILED");
+  assert.equal(harness.publication?.attemptVersion, 1);
 });
 
 test("does not retry an accepted Discord request whose response timed out", async () => {
@@ -172,6 +161,32 @@ test("rejects a changed payload for an existing idempotency key", async () => {
   assert.equal(harness.publishCount, 0);
 });
 
+test("reconciles a confirmed Discord delivery after persistence fails", async () => {
+  let publishedUpdateAttempts = 0;
+  const harness = createPublishRouteHarness({
+    beforeUpdate: (_callNumber, data) => {
+      if (data.status === "PUBLISHED") {
+        publishedUpdateAttempts += 1;
+        if (publishedUpdateAttempts === 1) {
+          throw new Error("Temporary database failure");
+        }
+      }
+    },
+    publish: async () => ({
+      externalPostId: "discord-message-1",
+      externalPostUrl: "https://discord.com/channels/1/2/discord-message-1",
+    }),
+  });
+
+  const response = await harness.publish();
+
+  assert.equal(response.status, 200);
+  assert.equal(harness.publishCount, 1);
+  assert.equal(publishedUpdateAttempts, 2);
+  assert.equal(harness.publication?.status, "PUBLISHED");
+  assert.equal(harness.publication?.externalPostId, "discord-message-1");
+});
+
 function createPublication(status: PublicationStatus): TestPublication {
   const now = new Date("2026-07-17T00:00:00.000Z");
 
@@ -182,6 +197,7 @@ function createPublication(status: PublicationStatus): TestPublication {
     generatedContentId: GENERATION_ID,
     provider: "DISCORD",
     status,
+    attemptVersion: 0,
     idempotencyKey: IDEMPOTENCY_KEY,
     externalPostId: null,
     externalPostUrl: null,
@@ -194,10 +210,22 @@ function createPublication(status: PublicationStatus): TestPublication {
 function createPublishRouteHarness({
   initialPublication = null,
   beforeInitialReadReturns,
+  beforeUpdateMany,
+  beforeUpdate,
+  afterUpdate,
   publish,
 }: {
   initialPublication?: TestPublication | null;
   beforeInitialReadReturns?: () => Promise<void>;
+  beforeUpdateMany?: (callNumber: number) => Promise<void>;
+  beforeUpdate?: (
+    callNumber: number,
+    data: TestPublicationData,
+  ) => Promise<void> | void;
+  afterUpdate?: (
+    publication: TestPublication,
+    data: TestPublicationData,
+  ) => void;
   publish: () => Promise<{
     externalPostId: string;
     externalPostUrl: string | null;
@@ -207,6 +235,8 @@ function createPublishRouteHarness({
     ? { ...initialPublication }
     : null;
   let initialReads = 0;
+  let updateManyCalls = 0;
+  let updateCalls = 0;
   let publishCount = 0;
 
   const database = {
@@ -226,19 +256,23 @@ function createPublishRouteHarness({
         data,
       }: {
         where: Partial<TestPublication>;
-        data: Partial<TestPublication>;
+        data: TestPublicationData;
       }) => {
+        updateManyCalls += 1;
+        await beforeUpdateMany?.(updateManyCalls);
+
         if (
           !publication ||
           publication.id !== where.id ||
           publication.status !== where.status ||
+          publication.attemptVersion !== where.attemptVersion ||
           publication.connectionId !== where.connectionId ||
           publication.generatedContentId !== where.generatedContentId
         ) {
           return { count: 0 };
         }
 
-        publication = { ...publication, ...data, updatedAt: new Date() };
+        publication = applyPublicationData(publication, data);
         return { count: 1 };
       },
       create: async ({ data }: { data: Partial<TestPublication> }) => {
@@ -259,14 +293,13 @@ function createPublishRouteHarness({
         data,
       }: {
         where: Partial<TestPublication>;
-        data: Partial<TestPublication>;
+        data: TestPublicationData;
       }) => {
+        updateCalls += 1;
+        await beforeUpdate?.(updateCalls, data);
         assert.equal(publication?.id, where.id);
-        publication = {
-          ...publication!,
-          ...data,
-          updatedAt: new Date(),
-        };
+        publication = applyPublicationData(publication!, data);
+        afterUpdate?.(publication, data);
         return { ...publication };
       },
     },
@@ -328,5 +361,27 @@ function createPublishRouteHarness({
           ...overrides,
         }),
       }),
+  };
+}
+
+type TestPublicationData = Partial<Omit<TestPublication, "attemptVersion">> & {
+  attemptVersion?: number | { increment: number };
+};
+
+function applyPublicationData(
+  publication: TestPublication,
+  data: TestPublicationData,
+): TestPublication {
+  const { attemptVersion, ...values } = data;
+  const nextAttemptVersion =
+    typeof attemptVersion === "object"
+      ? publication.attemptVersion + attemptVersion.increment
+      : (attemptVersion ?? publication.attemptVersion);
+
+  return {
+    ...publication,
+    ...values,
+    attemptVersion: nextAttemptVersion,
+    updatedAt: new Date(),
   };
 }

@@ -50,6 +50,10 @@ and posts for X, LinkedIn, Reddit, and Discord. X, LinkedIn, and Reddit open the
 native composers, while connected Discord webhooks support direct publishing
 from GitLoud after a final preview and confirmation.
 
+Bring your own Gemini, OpenAI, Anthropic, or OpenRouter API key to run content
+generation with your preferred provider. Saved credentials are encrypted before
+storage, and GitLoud returns only masked key previews.
+
 The project is a Turborepo workspace with a standalone Hono API, a Next.js web
 app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
 The separated backend is the source of truth for generation, media, profile, and
@@ -128,8 +132,8 @@ https://github.com/user-attachments/assets/7a7b4f4f-0fe6-4298-8292-893e7fd79454 
       <p>The standalone Hono API serves the web app today and is ready for Electron and future clients.</p>
     </td>
     <td width="50%">
-      <h3>Retention cleanup</h3>
-      <p>The API attempts cleanup of generations older than 7 days once per day while requests are being served.</p>
+      <h3>Bring your own AI key</h3>
+      <p>Generate with your own Gemini, OpenAI, Anthropic, or OpenRouter API key, encrypted before storage and returned only as a masked preview.</p>
     </td>
   </tr>
 </table>
@@ -585,6 +589,8 @@ users get feedback when an API request takes longer than expected.
 - GitHub App installation tokens are generated server-side, short-lived, scoped
   to one repository when generating content, and restricted to read permissions.
 - `GITHUB_PUBLIC_TOKEN` is optional and must not grant private repository access.
+- Custom AI API keys are encrypted before storage and returned by the API only
+  as masked previews.
 - Discord webhook URLs are validated against official Discord hosts, encrypted
   before storage, excluded from AI prompts, and never returned by the API.
 - Discord publishing uses idempotency keys for best-effort duplicate protection

@@ -51,6 +51,12 @@ export function HeroSection() {
               </p>
             </MotionItem>
 
+            <MotionItem>
+              <p className="mx-auto mt-3 max-w-2xl text-xs font-medium text-foreground/80 sm:text-sm">
+                Bring your own Gemini, OpenAI, Anthropic, or OpenRouter API key.
+              </p>
+            </MotionItem>
+
             <div className="mt-14 flex flex-col items-center justify-center gap-4 sm:flex-row">
               <MotionItem>
                 <Button

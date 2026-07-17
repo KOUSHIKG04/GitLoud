@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
 const siteName = "GitLoud";
 const siteDescription =
-  "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts for X, LinkedIn, and Reddit.";
+  "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts using GitLoud or your own AI API key.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -30,6 +30,8 @@ export const metadata: Metadata = {
     "pull request summary",
     "commit summary generator",
     "developer content assistant",
+    "bring your own AI key",
+    "custom AI API key",
     "changelog generator",
     "portfolio bullet generator",
     "LinkedIn post generator for developers",
