@@ -27,8 +27,8 @@ export function WhatGitLoudDoesSection() {
         <MotionViewportStagger className="grid items-stretch gap-5 md:grid-cols-3">
           <MotionItem>
             <FeatureBlock
-              title="Reads GitHub changes"
-              description="Fetches PR or commit metadata, changed files, stats, and text diffs from public or authorized private repositories."
+              title="Reads and combines changes"
+              description="Generate from one GitHub link or combine up to five PRs or commits from one connected repository into a single update."
             />
           </MotionItem>
           <MotionItem>

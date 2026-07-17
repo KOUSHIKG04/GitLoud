@@ -143,6 +143,7 @@ model GeneratedContent {
   sourceType       GeneratedSourceType
   pullRequestId    String?
   commitId         String?
+  combinedSources  Json?
   contextHash      String?
   xPostLength      XPostLength         @default(STANDARD)
   shortSummary     String
@@ -279,6 +280,7 @@ model Feedback {
 enum GeneratedSourceType {
   PULL_REQUEST
   COMMIT
+  COMBINED
 }
 
 enum XPostLength {

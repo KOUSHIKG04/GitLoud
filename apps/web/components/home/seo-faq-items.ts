@@ -5,9 +5,14 @@ export const seoFaqItems = [
       "Yes. GitLoud works as a developer changelog generator by turning public pull requests and commits into concise release notes and update copy.",
   },
   {
+    question: "Can GitLoud combine multiple pull requests or commits?",
+    answer:
+      "Yes. Through the connected GitHub Activity dashboard, you can select up to five pull requests or five commits from one repository and generate one cohesive set of summaries and publish-ready posts.",
+  },
+  {
     question: "How does GitLoud handle private repository access?",
     answer:
-    "GitLoud uses a read-only GitHub App with selected repository access and short-lived server-side installation tokens. GitLoud is not currently SOC 2 or ISO/IEC 27001 certified, so teams with formal compliance requirements should review their policy before connecting private repositories.",
+      "GitLoud uses a read-only GitHub App with selected repository access and short-lived server-side installation tokens. GitLoud is not currently SOC 2 or ISO/IEC 27001 certified, so teams with formal compliance requirements should review their policy before connecting private repositories.",
   },
   {
     question: "Does GitLoud support private repositories?",

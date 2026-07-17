@@ -1,11 +1,18 @@
 import {
   generateContentFromCommit,
+  generateContentFromCommits,
   generateContentFromPullRequest,
+  generateContentFromPullRequests,
 } from "@repo/ai/generate-content";
 import { db } from "@repo/db/client";
 import { fetchCommit } from "@repo/github/fetch-commit";
 import { fetchPullRequest } from "@repo/github/fetch-pr";
 import type { GeneratedContent } from "@repo/shared/generated-content";
+import type { CombinedGenerationSource } from "@repo/shared/generations";
+import {
+  parseGithubCommitUrl,
+  parseGithubPullRequestUrl,
+} from "@repo/shared/github";
 import { Hono } from "hono";
 import { getAuthenticatedUserId } from "@/lib/auth";
 import { getAiGenerationOptionsForUser } from "@/lib/ai-credentials";
@@ -59,7 +66,11 @@ export const generationRoutes: Hono = new Hono()
       userId,
       AND: [
         {
-          OR: [{ pullRequestId: { not: null } }, { commitId: { not: null } }],
+          OR: [
+            { pullRequestId: { not: null } },
+            { commitId: { not: null } },
+            { sourceType: "COMBINED" as const },
+          ],
         },
         ...(createdAtFilter ? [createdAtFilter] : []),
       ],
@@ -88,6 +99,7 @@ export const generationRoutes: Hono = new Hono()
             url: true,
           },
         },
+        combinedSources: true,
         _count: {
           select: {
             mediaAttachments: true,
@@ -115,6 +127,7 @@ export const generationRoutes: Hono = new Hono()
         createdAt: generation.createdAt.toISOString(),
         pullRequest: generation.pullRequest,
         commit: generation.commit,
+        combinedSources: parseCombinedSources(generation.combinedSources),
         mediaAttachmentCount: generation._count.mediaAttachments,
       })),
     });
@@ -162,6 +175,7 @@ export const generationRoutes: Hono = new Hono()
           ? serializeSource(generation.pullRequest)
           : null,
         commit: generation.commit ? serializeSource(generation.commit) : null,
+        combinedSources: parseCombinedSources(generation.combinedSources),
       },
     });
   })
@@ -402,6 +416,89 @@ export const generationRoutes: Hono = new Hono()
         });
       }
 
+      if (generation.sourceType === "COMBINED") {
+        const combinedSources = parseCombinedSources(
+          generation.combinedSources,
+        );
+
+        if (combinedSources.length < 2) {
+          return context.json(
+            { error: "Combined generation sources were not found" },
+            400,
+          );
+        }
+
+        const firstSource = combinedSources[0]!;
+        const githubToken = features.canUsePrivateRepos
+          ? ((await getGitHubTokenForRepo({
+              userId,
+              owner: firstSource.owner,
+              repo: firstSource.repo,
+            })) ?? getPublicGitHubToken())
+          : getPublicGitHubToken();
+        const sourceType = firstSource.sourceType;
+        let generatedContent;
+
+        if (sourceType === "pull-request") {
+          const pullRequests = await Promise.all(
+            combinedSources.map((source) => {
+              const coordinates = parseGithubPullRequestUrl(source.url);
+
+              return fetchPullRequest({
+                ...coordinates,
+                githubToken,
+              });
+            }),
+          );
+          generatedContent = await generateContentFromPullRequests(
+            pullRequests,
+            undefined,
+            {
+              xPostLength: getGenerationXPostLength(xPostLength),
+              ...aiGenerationOptions,
+            },
+          );
+        } else {
+          const commits = await Promise.all(
+            combinedSources.map((source) => {
+              const coordinates = parseGithubCommitUrl(source.url);
+
+              return fetchCommit({
+                ...coordinates,
+                githubToken,
+              });
+            }),
+          );
+          generatedContent = await generateContentFromCommits(
+            commits,
+            undefined,
+            {
+              xPostLength: getGenerationXPostLength(xPostLength),
+              ...aiGenerationOptions,
+            },
+          );
+        }
+
+        const updated = await db.generatedContent.update({
+          where: { id: generation.id },
+          select: { ...generatedContentSelect, discordPost: true },
+          data: {
+            ...buildGeneratedContentUpdate(generatedContent),
+            discordPost: generatedContent.discordPost,
+          },
+        });
+
+        logger.info("Regenerated combined GitHub content", {
+          generationId: id,
+          owner: firstSource.owner,
+          repo: firstSource.repo,
+          sourceType,
+          sourceCount: combinedSources.length,
+        });
+
+        return context.json({ generatedContent: updated });
+      }
+
       return context.json({ error: "Unsupported generation source" }, 400);
     } catch (error) {
       logger.error("Regeneration failed", {
@@ -469,6 +566,32 @@ function parseHistoryDate(value: string | undefined) {
 
 function addDays(date: Date, days: number) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + days);
+}
+
+function parseCombinedSources(value: unknown): CombinedGenerationSource[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((source): source is CombinedGenerationSource => {
+    if (typeof source !== "object" || source === null) {
+      return false;
+    }
+
+    const candidate = source as Record<string, unknown>;
+
+    return (
+      (candidate.sourceType === "pull-request" ||
+        candidate.sourceType === "commit") &&
+      ["owner", "repo", "url", "title", "reference", "createdAt"].every(
+        (key) => typeof candidate[key] === "string",
+      ) &&
+      (typeof candidate.author === "string" || candidate.author === null) &&
+      ["additions", "deletions", "changedFiles"].every(
+        (key) => typeof candidate[key] === "number",
+      )
+    );
+  });
 }
 
 function serializeSource<T extends { createdAt: Date; updatedAt: Date }>(

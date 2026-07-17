@@ -35,21 +35,21 @@ import type {
 type DashboardSelectionState = {
   activityType: ActivityType;
   generationStep: GenerationStep;
-  selectedItemUrl: string;
+  selectedItemUrls: string[];
   selectedRepositoryId: string;
 };
 
 type DashboardSelectionAction =
   | { type: "activity-type-selected"; activityType: ActivityType }
   | { type: "generation-step-selected"; generationStep: GenerationStep }
-  | { type: "item-url-selected"; selectedItemUrl: string }
+  | { type: "item-url-toggled"; selectedItemUrl: string }
   | { type: "repository-loaded"; selectedRepositoryId: string }
   | { type: "repository-selected"; selectedRepositoryId: string };
 
 const initialDashboardSelection: DashboardSelectionState = {
   activityType: "pull-requests",
   generationStep: "select",
-  selectedItemUrl: "",
+  selectedItemUrls: [],
   selectedRepositoryId: "",
 };
 
@@ -63,17 +63,25 @@ function dashboardSelectionReducer(
         ...state,
         activityType: action.activityType,
         generationStep: "select",
-        selectedItemUrl: "",
+        selectedItemUrls: [],
       };
     case "generation-step-selected":
       return {
         ...state,
         generationStep: action.generationStep,
       };
-    case "item-url-selected":
+    case "item-url-toggled":
       return {
         ...state,
-        selectedItemUrl: action.selectedItemUrl,
+        selectedItemUrls: state.selectedItemUrls.includes(
+          action.selectedItemUrl,
+        )
+          ? state.selectedItemUrls.filter(
+              (url) => url !== action.selectedItemUrl,
+            )
+          : state.selectedItemUrls.length < 5
+            ? [...state.selectedItemUrls, action.selectedItemUrl]
+            : state.selectedItemUrls,
       };
     case "repository-loaded":
       return {
@@ -84,7 +92,7 @@ function dashboardSelectionReducer(
       return {
         ...state,
         generationStep: "select",
-        selectedItemUrl: "",
+        selectedItemUrls: [],
         selectedRepositoryId: action.selectedRepositoryId,
       };
   }
@@ -103,7 +111,7 @@ export function useGitHubActivityDashboard() {
   const {
     activityType,
     generationStep,
-    selectedItemUrl,
+    selectedItemUrls,
     selectedRepositoryId,
   } = selection;
 
@@ -165,10 +173,11 @@ export function useGitHubActivityDashboard() {
 
   const items = useMemo(() => activityQuery.data ?? [], [activityQuery.data]);
 
-  const selectedItem = useMemo(
-    () => items.find((item) => item.url === selectedItemUrl),
-    [items, selectedItemUrl],
+  const selectedItems = useMemo(
+    () => items.filter((item) => selectedItemUrls.includes(item.url)),
+    [items, selectedItemUrls],
   );
+  const selectedItem = selectedItems[0];
 
   const activityTypeLabel =
     activityType === "pull-requests" ? "Pull requests" : "Commits";
@@ -231,19 +240,16 @@ export function useGitHubActivityDashboard() {
     [],
   );
 
-  const handleActivityTypeChange = useCallback(
-    (type: ActivityType) => {
-      dispatchSelection({
-        type: "activity-type-selected",
-        activityType: type,
-      });
-    },
-    [],
-  );
+  const handleActivityTypeChange = useCallback((type: ActivityType) => {
+    dispatchSelection({
+      type: "activity-type-selected",
+      activityType: type,
+    });
+  }, []);
 
   const handleSelectedItemUrlChange = useCallback((url: string) => {
     dispatchSelection({
-      type: "item-url-selected",
+      type: "item-url-toggled",
       selectedItemUrl: url,
     });
   }, []);
@@ -260,7 +266,7 @@ export function useGitHubActivityDashboard() {
   }, [loadInstallations]);
 
   const generateFromSelectedItem = useCallback(async () => {
-    if (!selectedItem) {
+    if (selectedItems.length === 0) {
       toast.error("Select a pull request or commit first");
       return;
     }
@@ -285,13 +291,16 @@ export function useGitHubActivityDashboard() {
         }
       }
 
+      const isCombined = selectedItems.length > 1;
       const response = await apiFetch(
-        "/pr",
+        isCombined ? "/pr/combined" : "/pr",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            url: selectedItem.url,
+            ...(isCombined
+              ? { urls: selectedItems.map((item) => item.url) }
+              : { url: selectedItems[0]!.url }),
             context,
             xPostLength,
             mediaAttachmentId,
@@ -326,7 +335,16 @@ export function useGitHubActivityDashboard() {
       clearBackendDelayToast();
       setGenerating(false);
     }
-  }, [context, getToken, push, selectedItem, selectedMedia, xPostLength, setOpen, setOpenMobile]);
+  }, [
+    context,
+    getToken,
+    push,
+    selectedItems,
+    selectedMedia,
+    xPostLength,
+    setOpen,
+    setOpenMobile,
+  ]);
 
   const onMediaChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -360,13 +378,13 @@ export function useGitHubActivityDashboard() {
   }, []);
 
   const goToCustomizeStep = useCallback(() => {
-    if (!selectedItem) {
+    if (selectedItems.length === 0) {
       toast.error("Select a pull request or commit first");
       return;
     }
 
     handleGenerationStepChange("customize");
-  }, [handleGenerationStepChange, selectedItem]);
+  }, [handleGenerationStepChange, selectedItems.length]);
 
   return {
     activityType,
@@ -389,7 +407,8 @@ export function useGitHubActivityDashboard() {
     repositories,
     repositoryMenuOpen,
     selectedItem,
-    selectedItemUrl,
+    selectedItemUrls,
+    selectedItems,
     selectedMedia,
     selectedRepository,
     selectedRepositoryId,

@@ -30,7 +30,8 @@ export function GitHubActivityPanel() {
     repositories,
     repositoryMenuOpen,
     selectedItem,
-    selectedItemUrl,
+    selectedItemUrls,
+    selectedItems,
     selectedMedia,
     selectedRepository,
     selectedRepositoryId,
@@ -94,14 +95,14 @@ export function GitHubActivityPanel() {
               activityType={activityType}
               items={items}
               loadingActivity={loadingActivity}
-              selectedItemUrl={selectedItemUrl}
+              selectedItemUrls={selectedItemUrls}
               setSelectedItemUrl={setSelectedItemUrl}
             />
           ) : (
             <GitHubActivityCustomizeStep
               context={context}
               generating={generating}
-              selectedItem={selectedItem}
+              selectedItems={selectedItems}
               selectedMedia={selectedMedia}
               setContext={setContext}
             />
@@ -113,7 +114,7 @@ export function GitHubActivityPanel() {
             <Button
               type="button"
               className="min-w-32"
-              disabled={!selectedItem || loadingActivity}
+              disabled={selectedItems.length === 0 || loadingActivity}
               onClick={goToCustomizeStep}
             >
               NEXT
@@ -129,7 +130,7 @@ export function GitHubActivityPanel() {
             onSubmit={generateFromSelectedItem}
             selectedMedia={selectedMedia}
             setXPostLength={setXPostLength}
-            submitDisabled={!selectedItem || generating}
+            submitDisabled={selectedItems.length === 0 || generating}
           />
         )}
       </div>

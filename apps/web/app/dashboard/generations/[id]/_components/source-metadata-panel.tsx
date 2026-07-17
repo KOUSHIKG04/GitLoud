@@ -24,7 +24,8 @@ interface SourceMetadataPanelProps {
     shortSha?: string;
     state?: string | null;
   };
-  sourceType: "PULL_REQUEST" | "COMMIT";
+  sourceType: "PULL_REQUEST" | "COMMIT" | "COMBINED";
+  sourceCount?: number;
 }
 
 const sourceDateFormatter = new Intl.DateTimeFormat("en", {
@@ -40,11 +41,16 @@ function formatSourceDate(value: string) {
 export function SourceMetadataPanel({
   source,
   sourceType,
+  sourceCount,
 }: SourceMetadataPanelProps) {
   const sourceReference =
     sourceType === "PULL_REQUEST"
-      ? (source.number ? `#${source.number}` : undefined)
-      : (source.shortSha ?? undefined);
+      ? source.number
+        ? `#${source.number}`
+        : undefined
+      : sourceType === "COMMIT"
+        ? (source.shortSha ?? undefined)
+        : `${sourceCount ?? 0} sources`;
 
   return (
     <div className="space-y-3">
@@ -78,7 +84,13 @@ export function SourceMetadataPanel({
                 <CommitBranchIcon className="size-4" />
               )
             }
-            label={sourceType === "PULL_REQUEST" ? "Pull request" : "Commit"}
+            label={
+              sourceType === "COMBINED"
+                ? "Combined"
+                : sourceType === "PULL_REQUEST"
+                  ? "Pull request"
+                  : "Commit"
+            }
             value={sourceReference}
           />
         ) : null}

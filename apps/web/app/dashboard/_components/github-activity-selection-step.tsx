@@ -15,13 +15,13 @@ export function GitHubActivitySelectionStep({
   activityType,
   items,
   loadingActivity,
-  selectedItemUrl,
+  selectedItemUrls,
   setSelectedItemUrl,
 }: {
   activityType: ActivityType;
   items: GitHubActivityItem[];
   loadingActivity: boolean;
-  selectedItemUrl: string;
+  selectedItemUrls: string[];
   setSelectedItemUrl: (url: string) => void;
 }) {
   const [scrollThumb, setScrollThumb] = useState({
@@ -89,7 +89,7 @@ export function GitHubActivitySelectionStep({
           >
             <div className="">
               {items.map((item) => {
-                const checked = selectedItemUrl === item.url;
+                const checked = selectedItemUrls.includes(item.url);
                 const updatedAt = item.updatedAt
                   ? new Date(item.updatedAt)
                   : null;
@@ -109,8 +109,14 @@ export function GitHubActivitySelectionStep({
                     key={item.id}
                     type="button"
                     aria-pressed={checked}
+                    disabled={!checked && selectedItemUrls.length >= 5}
+                    title={
+                      !checked && selectedItemUrls.length >= 5
+                        ? "You can combine up to 5 items"
+                        : undefined
+                    }
                     className={[
-                      "flex w-full cursor-pointer gap-2 sm:gap-3 border-b px-3.5 py-3 sm:px-6 sm:py-4 text-left transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                      "flex w-full cursor-pointer gap-2 sm:gap-3 border-b px-3.5 py-3 sm:px-6 sm:py-4 text-left transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
                       checked ? "bg-muted/50" : "",
                     ]
                       .filter(Boolean)
@@ -118,7 +124,7 @@ export function GitHubActivitySelectionStep({
                     onClick={(event) => {
                       event.preventDefault();
                       event.stopPropagation();
-                      setSelectedItemUrl(checked ? "" : item.url);
+                      setSelectedItemUrl(item.url);
                     }}
                   >
                     <span

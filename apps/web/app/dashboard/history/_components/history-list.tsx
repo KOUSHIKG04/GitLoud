@@ -83,22 +83,28 @@ export async function HistoryList({
         ) : (
           <div className="space-y-3.5 pl-2 pb-2">
             {visibleGenerations.map((generation) => {
-              const source = generation.pullRequest ?? generation.commit;
+              const combinedSource = generation.combinedSources[0];
+              const source =
+                generation.pullRequest ?? generation.commit ?? combinedSource;
 
               if (!source) {
                 return null;
               }
 
               const title =
-                generation.sourceType === "PULL_REQUEST" &&
-                generation.pullRequest
-                  ? generation.pullRequest.title
-                  : (generation.commit?.message ?? "").split("\n")[0];
+                generation.sourceType === "COMBINED"
+                  ? `${generation.combinedSources.length} changes: ${combinedSource?.title ?? "Combined GitHub update"}`
+                  : generation.sourceType === "PULL_REQUEST" &&
+                      generation.pullRequest
+                    ? generation.pullRequest.title
+                    : (generation.commit?.message ?? "").split("\n")[0];
 
               const sourceLabel =
-                generation.sourceType === "PULL_REQUEST"
-                  ? "Pull Request"
-                  : "Commit";
+                generation.sourceType === "COMBINED"
+                  ? `Combined ${generation.combinedSources.length}`
+                  : generation.sourceType === "PULL_REQUEST"
+                    ? "Pull Request"
+                    : "Commit";
 
               return (
                 <article
