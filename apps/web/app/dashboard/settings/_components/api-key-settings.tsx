@@ -11,7 +11,7 @@ import { Input } from "@repo/ui/components/input";
 import {
   Check,
   ChevronDown,
-  KeyRound,
+  UserKey,
   Loader2,
   Settings,
   Trash2,
@@ -44,45 +44,45 @@ export function ApiKeySettings() {
 
   if (!data) {
     return (
-      <section className="border border-border bg-background p-4 text-sm text-muted-foreground shadow-xs sm:p-5">
+      <section className="rounded-sm border border-border bg-background p-4 text-sm text-muted-foreground shadow-xs sm:p-5">
         AI key settings are unavailable right now.
       </section>
     );
   }
 
   return (
-    <section className="min-w-0 space-y-4 border border-border bg-background p-4 shadow-xs sm:p-5">
+    <section className="space-y-5 rounded-sm border border-border bg-background p-5 shadow-xs">
       <div className="space-y-1">
         <h2 className="flex items-center gap-2 text-base font-semibold">
-          <KeyRound className="size-4" />
+          <UserKey className="size-4" />
           Custom AI Key
         </h2>
         <p className="text-sm text-muted-foreground">
-          Run generation with your own supported provider key.
+          Run generation using your own supported provider API key.
         </p>
       </div>
 
-      {data.credentials.length ? (
+      {data.credentials.length > 0 && (
         <div className="space-y-2">
           {data.credentials.map((credential) => (
             <div
               key={credential.provider}
-              className="flex items-center justify-between border border-border bg-muted/20 p-3"
+              className="flex items-center justify-between rounded-sm border bg-muted/20 p-3"
             >
-              <div>
-                <div className="font-medium">
+              <div className="min-w-0">
+                <p className="font-medium">
                   {providerLabels[credential.provider]} key saved
-                </div>
-                <div className="text-xs text-muted-foreground">
+                </p>
+
+                <p className="truncate text-xs text-muted-foreground">
                   {credential.keyPreview}
-                  {credential.model ? ` / ${credential.model}` : ""}
-                </div>
+                  {credential.model ? ` • ${credential.model}` : ""}
+                </p>
               </div>
+
               <Button
                 variant="destructive"
                 size="icon-sm"
-                aria-label={`Delete ${providerLabels[credential.provider]} key`}
-                title={`Delete ${providerLabels[credential.provider]} key`}
                 onClick={() => void deleteAiKey(credential.provider)}
               >
                 <Trash2 className="size-4" />
@@ -90,61 +90,64 @@ export function ApiKeySettings() {
             </div>
           ))}
         </div>
-      ) : null}
+      )}
 
-      <div className="space-y-3">
-        <div className="grid min-w-0 gap-3 md:grid-cols-[0.85fr_1.15fr]">
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 w-full min-w-0 justify-between rounded-none border-input bg-background px-2.5 text-sm font-normal"
-                disabled={savingKey}
-              >
-                <span className="flex items-center gap-2">
-                  <KeyRound className="size-4 text-muted-foreground" />
-                  {providerLabels[selectedProvider]}
-                </span>
-                <ChevronDown className="size-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="start"
-              className="w-(--radix-dropdown-menu-trigger-width) max-h-none overflow-hidden rounded-none"
+      <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="h-10 w-full justify-between rounded-sm"
+              disabled={savingKey}
             >
-              {data.supportedProviders.map((provider) => (
-                <DropdownMenuItem
-                  key={provider}
-                  className="rounded-none"
-                  onSelect={() => setSelectedProvider(provider)}
-                >
-                  <span>{providerLabels[provider]}</span>
-                  {provider === selectedProvider ? (
-                    <Check className="ml-auto size-4" />
-                  ) : null}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Input
-            type="password"
-            className="rounded-none"
-            placeholder={`${providerLabels[selectedProvider]} API key`}
-            value={apiKey}
-            disabled={savingKey}
-            onChange={(event) => setApiKey(event.target.value)}
-          />
-        </div>
+              <span className="flex items-center gap-2">
+                <UserKey className="size-4 text-muted-foreground" />
+                {providerLabels[selectedProvider]}
+              </span>
+
+              <ChevronDown className="size-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+
+          <DropdownMenuContent
+            align="start"
+            className="w-(--radix-dropdown-menu-trigger-width)"
+          >
+            {data.supportedProviders.map((provider) => (
+              <DropdownMenuItem
+                key={provider}
+                onSelect={() => setSelectedProvider(provider)}
+              >
+                {providerLabels[provider]}
+
+                {provider === selectedProvider && (
+                  <Check className="ml-auto size-4" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Input
-          className="rounded-none"
-          placeholder="Model, (optional)"
+          type="password"
+          placeholder={`${providerLabels[selectedProvider]} API key`}
+          value={apiKey}
+          disabled={savingKey}
+          onChange={(e) => setApiKey(e.target.value)}
+        />
+      </div>
+
+      {/* Model + Save */}
+      <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+        <Input
+          placeholder="Model (optional)"
           value={model}
           disabled={savingKey}
-          onChange={(event) => setModel(event.target.value)}
+          onChange={(e) => setModel(e.target.value)}
         />
+
         <Button
-          className="w-full"
+          className="w-full py-[19.5px]"
           disabled={savingKey || !apiKey.trim()}
           onClick={saveAiKey}
         >
@@ -153,7 +156,8 @@ export function ApiKeySettings() {
           ) : (
             <Settings className="size-4" />
           )}
-          {selectedCredential ? "REPLACE KEY" : "SAVE KEY"}
+
+          {selectedCredential ? "Replace Key" : "Save Key"}
         </Button>
       </div>
     </section>

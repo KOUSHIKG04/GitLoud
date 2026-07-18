@@ -38,3 +38,28 @@
   animation: none;
   mix-blend-mode: normal;
 }
+
+/* Keep interactive surfaces consistently subtle, including local overrides. */
+:is(
+  [data-slot="button"],
+  [data-slot="input"],
+  [data-slot="checkbox"],
+  [data-slot="dropdown-menu-trigger"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-item"],
+  [data-slot="popover-trigger"],
+  [data-slot="popover-content"],
+  [data-slot="dialog-trigger"],
+  [data-slot="dialog-content"],
+  [data-slot="accordion-item"],
+  [data-slot="accordion-trigger"],
+  [data-slot="tooltip-content"],
+  [data-slot="sidebar-trigger"],
+  [data-slot="sidebar-menu-button"],
+  [data-slot="sidebar-menu-action"],
+  [data-slot="sidebar-menu-sub-button"],
+  textarea,
+  select
+) {
+  border-radius: var(--radius-sm);
+}

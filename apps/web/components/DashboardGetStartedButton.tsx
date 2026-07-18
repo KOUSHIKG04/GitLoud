@@ -30,7 +30,7 @@ export function DashboardGetStartedButton() {
         type="button"
         onClick={openDashboard}
         disabled={!isLoaded}
-        className=" active:scale-98 font-semibold tracking-wider"
+        className="active:scale-98 font-semibold tracking-wider "
         variant="default"
       >
         GET STARTED

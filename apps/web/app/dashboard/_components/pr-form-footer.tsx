@@ -58,7 +58,7 @@ export function PrFormFooter({
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="size-7 rounded-none"
+              className="size-7"
               disabled={isSubmitting}
               onClick={clearSelectedMedia}
               aria-label="Remove selected media"
@@ -98,7 +98,7 @@ function XPostLengthToggle({
   setValue: UseFormSetValue<FormValues>;
 }) {
   return (
-    <div className="flex items-center gap-1.5 border-l border-border pl-2">
+    <div className="flex items-center gap-1.5  rounded-sm  pl-2">
       <button
         type="button"
         role="switch"
@@ -120,8 +120,8 @@ function XPostLengthToggle({
         className={[
           "relative flex h-5 w-9 shrink-0 items-center rounded-full border  p-0.5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
           isPremiumXPost
-            ? "border-foreground bg-foreground border-2"
-            : "bg-muted border border-gray-400",
+            ? "border-foreground bg-foreground border"
+            : "bg-muted border border-gray-100",
         ].join(" ")}
         aria-label="Use X Premium long post length"
         title="Use X Premium long post length"

@@ -6,7 +6,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
@@ -54,19 +53,21 @@ export function GitHubActivityControls({
   setGenerationStep,
 }: GitHubActivityControlsProps) {
   return (
-    <div className="flex flex-col gap-3 md:grid md:grid-cols-[1.3fr_0.7fr_auto] md:items-end">
-      <div className="space-y-1.5 text-sm w-full">
-        <span className="text-muted-foreground">REPOSITORY</span>
+    <div className="flex min-w-0 flex-col gap-3 md:grid md:grid-cols-[1.3fr_0.7fr_auto] md:items-end">
+      <div className="min-w-0 w-full space-y-1.5 text-sm">
+        <span className="text-xs text-muted-foreground sm:text-sm">
+          REPOSITORY
+        </span>
         <DropdownMenu
           modal={false}
           open={repositoryMenuOpen}
           onOpenChange={setRepositoryMenuOpen}
         >
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild className="mt-2">
             <Button
               type="button"
               variant="outline"
-              className="h-10 w-full justify-between rounded-none border-input bg-background px-3 text-sm font-normal focus-visible:ring-1"
+              className="h-10 min-w-0 w-full justify-between rounded-sm border-input bg-background px-3 text-sm font-normal focus-visible:ring-1"
               disabled={generating}
             >
               <span className="min-w-0 truncate">
@@ -77,18 +78,28 @@ export function GitHubActivityControls({
               <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className={dropdownContentClass}>
-            <DropdownMenuLabel>Synced repositories</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <ScrollArea className="h-[min(16rem,var(--radix-dropdown-menu-content-available-height))]">
-              <div className="p-1 pr-5">
+          <DropdownMenuContent
+            align="start"
+            sideOffset={6}
+            className={`${dropdownContentClass} max-w-[calc(100vw-1.5rem)] p-0 shadow-xl`}
+          >
+            <DropdownMenuLabel className="flex items-center justify-between border-b border-border bg-muted/30 px-3 py-2.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Synced repositories
+              </span>
+              <span className="rounded-sm bg-foreground/8 px-2 py-0.5 font-mono text-[10px] text-foreground/70">
+                {repositories.length}
+              </span>
+            </DropdownMenuLabel>
+            <ScrollArea className="h-[min(14rem,var(--radix-dropdown-menu-content-available-height))]">
+              <div className="space-y-0.5 p-1.5 pr-4">
                 {repositories.map((repository) => (
                   <DropdownMenuItem
                     key={repository.id}
                     className={[
-                      "flex w-full items-center gap-2 rounded-none px-2 py-1.5 text-left text-sm outline-hidden transition-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring",
+                      "flex min-h-9 w-full items-center gap-2 rounded-sm px-2.5 py-2 text-left text-[13px] outline-hidden transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-1 focus-visible:ring-ring",
                       repository.id === selectedRepositoryId
-                        ? "bg-accent/70"
+                        ? "bg-primary/10 text-foreground"
                         : "",
                     ]
                       .filter(Boolean)
@@ -98,8 +109,13 @@ export function GitHubActivityControls({
                       setRepositoryMenuOpen(false);
                     }}
                   >
-                    <span className="min-w-0 flex-1 truncate">
-                      {repository.owner}/{repository.repo}
+                    <span className="flex min-w-0 flex-1 items-baseline font-mono">
+                      <span className="shrink-0 text-muted-foreground">
+                        {repository.owner}/
+                      </span>
+                      <span className="truncate font-medium text-foreground">
+                        {repository.repo}
+                      </span>
                     </span>
                     {repository.id === selectedRepositoryId ? (
                       <Check className="size-4 shrink-0 text-primary" />
@@ -117,7 +133,7 @@ export function GitHubActivityControls({
           <Button
             type="button"
             variant="outline"
-            className="h-10 w-full rounded-none border-input bg-background px-4 text-sm font-normal focus-visible:ring-1 uppercase tracking-wider shrink-0"
+            className="h-10 w-full rounded-sm border-input bg-background px-4 text-sm font-normal focus-visible:ring-1 uppercase tracking-wider shrink-0"
             disabled={generating}
             onClick={() => setGenerationStep("select")}
           >
@@ -126,18 +142,20 @@ export function GitHubActivityControls({
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-[1fr_auto] gap-3 items-end md:contents">
-          <div className="space-y-1.5 text-sm w-full">
-            <span className="text-muted-foreground">SOURCE TYPE</span>
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_3.25rem] items-end gap-2 sm:gap-3 md:contents">
+          <div className="min-w-0 w-full space-y-1.5 text-sm">
+            <span className="text-xs text-muted-foreground sm:text-sm">
+              SOURCE TYPE
+            </span>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 w-full justify-between rounded-none border-input bg-background px-3 text-sm font-normal focus-visible:ring-1"
+                  className="h-10 min-w-0 w-full justify-between rounded-sm border-input bg-background px-3 text-sm font-normal focus-visible:ring-1"
                   disabled={generating}
                 >
-                  <span>{activityTypeLabel}</span>
+                  <span className="truncate">{activityTypeLabel}</span>
                   <ChevronDown className="size-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
@@ -167,13 +185,15 @@ export function GitHubActivityControls({
             </DropdownMenu>
           </div>
 
-          <div className="space-y-1.5 text-sm w-full">
-            <span className="block text-muted-foreground">REFRESH</span>
+          <div className="w-full space-y-1.5 text-sm">
+            <span className="block text-[10px] text-muted-foreground sm:text-sm">
+              REFRESH
+            </span>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="h-10 w-full rounded-none"
+              className="h-10 w-full rounded-sm"
               onClick={() => void loadInstallations()}
               disabled={loadingInstallations || generating}
             >

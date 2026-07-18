@@ -38,7 +38,7 @@ export function ContentActions({
   const shareText = withMediaLinks(text, mediaAttachments);
   const shareUrls = createShareUrls({ title, text: shareText });
   const iconButtonClass =
-    "size-9 border-0 bg-transparent p-0 shadow-sm hover:bg-muted rounded-[3px]";
+    "size-9 rounded-sm border-0 bg-transparent p-0 shadow-sm hover:bg-muted";
   const [loadingAction, setLoadingAction] = useState<"copy" | "share" | null>(
     null,
   );

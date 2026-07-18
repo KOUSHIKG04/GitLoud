@@ -227,7 +227,7 @@ export function Header() {
                     showLabel
                     side="top"
                     variant="outline"
-                    className="w-full h-10 justify-start gap-3 px-3 "
+                    className="w-full h-10 justify-start gap-3 px-3"
                   />
                 ) : null}
               </div>

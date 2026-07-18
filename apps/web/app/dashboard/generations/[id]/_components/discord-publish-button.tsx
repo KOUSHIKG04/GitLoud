@@ -19,10 +19,59 @@ import {
 } from "@repo/ui/components/dialog";
 import { Loader2, Send } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useReducer, useRef } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { getApiError } from "@/lib/api-response";
+
+type DiscordPublishState = {
+  open: boolean;
+  loading: boolean;
+  publishing: boolean;
+  connections: SocialConnection[];
+  selectedConnectionId: string;
+};
+
+type DiscordPublishAction =
+  | { type: "openChanged"; open: boolean }
+  | { type: "loadingChanged"; loading: boolean }
+  | { type: "publishingChanged"; publishing: boolean }
+  | { type: "connectionsLoaded"; connections: SocialConnection[] }
+  | { type: "connectionSelected"; connectionId: string };
+
+const initialDiscordPublishState: DiscordPublishState = {
+  open: false,
+  loading: false,
+  publishing: false,
+  connections: [],
+  selectedConnectionId: "",
+};
+
+function discordPublishReducer(
+  state: DiscordPublishState,
+  action: DiscordPublishAction,
+): DiscordPublishState {
+  switch (action.type) {
+    case "openChanged":
+      return { ...state, open: action.open };
+    case "loadingChanged":
+      return { ...state, loading: action.loading };
+    case "publishingChanged":
+      return { ...state, publishing: action.publishing };
+    case "connectionsLoaded":
+      return {
+        ...state,
+        connections: action.connections,
+        selectedConnectionId: action.connections.some(
+          (connection) => connection.id === state.selectedConnectionId,
+        )
+          ? state.selectedConnectionId
+          : (action.connections[0]?.id ?? ""),
+      };
+    case "connectionSelected":
+      return { ...state, selectedConnectionId: action.connectionId };
+  }
+}
 
 export function DiscordPublishButton({
   generationId,
@@ -34,15 +83,16 @@ export function DiscordPublishButton({
   className: string;
 }) {
   const { getToken } = useAuth();
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [connections, setConnections] = useState<SocialConnection[]>([]);
-  const [selectedConnectionId, setSelectedConnectionId] = useState("");
-  const [idempotencyKey, setIdempotencyKey] = useState("");
+  const [state, dispatch] = useReducer(
+    discordPublishReducer,
+    initialDiscordPublishState,
+  );
+  const idempotencyKeyRef = useRef("");
+  const { open, loading, publishing, connections, selectedConnectionId } =
+    state;
 
   const loadConnections = useCallback(async () => {
-    setLoading(true);
+    dispatch({ type: "loadingChanged", loading: true });
 
     try {
       const response = await apiFetch("/social/connections", {}, getToken);
@@ -59,12 +109,7 @@ export function DiscordPublishButton({
       const nextConnections = (
         value as SocialConnectionsResponse
       ).connections;
-      setConnections(nextConnections);
-      setSelectedConnectionId((current) =>
-        nextConnections.some((connection) => connection.id === current)
-          ? current
-          : (nextConnections[0]?.id ?? ""),
-      );
+      dispatch({ type: "connectionsLoaded", connections: nextConnections });
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -72,25 +117,25 @@ export function DiscordPublishButton({
           : "Could not load Discord connections",
       );
     } finally {
-      setLoading(false);
+      dispatch({ type: "loadingChanged", loading: false });
     }
   }, [getToken]);
 
   function handleOpenChange(nextOpen: boolean) {
-    setOpen(nextOpen);
+    dispatch({ type: "openChanged", open: nextOpen });
 
     if (nextOpen) {
-      setIdempotencyKey(crypto.randomUUID());
+      idempotencyKeyRef.current = crypto.randomUUID();
       void loadConnections();
     }
   }
 
   async function publish() {
-    if (!selectedConnectionId || !idempotencyKey) {
+    if (!selectedConnectionId || !idempotencyKeyRef.current) {
       return;
     }
 
-    setPublishing(true);
+    dispatch({ type: "publishingChanged", publishing: true });
 
     try {
       const response = await apiFetch(
@@ -101,7 +146,7 @@ export function DiscordPublishButton({
           body: JSON.stringify({
             connectionId: selectedConnectionId,
             generationId,
-            idempotencyKey,
+            idempotencyKey: idempotencyKeyRef.current,
           }),
         },
         getToken,
@@ -115,7 +160,7 @@ export function DiscordPublishButton({
       }
 
       toast.success("Published to Discord");
-      setOpen(false);
+      dispatch({ type: "openChanged", open: false });
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -123,7 +168,7 @@ export function DiscordPublishButton({
           : "Could not publish to Discord",
       );
     } finally {
-      setPublishing(false);
+      dispatch({ type: "publishingChanged", publishing: false });
     }
   }
 
@@ -141,7 +186,7 @@ export function DiscordPublishButton({
           <Send className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-none sm:max-w-lg">
+      <DialogContent className="rounded-sm sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Publish to Discord</DialogTitle>
           <DialogDescription>
@@ -155,7 +200,7 @@ export function DiscordPublishButton({
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </div>
         ) : connections.length === 0 ? (
-          <div className="space-y-3 border border-border bg-muted/20 p-4 text-sm">
+          <div className="space-y-3 rounded-sm border border-border bg-muted/20 p-4 text-sm">
             <p>No Discord channel is connected yet.</p>
             <Button asChild variant="outline" className="w-full">
               <Link href="/dashboard/settings/social">Connect Discord</Link>
@@ -172,12 +217,17 @@ export function DiscordPublishButton({
                   key={connection.id}
                   type="button"
                   aria-pressed={selectedConnectionId === connection.id}
-                  className={`w-full border p-3 text-left transition-colors ${
+                  className={`w-full rounded-sm border p-3 text-left transition-colors ${
                     selectedConnectionId === connection.id
                       ? "border-foreground bg-muted"
                       : "border-border hover:bg-muted/50"
                   }`}
-                  onClick={() => setSelectedConnectionId(connection.id)}
+                  onClick={() =>
+                    dispatch({
+                      type: "connectionSelected",
+                      connectionId: connection.id,
+                    })
+                  }
                 >
                   <span className="block font-medium">
                     {connection.displayName}
@@ -193,7 +243,7 @@ export function DiscordPublishButton({
               <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Post preview
               </div>
-              <div className="max-h-56 overflow-y-auto whitespace-pre-wrap border border-border bg-muted/20 p-3 text-sm leading-6">
+              <div className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-sm border border-border bg-muted/20 p-3 text-sm leading-6">
                 {preview}
               </div>
             </div>

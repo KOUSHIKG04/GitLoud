@@ -79,9 +79,9 @@ export function UserProfileMenu({
           type="button"
           variant={variant}
           className={cn(
-            " flex size-[31px] items-center justify-center rounded-none p-0 outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "rounded-sm flex size-[31px] items-center justify-center  p-0 outline-hidden ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             variant !== "ghost" &&
-              "border border-border bg-background hover:bg-muted",
+              "rounded-sm bg-background hover:bg-muted",
             showLabel && "h-9 w-full justify-start gap-2 px-2",
             className,
           )}
@@ -90,7 +90,7 @@ export function UserProfileMenu({
         >
           <span
             className={cn(
-              "flex size-full items-center justify-center bg-card text-xs font-semibold uppercase text-card-foreground",
+              "flex size-full items-center justify-center rounded-sm bg-muted/80 text-xs font-semibold uppercase text-card-foreground",
               showLabel && "size-6 shrink-0",
             )}
           >
@@ -106,7 +106,7 @@ export function UserProfileMenu({
         align={align}
         side={side ?? (accountMenu ? "right" : "bottom")}
         sideOffset={sideOffset}
-        className={cn("mt-1.5 w-56 rounded-none", accountMenu && "w-59")}
+        className={cn("mt-1.5 w-56 rounded-sm", accountMenu && "w-59")}
       >
         {accountMenu ? (
           <AccountMenuHeader
@@ -151,7 +151,7 @@ export function UserProfileMenu({
         <DropdownMenuItem
           variant="destructive"
           className={cn(
-            "rounded-none focus:rounded-none data-highlighted:rounded-none",
+            "rounded-sm focus:rounded-sm data-highlighted:rounded-sm",
             accountMenu && "m-1 mt-2 h-8",
           )}
           onSelect={(event) => {
@@ -178,7 +178,7 @@ function AccountMenuHeader({
 }) {
   return (
     <DropdownMenuLabel className="flex items-center gap-2.5 p-2.5 font-normal">
-      <span className="flex size-9 shrink-0 border-border border items-center justify-center bg-card text-xs font-semibold uppercase text-card-foreground">
+      <span className="rounded-sm bg-muted/80 flex size-9 shrink-0 border-border border items-center justify-center  text-xs font-semibold uppercase text-card-foreground">
         {initials}
       </span>
       <span className="min-w-0">

@@ -173,10 +173,10 @@ export function useGitHubActivityDashboard() {
 
   const items = useMemo(() => activityQuery.data ?? [], [activityQuery.data]);
 
-  const selectedItems = useMemo(
-    () => items.filter((item) => selectedItemUrls.includes(item.url)),
-    [items, selectedItemUrls],
-  );
+  const selectedItems = useMemo(() => {
+    const selectedItemUrlSet = new Set(selectedItemUrls);
+    return items.filter((item) => selectedItemUrlSet.has(item.url));
+  }, [items, selectedItemUrls]);
   const selectedItem = selectedItems[0];
 
   const activityTypeLabel =

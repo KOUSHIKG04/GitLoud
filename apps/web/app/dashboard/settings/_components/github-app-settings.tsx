@@ -48,14 +48,13 @@ export function GitHubAppSettings() {
     );
   }, []);
 
-
   if (loading) {
     return <DotMatrixLoader className="min-h-64" label="Loading settings" />;
   }
 
   if (!data) {
     return (
-      <section className="border border-border bg-background p-4 text-sm text-muted-foreground shadow-xs sm:p-5">
+      <section className="rounded-sm border border-border bg-background p-4 text-sm text-muted-foreground shadow-xs sm:p-5">
         GitHub App settings are unavailable right now.
       </section>
     );
@@ -74,18 +73,18 @@ export function GitHubAppSettings() {
             return (
               <div
                 key={installation.id}
-                className="grid min-w-0 gap-4 border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center"
+                className="grid min-w-0 gap-4 rounded-sm border border-border bg-background p-4 shadow-xs xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center"
               >
                 <div className="grid min-w-0 gap-8 sm:grid-cols-[auto_minmax(5rem,1fr)] sm:items-center">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex size-12 shrink-0 items-center justify-center border border-primary/40 bg-primary/10 text-lg font-semibold text-primary">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-primary/10 bg-muted/10 text-lg font-semibold text-primary">
                       {initial}
                     </div>
                     <div className="min-w-0">
                       <div className="truncate text-base font-semibold tracking-tight">
                         {accountLogin}
                       </div>
-                      <div className="flex items-center gap-2 text-xs uppercase text-muted-foreground">
+                      <div className="mt-1 flex items-center gap-2 text-xs uppercase text-muted-foreground">
                         <Users className="size-4 text-primary" />
                         {installation.accountType} /{" "}
                         {installation.repositorySelection}
@@ -93,9 +92,9 @@ export function GitHubAppSettings() {
                     </div>
                   </div>
 
-                  <div className="border border-border bg-muted/20 p-3">
+                  <div className="rounded-sm border border-border bg-muted/20 p-3">
                     <div className="flex items-center gap-3">
-                      <span className="flex size-8 items-center justify-center bg-primary/10 text-primary">
+                      <span className="flex rounded-sm size-8 items-center justify-center bg-primary/10 text-primary">
                         <Database className="size-3.5" />
                       </span>
                       <span className="text-sm">
@@ -110,7 +109,7 @@ export function GitHubAppSettings() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 min-w-0 gap-3 border-border xl:grid-cols-1 xl:border-l xl:pl-4 xl:w-48">
+                <div className="grid grid-cols-2 min-w-0 gap-3 border-border xl:grid-cols-1 xl:pl-4 xl:w-48">
                   <Button
                     asChild
                     variant="outline"
@@ -156,15 +155,15 @@ export function GitHubAppSettings() {
             );
           })
         ) : (
-          <div className="border border-dashed border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+          <div className="rounded-sm border border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
             No GitHub App installation is connected yet.
           </div>
         )}
       </div>
 
-      <div className="grid gap-4 border border-border bg-background p-4 shadow-xs sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="grid gap-4 rounded-sm border border-border bg-background p-4 shadow-xs sm:grid-cols-[1fr_auto] sm:items-center">
         <div className="flex gap-3">
-          <div className="flex size-12 shrink-0 items-center justify-center border border-border bg-muted/30">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-sm border border-border bg-muted/30">
             <GithubIconIcon className="size-6" />
           </div>
           <p className="max-w-lg self-center text-sm leading-6 text-muted-foreground">

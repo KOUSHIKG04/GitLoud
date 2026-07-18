@@ -30,7 +30,7 @@ export function ContentBlock({
   return (
     <AccordionItem
       value={valueKey}
-      className="border-none bg-card px-5 text-card-foreground shadow-sm"
+      className="rounded-sm border-none bg-card px-5 text-card-foreground shadow-sm"
     >
       <AccordionTrigger className="py-4 text-[17px] font-semibold leading-7 hover:no-underline">
         {title}

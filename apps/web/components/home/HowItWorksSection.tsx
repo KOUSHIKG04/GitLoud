@@ -5,13 +5,15 @@ import { WorkflowDiagram } from "./WorkflowDiagram";
 
 export function HowItWorksSection() {
   return (
-    <section className="px-4 py-16 sm:px-6 lg:px-20 lg:py-24 overflow-hidden">
-      <div className="mx-auto w-full max-w-5xl space-y-12">
-        <MotionViewportStagger className="mx-auto space-y-3">
+    <section className="overflow-hidden px-4 py-16 sm:px-6 lg:px-20 lg:py-20">
+      <div className="mx-auto w-full max-w-5xl space-y-10">
+        <MotionViewportStagger className="mx-auto max-w-4xl space-y-3">
           <MotionItem>
-            <p className="text-sm font-semibold tracking-wider text-primary uppercase">
-              How It Works
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-sm font-semibold uppercase tracking-wider text-primary">
+                How It Works
+              </p>
+            </div>
           </MotionItem>
 
           <MotionItem>
@@ -21,7 +23,7 @@ export function HowItWorksSection() {
           </MotionItem>
 
           <MotionItem>
-            <p className=" max-w-4xl text-sm leading-relaxed text-muted-foreground">
+            <p className="max-w-4xl text-sm leading-6 text-muted-foreground tracking-tight">
               GitLoud reads one GitHub pull request or commit, or uses a
               connected repository to combine up to five pull requests or
               commits. It summarizes the complete technical work and creates

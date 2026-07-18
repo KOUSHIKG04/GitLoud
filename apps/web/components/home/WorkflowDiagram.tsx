@@ -1,8 +1,9 @@
 "use client";
 
-import { m, LazyMotion, domAnimation } from "motion/react";
-import { GitPullRequest } from "lucide-react";
 import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
+import { GitPullRequest } from "lucide-react";
+import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
+import type { ReactNode } from "react";
 import {
   DiscordIcon,
   LinkedInIcon,
@@ -10,327 +11,338 @@ import {
   XIcon,
 } from "@/assets/social-icons";
 
+const OUTPUT_ROUTE_DURATION = 2.4;
+const OUTPUT_SEQUENCE_DURATION = OUTPUT_ROUTE_DURATION * 4;
+
 interface AnimatedPathProps {
   d: string;
-  strokeDasharray?: string;
-  strokeDashoffsetValues: number[];
-  duration?: number;
+  delay?: number;
+  markerId: string;
+  reducedMotion: boolean;
 }
 
 function AnimatedPath({
   d,
-  strokeDasharray = "45 415",
-  strokeDashoffsetValues,
-  duration = 2.2,
+  delay = 0,
+  markerId,
+  reducedMotion,
 }: AnimatedPathProps) {
   return (
     <>
       <path
         d={d}
-        className="stroke-primary opacity-15"
-        strokeWidth="1.5"
+        className="stroke-border"
+        strokeWidth="1"
         strokeLinecap="round"
-        markerEnd="url(#arrow)"
+        markerEnd={`url(#${markerId})`}
       />
-      <m.path
-        d={d}
-        className="stroke-primary opacity-90"
-        strokeWidth="2.5"
-        strokeDasharray={strokeDasharray}
-        strokeLinejoin="miter"
-        strokeLinecap="square"
-        animate={{ strokeDashoffset: strokeDashoffsetValues }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration,
-        }}
-      />
-      <m.path
-        d={d}
-        stroke="#FFF"
-        strokeWidth="1.0"
-        strokeDasharray={strokeDasharray}
-        strokeLinejoin="miter"
-        strokeLinecap="square"
-        animate={{ strokeDashoffset: strokeDashoffsetValues }}
-        transition={{
-          repeat: Infinity,
-          ease: "linear",
-          duration,
-        }}
-      />
+      {reducedMotion ? null : (
+        <path
+          d={d}
+          className="stroke-primary"
+          fill="none"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pathLength="1"
+          strokeDasharray="0.055 0.945"
+          opacity="0"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            values="0;-0.945;-0.945"
+            keyTimes="0;0.25;1"
+            begin={`${delay}s`}
+            dur={`${OUTPUT_SEQUENCE_DURATION}s`}
+            calcMode="linear"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="opacity"
+            values="0;1;1;0;0"
+            keyTimes="0;0.008;0.245;0.25;1"
+            begin={`${delay}s`}
+            dur={`${OUTPUT_SEQUENCE_DURATION}s`}
+            repeatCount="indefinite"
+          />
+        </path>
+      )}
     </>
   );
 }
 
 export function WorkflowDiagram() {
+  const reducedMotion = useReducedMotion() ?? false;
+
   return (
     <LazyMotion features={domAnimation}>
-      <div className="w-full mt-8 select-none">
-        <WorkflowDiagramDesktop />
-        <WorkflowDiagramMobile />
+      <div className="relative mt-8 w-full select-none overflow-hidden border-border/70 ">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 opacity-25 "
+        />
+
+        <div className="relative pt-3 sm:px-5 sm:pt-5">
+          <WorkflowDiagramDesktop reducedMotion={reducedMotion} />
+          <WorkflowDiagramMobile reducedMotion={reducedMotion} />
+        </div>
       </div>
     </LazyMotion>
   );
 }
 
-function WorkflowDiagramDesktop() {
+function WorkflowMarker({ id }: { id: string }) {
   return (
-    <div className="relative w-full hidden md:block">
+    <defs>
+      <marker
+        id={id}
+        viewBox="0 0 10 10"
+        refX="8"
+        refY="5"
+        markerWidth="5"
+        markerHeight="5"
+        orient="auto-start-reverse"
+      >
+        <path d="M 0 1.5 L 7 5 L 0 8.5 z" fill="hsl(var(--primary))" />
+      </marker>
+    </defs>
+  );
+}
+
+function WorkflowDiagramDesktop({
+  reducedMotion,
+}: {
+  reducedMotion: boolean;
+}) {
+  const markerId = "workflow-arrow-desktop";
+
+  return (
+    <div className="relative hidden w-full md:block">
       <svg
-        className="w-full h-auto pointer-events-none block"
+        className="pointer-events-none block h-auto w-full -translate-x-4 lg:-translate-x-6"
         viewBox="0 0 800 400"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <defs>
-          <marker
-            id="arrow"
-            viewBox="0 0 10 10"
-            refX="8"
-            refY="5"
-            markerWidth="5"
-            markerHeight="5"
-            orient="auto-start-reverse"
-          >
-            <path d="M 0 1.5 L 7 5 L 0 8.5 z" fill="hsl(var(--primary))" />
-          </marker>
-        </defs>
+        <WorkflowMarker id={markerId} />
 
         <path
-          d="M 100 200 L 240 200"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
+          d="M 92 200 L 220 200"
+          className="stroke-border"
+          strokeWidth="1"
           strokeLinecap="round"
-          markerEnd="url(#arrow)"
+          markerEnd={`url(#${markerId})`}
         />
 
-        <AnimatedPath d="M 390 200 L 478 200 L 478 50 L 700 50" strokeDashoffsetValues={[460, 0]} duration={2.2} />
-        <AnimatedPath d="M 390 200 L 478 200 L 478 150 L 700 150" strokeDasharray="40 320" strokeDashoffsetValues={[360, 0]} duration={2.2} />
-        <AnimatedPath d="M 390 200 L 478 200 L 478 250 L 700 250" strokeDasharray="40 320" strokeDashoffsetValues={[360, 0]} duration={2.2} />
-        <AnimatedPath d="M 390 200 L 478 200 L 478 350 L 700 350" strokeDashoffsetValues={[460, 0]} duration={2.2} />
+        <AnimatedPath
+          d="M 380 200 H 468 Q 478 200 478 190 V 60 Q 478 50 488 50 H 700"
+          delay={0}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
+        <AnimatedPath
+          d="M 380 200 H 468 Q 478 200 478 190 V 160 Q 478 150 488 150 H 700"
+          delay={OUTPUT_ROUTE_DURATION}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
+        <AnimatedPath
+          d="M 380 200 H 468 Q 478 200 478 210 V 240 Q 478 250 488 250 H 700"
+          delay={OUTPUT_ROUTE_DURATION * 2}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
+        <AnimatedPath
+          d="M 380 200 H 468 Q 478 200 478 210 V 340 Q 478 350 488 350 H 700"
+          delay={OUTPUT_ROUTE_DURATION * 3}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
 
-        <foreignObject
-          x="50"
-          y="175"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
-            <GithubIconIcon className="text-foreground" />
-          </div>
+        <foreignObject x="32" y="170" width="60" height="60">
+          <SourceNode />
         </foreignObject>
 
-        <foreignObject
-          x="100"
-          y="192"
-          width="140"
-          height="16"
-          className="pointer-events-none"
-        >
+        <foreignObject x="92" y="192" width="128" height="16">
           <m.div
-            className="text-primary flex items-center"
-            animate={{ x: [0, 124] }}
-            transition={{
-              repeat: Infinity,
-              ease: "linear",
-              duration: 1.5,
-            }}
+            className="flex items-center text-primary"
+            animate={reducedMotion ? undefined : { x: [0, 112] }}
+            transition={
+              reducedMotion
+                ? undefined
+                : { repeat: Infinity, ease: "linear", duration: 1.6 }
+            }
           >
             <GitPullRequest className="size-4" />
           </m.div>
         </foreignObject>
 
-        <foreignObject
-          x="240"
-          y="175"
-          width="150"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="relative w-full h-full">
-            <div className="absolute -inset-1 rounded-none bg-neutral-700/50 opacity-10 blur-sm animate-pulse"></div>
-            <div className="relative border border-border p-4 rounded-none flex items-center justify-center w-full h-full">
-              <span className="text-primary text-base tracking-wider font-sans">
-                GitLoud
-              </span>
-            </div>
-          </div>
+        <foreignObject x="220" y="166" width="160" height="68">
+          <GitLoudNode reducedMotion={reducedMotion} />
         </foreignObject>
 
-        <foreignObject
-          x="700"
-          y="25"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="700" y="20" width="60" height="60">
+          <PlatformNode label="Reddit">
             <RedditIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
-
-        <foreignObject
-          x="700"
-          y="125"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="700" y="120" width="60" height="60">
+          <PlatformNode label="X">
             <XIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
-
-        <foreignObject
-          x="700"
-          y="225"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="700" y="220" width="60" height="60">
+          <PlatformNode label="LinkedIn">
             <LinkedInIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
-
-        <foreignObject
-          x="700"
-          y="325"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="700" y="320" width="60" height="60">
+          <PlatformNode label="Discord">
             <DiscordIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
       </svg>
     </div>
   );
 }
 
-function WorkflowDiagramMobile() {
+function WorkflowDiagramMobile({
+  reducedMotion,
+}: {
+  reducedMotion: boolean;
+}) {
+  const markerId = "workflow-arrow-mobile";
+
   return (
-    <div className="relative w-full max-w-[300px] mx-auto block md:hidden mt-6">
+    <div className="relative mx-auto block w-full max-w-[320px] md:hidden">
       <svg
-        className="w-full h-auto pointer-events-none block"
-        viewBox="0 0 300 500"
+        className="pointer-events-none block h-auto w-full"
+        viewBox="0 0 320 500"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
+        <WorkflowMarker id={markerId} />
+
         <path
-          d="M 150 70 L 150 180"
-          className="stroke-primary opacity-15"
-          strokeWidth="1.5"
+          d="M 160 76 L 160 178"
+          className="stroke-border"
+          strokeWidth="1"
           strokeLinecap="round"
-          markerEnd="url(#arrow)"
+          markerEnd={`url(#${markerId})`}
         />
 
-        <foreignObject
-          x="125"
-          y="20"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
-            <GithubIconIcon className="text-foreground" />
-          </div>
+        <foreignObject x="130" y="16" width="60" height="60">
+          <SourceNode />
         </foreignObject>
 
-        <foreignObject
-          x="142"
-          y="70"
-          width="16"
-          height="110"
-          className="pointer-events-none"
-        >
+        <foreignObject x="152" y="76" width="16" height="102">
           <m.div
-            className="text-primary flex justify-center"
-            animate={{ y: [0, 94] }}
-            transition={{
-              repeat: Infinity,
-              ease: "linear",
-              duration: 1.5,
-            }}
+            className="flex justify-center text-primary"
+            animate={reducedMotion ? undefined : { y: [0, 86] }}
+            transition={
+              reducedMotion
+                ? undefined
+                : { repeat: Infinity, ease: "linear", duration: 1.6 }
+            }
           >
             <GitPullRequest className="size-4" />
           </m.div>
         </foreignObject>
 
-        <foreignObject
-          x="90"
-          y="180"
-          width="120"
-          height="80"
-          className="pointer-events-auto"
-        >
-          <div className="relative group w-full h-full">
-            <div className="absolute -inset-1 rounded-none bg-neutral-700/50 opacity-10 blur-sm animate-pulse"></div>
-            <div className="relative border border-border p-3 rounded-none flex items-center justify-center shadow-lg w-full h-full">
-              <span className="text-primary text-sm tracking-wider">
-                GitLoud
-              </span>
-            </div>
-          </div>
+        <foreignObject x="80" y="178" width="160" height="68">
+          <GitLoudNode reducedMotion={reducedMotion} />
         </foreignObject>
 
-        <AnimatedPath d="M 150 260 L 150 280 L 75 280 L 75 300" strokeDasharray="20 95" strokeDashoffsetValues={[115, 0]} duration={2.0} />
-        <AnimatedPath d="M 150 260 L 150 280 L 225 280 L 225 300" strokeDasharray="20 95" strokeDashoffsetValues={[115, 0]} duration={2.0} />
-        <AnimatedPath d="M 150 260 L 150 380 L 75 380 L 75 400" strokeDasharray="30 185" strokeDashoffsetValues={[215, 0]} duration={2.2} />
-        <AnimatedPath d="M 150 260 L 150 380 L 225 380 L 225 400" strokeDasharray="30 185" strokeDashoffsetValues={[215, 0]} duration={2.2} />
+        <AnimatedPath
+          d="M 160 246 V 268 Q 160 278 150 278 H 88 Q 78 278 78 288 V 308"
+          delay={0}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
+        <AnimatedPath
+          d="M 160 246 V 268 Q 160 278 170 278 H 232 Q 242 278 242 288 V 308"
+          delay={OUTPUT_ROUTE_DURATION}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
+        <AnimatedPath
+          d="M 160 246 V 384 Q 160 394 150 394 H 88 Q 78 394 78 404 V 424"
+          delay={OUTPUT_ROUTE_DURATION * 2}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
+        <AnimatedPath
+          d="M 160 246 V 384 Q 160 394 170 394 H 232 Q 242 394 242 404 V 424"
+          delay={OUTPUT_ROUTE_DURATION * 3}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
+        />
 
-        <foreignObject
-          x="50"
-          y="300"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-sm w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="48" y="308" width="60" height="60">
+          <PlatformNode label="Reddit">
             <RedditIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
-
-        <foreignObject
-          x="200"
-          y="300"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-sm w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="212" y="308" width="60" height="60">
+          <PlatformNode label="X">
             <XIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
-
-        <foreignObject
-          x="50"
-          y="400"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="48" y="424" width="60" height="60">
+          <PlatformNode label="LinkedIn">
             <LinkedInIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
-
-        <foreignObject
-          x="200"
-          y="400"
-          width="50"
-          height="50"
-          className="pointer-events-auto"
-        >
-          <div className="bg-card border border-border/80 rounded-none shadow-md w-full h-full flex items-center justify-center shrink-0 [&_svg]:size-5">
+        <foreignObject x="212" y="424" width="60" height="60">
+          <PlatformNode label="Discord">
             <DiscordIcon />
-          </div>
+          </PlatformNode>
         </foreignObject>
       </svg>
+    </div>
+  );
+}
+
+function SourceNode() {
+  return (
+    <div className="flex border border-border rounded-sm size-full items-center justify-center bg-background/95 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9)] ring-1 ring-border/90 [&_svg]:size-5">
+      <GithubIconIcon className="text-foreground" />
+    </div>
+  );
+}
+
+function GitLoudNode({ reducedMotion }: { reducedMotion: boolean }) {
+  return (
+    <div className="relative border border-border rounded-sm flex size-full items-center justify-center overflow-hidden bg-background/95 shadow-[0_22px_55px_-28px_hsl(var(--primary)/0.65)] ring-1 ring-primary/35">
+      {reducedMotion ? null : (
+        <m.span
+          aria-hidden="true"
+          className="absolute inset-y-0 w-12 bg-primary/10 blur-lg"
+          animate={{ x: [-70, 190] }}
+          transition={{ repeat: Infinity, ease: "linear", duration: 2.8 }}
+        />
+      )}
+      <span className="relative flex items-center gap-2 text-sm font-semibold tracking-[0.12em] text-primary">
+        <span className="size-1.5 bg-primary shadow-[0_0_12px_hsl(var(--primary))]" />
+        GITLOUD
+      </span>
+    </div>
+  );
+}
+
+function PlatformNode({
+  children,
+  label,
+}: {
+  children: ReactNode;
+  label: string;
+}) {
+  return (
+    <div
+      aria-label={label}
+      className="flex size-full border border-border rounded-sm items-center justify-center bg-background/95 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.9)] ring-1 ring-border/90 transition-colors hover:bg-foreground/5 [&_svg]:size-5"
+    >
+      {children}
     </div>
   );
 }

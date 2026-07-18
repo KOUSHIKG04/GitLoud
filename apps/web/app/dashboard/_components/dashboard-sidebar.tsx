@@ -49,7 +49,7 @@ export function DashboardSidebar({
   return (
     <Sidebar
       collapsible="icon"
-      className="border-border/70 **:data-[sidebar=group-action]:rounded-none **:data-[sidebar=group-label]:rounded-none **:data-[sidebar=menu-action]:rounded-none **:data-[sidebar=menu-button]:rounded-none **:data-[sidebar=menu-sub-button]:rounded-none"
+      className="border-border/70 **:data-[sidebar=group-action]:rounded-sm **:data-[sidebar=group-label]:rounded-sm **:data-[sidebar=menu-action]:rounded-sm **:data-[sidebar=menu-button]:rounded-sm **:data-[sidebar=menu-sub-button]:rounded-sm"
     >
       <SidebarHeader>
         <SidebarMenu>
@@ -229,7 +229,7 @@ function getSidebarTooltip(label: string) {
   return {
     children: label,
     sideOffset: 8,
-    className: "rounded-none",
+    className: "rounded-sm",
   };
 }
 

@@ -29,6 +29,18 @@ import {
 
 const DISCORD_WEBHOOK_DOCS_URL =
   "https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks";
+const publicationDateFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "UTC",
+});
+
+function formatPublicationDate(value: string) {
+  const date = new Date(value);
+  return Number.isFinite(date.valueOf())
+    ? publicationDateFormatter.format(date)
+    : "Unknown date";
+}
 
 export function SocialAccountsSettings() {
   const {
@@ -58,11 +70,11 @@ export function SocialAccountsSettings() {
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem
           value="discord-webhook"
-          className="overflow-hidden border border-border bg-background shadow-xs last:border-b"
+          className="overflow-hidden rounded-sm border border-border bg-background shadow-xs last:border-b"
         >
           <AccordionTrigger className="min-h-20 gap-2 px-3 py-3 text-left hover:bg-muted/20 hover:no-underline data-[state=open]:border-b data-[state=open]:border-border sm:min-h-24 sm:gap-4 sm:px-6 sm:py-4">
             <span className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-              <span className="flex size-10 shrink-0 items-center justify-center border  text-primary [&_svg]:size-6">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-sm border text-primary [&_svg]:size-6">
                 <span className="flex size-5 items-center justify-center">
                   <DiscordIcon />
                 </span>
@@ -76,7 +88,7 @@ export function SocialAccountsSettings() {
                 </span>
               </span>
               <span
-                className={`hidden shrink-0 items-center gap-2 border px-3 py-2 text-[11px] font-semibold tracking-wide sm:inline-flex ${
+                className={`hidden shrink-0 items-center gap-2 rounded-sm border px-3 py-2 text-[11px] font-semibold tracking-wide sm:inline-flex ${
                   discordConnections.length > 0
                     ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                     : "border-border bg-muted/30 text-muted-foreground"
@@ -110,7 +122,7 @@ export function SocialAccountsSettings() {
                     <h3 className="text-base font-semibold">
                       Add a Discord destination
                     </h3>
-                    <p className="mt-1 wrap-break-words text-sm leading-5 text-muted-foreground">
+                    <p className="mt-1 wrap-break-words tracking-tighter text-sm leading-5 text-muted-foreground">
                       Create a webhook under Server Settings &gt; Integrations
                       &gt; Webhooks, then paste its URL below.
                     </p>
@@ -131,10 +143,10 @@ export function SocialAccountsSettings() {
                         id="discord-channel-label"
                         value={displayName}
                         onChange={(event) => setDisplayName(event.target.value)}
-                        placeholder="e.g. Product updates"
+                        placeholder="e.g (Product updates)"
                         maxLength={80}
                         disabled={savingProvider !== null}
-                        className="h-11 w-full min-w-0 rounded-none bg-background pl-10"
+                        className="h-11 w-full min-w-0 rounded-sm bg-background pl-10"
                       />
                     </div>
                   </div>
@@ -156,13 +168,13 @@ export function SocialAccountsSettings() {
                         placeholder="https://discord.com/api/webhooks/..."
                         autoComplete="off"
                         disabled={savingProvider !== null}
-                        className="h-11 w-full min-w-0 rounded-none bg-background pl-10"
+                        className="h-11 w-full min-w-0 rounded-sm bg-background pl-10"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-5 flex min-w-0 flex-col gap-4 border border-border bg-background/70 p-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                <div className="mt-5 flex min-w-0 flex-col gap-4 rounded-sm border border-border bg-background/70 p-3 sm:mt-6 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                   <p className="flex min-w-0 items-start gap-3 text-xs leading-5 text-muted-foreground sm:items-center">
                     <ShieldCheck className="mt-0.5 size-5 shrink-0 text-green-700 sm:mt-0 sm:size-6" />
                     The webhook is encrypted before storage and is never sent to
@@ -170,7 +182,7 @@ export function SocialAccountsSettings() {
                   </p>
                   <Button
                     type="button"
-                    className="h-11 w-full shrink-0 rounded-none sm:w-auto sm:min-w-48"
+                    className="h-11 w-full shrink-0 rounded-sm sm:w-auto sm:min-w-48"
                     disabled={savingProvider !== null || !webhookUrl.trim()}
                     onClick={() => void connectDiscord()}
                   >
@@ -184,9 +196,9 @@ export function SocialAccountsSettings() {
                 </div>
               </div>
 
-              <div className="flex min-w-0 flex-col gap-4 border border-border bg-muted/10 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+              <div className="flex min-w-0 flex-col gap-4 rounded-sm border border-border bg-muted/10 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center border border-border text-muted-foreground">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-sm border border-border text-muted-foreground">
                     <CircleHelp className="size-4" />
                   </span>
                   <div className="min-w-0">
@@ -199,7 +211,7 @@ export function SocialAccountsSettings() {
                 <Button
                   asChild
                   variant="outline"
-                  className="w-full rounded-none sm:w-auto"
+                  className="w-full rounded-sm sm:w-auto"
                 >
                   <a
                     href={DISCORD_WEBHOOK_DOCS_URL}
@@ -216,7 +228,7 @@ export function SocialAccountsSettings() {
         </AccordionItem>
       </Accordion>
 
-      <section className="wrap-break-words border border-border bg-muted/15 p-3 text-sm leading-6 text-muted-foreground sm:p-5">
+      <section className="wrap-break-words rounded-sm border border-border bg-muted/15 p-3 text-sm leading-6 text-muted-foreground sm:p-5">
         <h2 className="mb-1 font-semibold text-foreground">
           X, Reddit, and LinkedIn
         </h2>
@@ -227,7 +239,7 @@ export function SocialAccountsSettings() {
         activity.
       </section>
 
-      <section className="flex h-80 min-w-0 flex-col gap-4 border border-border bg-background p-3 shadow-xs sm:h-96 sm:p-5">
+      <section className="flex h-80 min-w-0 flex-col gap-4 rounded-sm border border-border bg-background p-3 shadow-xs sm:h-96 sm:p-5">
         <div className="shrink-0 space-y-1">
           <h2 className="flex items-center gap-2 text-base font-semibold">
             <History className="size-4" />
@@ -240,7 +252,7 @@ export function SocialAccountsSettings() {
 
         <div className="min-h-0 flex-1 overflow-y-auto pr-1">
           {publications.length === 0 ? (
-            <div className="border border-dashed border-border p-4 text-sm text-muted-foreground">
+            <div className="rounded-sm border border-border p-4 text-sm text-muted-foreground">
               No direct publications yet.
             </div>
           ) : (
@@ -248,7 +260,7 @@ export function SocialAccountsSettings() {
               {publications.map((publication) => (
                 <div
                   key={publication.id}
-                  className="flex min-w-0 items-start justify-between gap-3 border border-border bg-muted/20 p-3 sm:items-center"
+                  className="flex min-w-0 items-start justify-between gap-3 rounded-sm border border-border bg-muted/20 p-3 sm:items-center"
                 >
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium">
@@ -259,7 +271,7 @@ export function SocialAccountsSettings() {
                     </div>
                     <div className="wrap-break-words text-xs text-muted-foreground">
                       {publication.status.toUpperCase()} ·{" "}
-                      {new Date(publication.createdAt).toLocaleString()}
+                      {formatPublicationDate(publication.createdAt)}
                     </div>
                     {publication.errorMessage ? (
                       <div className="mt-1 line-clamp-2 text-xs text-destructive">
@@ -272,7 +284,7 @@ export function SocialAccountsSettings() {
                       asChild
                       variant="outline"
                       size="icon-sm"
-                      className="shrink-0 rounded-none"
+                      className="shrink-0 rounded-sm"
                     >
                       <a
                         href={publication.externalPostUrl}
@@ -318,10 +330,10 @@ function ConnectionList({
         {connections.map((connection) => (
           <div
             key={connection.id}
-            className="flex min-h-20 min-w-0 items-center justify-between gap-3 border border-border bg-card/20 p-3 sm:min-h-24 sm:gap-4 sm:px-4 sm:py-3"
+            className="flex min-h-20 min-w-0 items-center justify-between gap-3 rounded-sm border border-border bg-card/20 p-3 sm:min-h-24 sm:gap-4 sm:px-4 sm:py-3"
           >
             <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
-              <span className="flex size-10 shrink-0 items-center justify-center border  text-primary [&_svg]:size-6">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-sm border text-primary [&_svg]:size-6">
                 <span className="flex size-5 items-center justify-center">
                   <DiscordIcon />
                 </span>
@@ -340,7 +352,7 @@ function ConnectionList({
               type="button"
               variant="outline"
               size="icon"
-              className="shrink-0 rounded-none text-muted-foreground hover:border-destructive/50 hover:text-destructive"
+              className="shrink-0 rounded-sm text-muted-foreground hover:border-destructive/50 hover:text-destructive"
               disabled={deletingId !== null}
               aria-label={`Disconnect ${connection.displayName}`}
               title={`Disconnect ${connection.displayName}`}

@@ -119,7 +119,7 @@ export function GeneratedContentView({
       ) : (
         <div className="space-y-4">
           {isReducedFallbackContent ? (
-            <div className="border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-amber-900 dark:text-amber-100">
+            <div className="rounded-sm border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-amber-900 dark:text-amber-100">
               Free fallback AI generated a shorter result with only the X post,
               short summary, and beginner-friendly explanation. Regenerate
               later for the full content set.
@@ -287,7 +287,7 @@ function ContentCard({
   ) => Promise<void>;
 }) {
   return (
-    <section className="space-y-4 bg-card p-5 text-card-foreground shadow-sm">
+    <section className="space-y-4 rounded-sm bg-card p-5 text-card-foreground shadow-sm">
       <h3 className="text-[17px] font-semibold leading-7">{title}</h3>
       <p className="whitespace-pre-wrap wrap-break-word text-base leading-7 text-muted-foreground">
         {value}

@@ -3,10 +3,10 @@
 import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
 import { Check, GitPullRequest } from "lucide-react";
 import { DotMatrixLoader } from "@/components/DotMatrixLoader";
-import { type UIEvent, useState } from "react";
+import { type UIEvent, useMemo, useState } from "react";
 import type { ActivityType, GitHubActivityItem } from "./github-activity-types";
 
-const activityListHeightPx = 272;
+const activityListHeightPx = 320;
 const activityScrollTrackHeightPx = activityListHeightPx - 8;
 const minimumScrollThumbHeightPx = 28;
 const estimatedActivityItemHeightPx = 68;
@@ -37,7 +37,11 @@ export function GitHubActivitySelectionStep({
     (activityListHeightPx / estimatedScrollHeight) *
       activityScrollTrackHeightPx,
   );
-  const scrollThumbVisible = items.length > 3;
+  const scrollThumbVisible = estimatedScrollHeight > activityListHeightPx;
+  const selectedItemUrlSet = useMemo(
+    () => new Set(selectedItemUrls),
+    [selectedItemUrls],
+  );
 
   function handleActivityScroll(event: UIEvent<HTMLDivElement>) {
     const viewport = event.currentTarget;
@@ -60,7 +64,7 @@ export function GitHubActivitySelectionStep({
   }
 
   return (
-    <div className="h-64 w-full border bg-background overflow-hidden">
+    <div className="h-80 w-full overflow-hidden rounded-sm border bg-background">
       {loadingActivity ? (
         <output
           className="flex h-full items-center justify-center"
@@ -80,16 +84,16 @@ export function GitHubActivitySelectionStep({
           found.
         </div>
       ) : (
-        <div className="relative h-68 w-full overflow-x-hidden">
+        <div className="relative h-80 w-full overflow-x-hidden">
           <div
             className={
-              "gitloud-activity-scroll h-68 w-full scroll-smooth overflow-y-auto overflow-x-hidden pr-0 border-none"
+              "gitloud-activity-scroll h-80 w-full scroll-smooth overflow-y-auto overflow-x-hidden border-none pr-0"
             }
             onScroll={handleActivityScroll}
           >
             <div className="">
               {items.map((item) => {
-                const checked = selectedItemUrls.includes(item.url);
+                const checked = selectedItemUrlSet.has(item.url);
                 const updatedAt = item.updatedAt
                   ? new Date(item.updatedAt)
                   : null;
@@ -116,7 +120,7 @@ export function GitHubActivitySelectionStep({
                         : undefined
                     }
                     className={[
-                      "flex w-full cursor-pointer gap-2 sm:gap-3 border-b px-3.5 py-3 sm:px-6 sm:py-4 text-left transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                      "flex w-full cursor-pointer gap-2 rounded-none! border-b px-3 py-3 text-left transition-colors last:border-b-0 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:gap-3 sm:px-6 sm:py-4",
                       checked ? "bg-muted/50" : "",
                     ]
                       .filter(Boolean)
@@ -130,7 +134,7 @@ export function GitHubActivitySelectionStep({
                     <span
                       aria-hidden="true"
                       className={[
-                        "mt-1 flex size-3 shrink-0 items-center justify-center border border-primary transition-colors",
+                        "mt-1 flex size-3 shrink-0 items-center justify-center rounded-sm border border-primary transition-colors",
                         checked
                           ? "bg-primary text-primary-foreground"
                           : "bg-background",
@@ -144,11 +148,11 @@ export function GitHubActivitySelectionStep({
                       <CommitBranchIcon className="mt-1 size-3 shrink-0 text-primary" />
                     )}
                     <span className="min-w-0 flex-1 space-y-1">
-                      <span className="block truncate text-sm tracking-tighter">
+                      <span className="block truncate text-[13px] tracking-tighter sm:text-sm">
                         {item.title}
                       </span>
-                      <span className="flex flex-wrap gap-x-1.5 gap-y-0.5 text-xs text-muted-foreground">
-                        <span className="font-mono text-primary/80">
+                      <span className="flex min-w-0 flex-wrap gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground sm:text-xs">
+                        <span className="max-w-full truncate font-mono text-primary/80">
                           {item.subtitle}
                         </span>
                         {item.author ? <span>by {item.author}</span> : null}

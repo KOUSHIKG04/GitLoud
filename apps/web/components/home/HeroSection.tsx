@@ -22,8 +22,8 @@ export function HeroSection() {
                 className="pointer-event-none mb-12 border uppercase inline-flex items-center gap-4 bg-background/60 px-4  py-1.5  font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm"
               >
                 <span className="size-2 rounded-full bg-chart-1" />
-                <span className="text-[12px] tracking-tight">
-                  Developer PR content assistant
+                <span className="text-[13px] text-foreground">
+                  Developer content assistant
                 </span>
               </Button>
             </MotionItem>
@@ -46,14 +46,9 @@ export function HeroSection() {
               <p className="mt-3 sm:mt-5 mx-auto max-w-md text-pretty text-sm leading-5.5 text-muted-foreground sm:max-w-2xl sm:text-base lg:text-md tracking-tighter md:block">
                 Paste one GitHub PR or commit link, or connect GitHub to combine
                 up to five PRs or commits from one repository. GitLoud turns the
-                changes into one publish-ready set of summaries, changelog
-                notes, portfolio bullets, and social posts.
-              </p>
-            </MotionItem>
-
-            <MotionItem>
-              <p className="mx-auto mt-3 max-w-2xl text-xs font-medium text-foreground/80 sm:text-sm">
-                Bring your own Gemini, OpenAI, Anthropic, or OpenRouter API key.
+                changes into one publish-ready set of{" "}
+                <span className="text-primary/90">social posts</span>,
+                summaries, changelog notes and portfolio bullets.
               </p>
             </MotionItem>
 

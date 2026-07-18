@@ -55,7 +55,7 @@ export function GitHubActivityPanel() {
 
   if (repositories.length === 0) {
     return (
-      <section className="space-y-3 border bg-card p-4 text-card-foreground shadow-sm sm:p-5">
+      <section className="space-y-3 rounded-sm border bg-card p-4 text-card-foreground shadow-sm sm:p-5">
         <h2 className="text-base font-semibold">GitHub activity</h2>
         <p className="text-sm text-muted-foreground">
           Connect and sync the GitLoud GitHub App in settings to generate
@@ -69,9 +69,9 @@ export function GitHubActivityPanel() {
   }
 
   return (
-    <section className="border bg-card text-card-foreground shadow-sm">
-      <div className="flex flex-col min-h-105">
-        <div className="space-y-2 p-4 sm:p-4">
+    <section className="min-w-0 overflow-hidden rounded-sm border bg-card text-card-foreground shadow-sm">
+      <div className="flex min-h-0 min-w-0 flex-col sm:min-h-105">
+        <div className="min-w-0 space-y-5 p-3 sm:space-y-6 sm:p-4">
           <GitHubActivityControls
             activityType={activityType}
             activityTypeLabel={activityTypeLabel}
@@ -110,10 +110,10 @@ export function GitHubActivityPanel() {
         </div>
 
         {generationStep === "select" ? (
-          <div className="flex justify-end border-t bg-muted/20 px-4 py-3 sm:px-6">
+          <div className="flex justify-end border-t bg-muted/20 px-3 py-3 sm:px-6">
             <Button
               type="button"
-              className="min-w-32"
+              className="w-full sm:w-auto sm:min-w-32"
               disabled={selectedItems.length === 0 || loadingActivity}
               onClick={goToCustomizeStep}
             >
