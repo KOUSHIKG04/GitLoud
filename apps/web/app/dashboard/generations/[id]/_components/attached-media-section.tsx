@@ -19,7 +19,7 @@ export function AttachedMediaSection({
   mediaAttachments: ShareMediaAttachment[];
 }) {
   return (
-    <section className="space-y-3 border bg-card p-3 text-card-foreground shadow-sm">
+    <section className="space-y-3 rounded-sm border bg-card p-3 text-card-foreground shadow-sm">
       <div>
         <h2 className="text-lg font-semibold tracking-tight px-1.5">
           Attached media
@@ -37,7 +37,7 @@ export function AttachedMediaSection({
           ))}
         </Accordion>
       ) : (
-        <div className="flex min-h-25 items-center justify-center border bg-background p-4 text-center text-sm text-muted-foreground">
+        <div className="flex min-h-25 items-center justify-center rounded-sm border bg-background p-4 text-center text-sm text-muted-foreground">
           No file attached. Add media in dashboard before generation to include it
           when sharing generated posts.
         </div>
@@ -82,7 +82,7 @@ function MediaAttachmentItem({ media }: { media: ShareMediaAttachment }) {
   return (
     <AccordionItem
       value={media.id}
-      className="border bg-background px-4 text-card-foreground shadow-sm"
+      className="rounded-sm border bg-background px-4 text-card-foreground shadow-sm"
     >
       <AccordionTrigger className="gap-3 text-left hover:no-underline">
         <div className="min-w-0">
@@ -97,7 +97,7 @@ function MediaAttachmentItem({ media }: { media: ShareMediaAttachment }) {
 
       <AccordionContent>
         <div className="space-y-3 pb-4">
-          <div className="relative flex aspect-video items-center justify-center border bg-muted">
+          <div className="relative flex aspect-video items-center justify-center rounded-sm border bg-muted">
             {isVideo ? (
               <video
                 src={media.secureUrl}

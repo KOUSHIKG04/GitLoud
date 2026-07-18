@@ -141,7 +141,7 @@ export function DiscordPublishButton({
           <Send className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-none sm:max-w-lg">
+      <DialogContent className="rounded-sm sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Publish to Discord</DialogTitle>
           <DialogDescription>
@@ -155,7 +155,7 @@ export function DiscordPublishButton({
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           </div>
         ) : connections.length === 0 ? (
-          <div className="space-y-3 border border-border bg-muted/20 p-4 text-sm">
+          <div className="space-y-3 rounded-sm border border-border bg-muted/20 p-4 text-sm">
             <p>No Discord channel is connected yet.</p>
             <Button asChild variant="outline" className="w-full">
               <Link href="/dashboard/settings/social">Connect Discord</Link>
@@ -172,7 +172,7 @@ export function DiscordPublishButton({
                   key={connection.id}
                   type="button"
                   aria-pressed={selectedConnectionId === connection.id}
-                  className={`w-full border p-3 text-left transition-colors ${
+                  className={`w-full rounded-sm border p-3 text-left transition-colors ${
                     selectedConnectionId === connection.id
                       ? "border-foreground bg-muted"
                       : "border-border hover:bg-muted/50"
@@ -193,7 +193,7 @@ export function DiscordPublishButton({
               <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Post preview
               </div>
-              <div className="max-h-56 overflow-y-auto whitespace-pre-wrap border border-border bg-muted/20 p-3 text-sm leading-6">
+              <div className="max-h-56 overflow-y-auto whitespace-pre-wrap rounded-sm border border-border bg-muted/20 p-3 text-sm leading-6">
                 {preview}
               </div>
             </div>

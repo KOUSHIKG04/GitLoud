@@ -23,12 +23,12 @@ export function GitHubActivityCustomizeStep({
   setContext: (value: string) => void;
 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {selectedItems[0] ? (
-        <div className="border bg-background p-3">
+        <div className="min-w-0 rounded-sm border bg-background p-3 sm:p-4">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              <span className="flex size-6 items-center justify-center bg-primary/10 text-primary">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-primary">
                 {selectedItems[0].sourceType === "pull-request" ? (
                   <GitPullRequest className="size-3.5" />
                 ) : (
@@ -45,7 +45,7 @@ export function GitHubActivityCustomizeStep({
                   : "commits"}
             </div>
 
-            <div className="relative mt-2 bg-muted/20 py-1.5 pl-4 pr-3">
+            <div className="relative mt-2 min-w-0 rounded-sm bg-muted/20 py-1.5 pl-4 pr-3">
               <span className="absolute inset-y-0 left-0 w-1 bg-primary" />
               <p className="truncate text-sm font-semibold">
                 {selectedItems.length === 1
@@ -53,7 +53,7 @@ export function GitHubActivityCustomizeStep({
                   : `${selectedItems[0].title} and ${selectedItems.length - 1} more`}
               </p>
               <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span className="bg-primary/10 px-2 py-0.5 font-medium text-primary">
+                <span className="max-w-full truncate rounded-sm bg-primary/10 px-2 py-0.5 font-medium text-primary">
                   {selectedItems.length === 1
                     ? selectedItems[0].subtitle
                     : "Combined update"}
@@ -69,7 +69,7 @@ export function GitHubActivityCustomizeStep({
           </div>
 
           {selectedMedia ? (
-            <div className="mt-2 border bg-muted/10 p-2 text-xs">
+            <div className="mt-2 rounded-sm border bg-muted/10 p-2 text-xs">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 truncate font-medium">
                   <Paperclip className="size-3.5 text-primary" />
@@ -84,7 +84,7 @@ export function GitHubActivityCustomizeStep({
         </div>
       ) : null}
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center">
           <label
             htmlFor="github-activity-context"

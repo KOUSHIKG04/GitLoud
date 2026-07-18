@@ -28,8 +28,8 @@ export function GitHubActivityFooter({
   onSubmit: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 border-t bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-      <div className="flex min-w-0 flex-wrap items-center gap-2">
+    <div className="flex min-w-0 flex-col gap-4 border-t bg-muted/20 px-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="flex min-w-0 flex-wrap items-center gap-3">
         <input
           type="hidden"
           name="xPostLength"
@@ -58,13 +58,15 @@ export function GitHubActivityFooter({
           <Upload className="size-4" />
         </Button>
         {selectedMedia ? (
-          <div className="flex min-w-0 items-center text-xs text-muted-foreground">
-            <span className="max-w-44 truncate">{selectedMedia.name}</span>
+          <div className="flex min-w-0 max-w-full items-center text-xs text-muted-foreground">
+            <span className="max-w-32 truncate sm:max-w-44">
+              {selectedMedia.name}
+            </span>
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="size-7 rounded-none"
+              className="size-7 rounded-sm"
               disabled={isSubmitting}
               onClick={clearSelectedMedia}
               aria-label="Remove selected media"
@@ -84,7 +86,7 @@ export function GitHubActivityFooter({
         type="button"
         disabled={submitDisabled}
         onClick={onSubmit}
-        className="flex min-w-32 items-center justify-center gap-2"
+        className="flex w-full min-w-32 items-center justify-center gap-2 sm:w-auto"
       >
         {isSubmitting ? (
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -105,7 +107,7 @@ function XPostLengthToggle({
   setXPostLength: (value: XPostLength) => void;
 }) {
   return (
-    <div className="flex items-center gap-1.5 border-l border-border pl-2">
+    <div className="ml-1 flex items-center gap-2 border-l border-border pl-3">
       <button
         type="button"
         role="switch"
@@ -132,7 +134,7 @@ function XPostLengthToggle({
       >
         <span
           className={[
-            "block size-3.5 rounded-none shadow-sm transition-transform",
+            "block size-3.5 rounded-sm shadow-sm transition-transform",
             isPremiumXPost
               ? "translate-x-4 bg-background"
               : "translate-x-0 bg-foreground/70",

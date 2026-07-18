@@ -47,7 +47,7 @@ export function ContentExamplesSection() {
     <>
       <section className="px-4  pb-20 sm:px-6 lg:px-20">
         <div className="mx-auto max-w-6xl space-y-4">
-          <div className="mx-auto mt-2 max-w-5xl border border-border bg-card p-4 font-mono tracking-tighter">
+          <div className="mx-auto mt-2 max-w-5xl rounded-sm border border-border bg-card p-4 font-mono tracking-tighter">
             <div className="flex items-center gap-1 mb-1 text-sm tracking-tight text-muted-foreground">
               <span className="flex items-center gap-1">
                 For <ArrowRight size={14} className="mt-0.25" />
@@ -93,7 +93,7 @@ export function ContentExamplesSection() {
             Ready to{" "}
             <span
               className={cn(
-                "after:-rotate-8 after:skew-8 after:absolute after:bg-primary after:-z-10 after:inset-0 after:content-[''] after:w-full after:h-full",
+                "after:rotate-8 after:-skew-8 after:absolute after:bg-primary after:-z-10 after:inset-0 after:content-[''] after:w-full after:h-full",
                 "text-center tracking-tight inline-block relative z-10",
               )}
             >

@@ -110,7 +110,7 @@ export async function HistoryList({
               return (
                 <article
                   key={generation.id}
-                  className="relative border text-card-foreground p-4 shadow-sm transition-colors hover:bg-card cursor-pointer"
+                  className="relative cursor-pointer rounded-sm border p-4 text-card-foreground shadow-sm transition-colors hover:bg-card"
                 >
                   <HistoryCardLink
                     href={`/dashboard/generations/${generation.id}`}
@@ -198,7 +198,7 @@ export async function HistoryList({
                       </span>
                     </div>
 
-                    <div className="inline-flex items-center gap-1.5 border bg-muted/20 px-2.5 py-1 text-xs text-muted-foreground font-medium">
+                    <div className="inline-flex items-center gap-1.5 rounded-sm border bg-muted/20 px-2.5 py-1 text-xs font-medium text-muted-foreground">
                       <Paperclip className="size-3" />
                       <span className="uppercase">
                         {generation.mediaAttachmentCount > 0

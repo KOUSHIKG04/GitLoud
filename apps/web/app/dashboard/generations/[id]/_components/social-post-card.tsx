@@ -26,7 +26,7 @@ export function SocialPostCard({
   generationId?: string;
 }) {
   return (
-    <section className="flex h-full flex-col gap-4 bg-card p-5 text-card-foreground shadow-sm">
+    <section className="flex h-full flex-col gap-4 rounded-sm bg-card p-5 text-card-foreground shadow-sm">
       <h3 className="text-[17px] font-semibold leading-7">{title}</h3>
 
       <p className="whitespace-pre-wrap wrap-break-word text-base leading-7 text-muted-foreground">

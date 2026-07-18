@@ -109,7 +109,7 @@ export default async function GenerationDetailPage({
                     href={item.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex min-w-0 items-center gap-2 border px-3 py-2 text-muted-foreground hover:bg-muted/30 hover:text-foreground hover:underline"
+                    className="flex min-w-0 items-center gap-2 rounded-sm border px-3 py-2 text-muted-foreground hover:bg-muted/30 hover:text-foreground hover:underline"
                   >
                     <span className="shrink-0 font-mono text-xs text-primary">
                       {item.reference}
@@ -136,7 +136,7 @@ export default async function GenerationDetailPage({
           </div>
         )}
 
-        <section className="grid gap-3 bg-card p-3 text-card-foreground shadow-sm lg:grid-cols-[2fr_3fr] min-w-0 w-full">
+        <section className="grid min-w-0 w-full gap-3 rounded-sm bg-card p-3 text-card-foreground shadow-sm lg:grid-cols-[2fr_3fr]">
           <div className="space-y-3">
             <SourceMetadataPanel
               source={metadataSource}

@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/home/HeroSection";
 import { ProfileSync } from "@/components/auth/ProfileSync";
 import { safeJsonLd } from "@/lib/safe-json-ld";
+import { WhatGitLoudDoesSection } from "@/components/home/WhatGitLoudDoesSection";
 
 export const metadata: Metadata = {
   title: "GitHub PR Summary and Social Post Generator",
@@ -81,6 +82,7 @@ export default function Home() {
         <Header />
         <HeroSection />
         <HowItWorksSection />
+        <WhatGitLoudDoesSection />
       </div>
 
       <Footer />

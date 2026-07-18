@@ -54,7 +54,7 @@ export function SourceMetadataPanel({
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 overflow-hidden border bg-background">
+      <div className="grid grid-cols-3 overflow-hidden rounded-sm border bg-background">
         <SourceStat
           label="Files changed"
           value={source.changedFiles.toLocaleString()}
@@ -135,7 +135,7 @@ function SourceStat({
       aria-label={`${label}: ${value}`}
       title={label}
     >
-      <span className="flex size-7 items-center justify-center bg-muted text-muted-foreground">
+      <span className="flex size-7 items-center justify-center rounded-sm bg-muted text-muted-foreground">
         {icon}
       </span>
       <span
@@ -159,8 +159,8 @@ function SourceMeta({
   value: string;
 }) {
   return (
-    <span className="flex min-h-14 items-center gap-3 border bg-background px-3 py-2">
-      <span className="flex size-8 shrink-0 items-center justify-center bg-muted text-muted-foreground">
+    <span className="flex min-h-14 items-center gap-3 rounded-sm border bg-background px-3 py-2">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-muted text-muted-foreground">
         {icon}
       </span>
       <span className="min-w-0">

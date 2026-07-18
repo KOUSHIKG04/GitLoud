@@ -173,7 +173,7 @@ export function PrForm({
       {...props}
       className={["w-full space-y-6", className].filter(Boolean).join(" ")}
     >
-      <div className="border bg-card text-card-foreground shadow-sm">
+      <div className="border rounded-sm bg-card text-card-foreground shadow-sm">
         <form
           onSubmit={handleSubmit(onSubmit, onInvalid)}
           className="flex min-h-105 flex-col"

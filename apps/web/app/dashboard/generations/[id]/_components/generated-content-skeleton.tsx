@@ -11,7 +11,7 @@ export function GeneratedContentSkeleton() {
     "changelog-entry",
     "implementation",
   ].map((key) => (
-    <section key={key} className="bg-card p-4 shadow-sm">
+    <section key={key} className="rounded-sm bg-card p-4 shadow-sm">
       <Skeleton className="h-4 w-36" />
       <div className="mt-4 space-y-2">
         <Skeleton className="h-4 w-full" />

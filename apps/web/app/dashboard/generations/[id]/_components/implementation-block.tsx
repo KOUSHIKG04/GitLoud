@@ -32,7 +32,7 @@ export function ImplementationBlock({
   return (
     <AccordionItem
       value="tech-used-and-features"
-      className="border-none bg-card px-5 text-card-foreground shadow-sm"
+      className="rounded-sm border-none bg-card px-5 text-card-foreground shadow-sm"
     >
       <AccordionTrigger className="py-4 text-[17px] font-semibold leading-7 hover:no-underline">
         Tech used and features

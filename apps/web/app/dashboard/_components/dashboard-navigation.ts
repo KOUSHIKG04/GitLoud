@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 import {
   GitBranch,
   History,
-  KeyRound,
+  UserKey,
   LayoutDashboard,
   Share2,
 } from "lucide-react";
@@ -17,7 +17,7 @@ export type DashboardSidebarItem = {
 
 export const dashboardOptions: DashboardSidebarItem[] = [
   {
-    label: "Quick Generate",
+    label: "Quick Generation's",
     href: "/dashboard",
     icon: LayoutDashboard,
     isActive: (pathname) => pathname === "/dashboard",
@@ -32,7 +32,7 @@ export const dashboardOptions: DashboardSidebarItem[] = [
 
 export const secondaryNavigationItems: DashboardSidebarItem[] = [
   {
-    label: "Generations",
+    label: "Generation's History",
     href: "/dashboard/history",
     icon: History,
     isActive: (pathname) => pathname.startsWith("/dashboard/history"),
@@ -50,7 +50,7 @@ export const settingsOptions: DashboardSidebarItem[] = [
   {
     label: "My API Key",
     href: "/dashboard/settings/api-key",
-    icon: KeyRound,
+    icon: UserKey,
     isActive: (pathname) => pathname.startsWith("/dashboard/settings/api-key"),
   },
   {
