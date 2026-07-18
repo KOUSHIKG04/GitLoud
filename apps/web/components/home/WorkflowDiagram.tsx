@@ -2,7 +2,7 @@
 
 import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
 import { GitPullRequest } from "lucide-react";
-import { LazyMotion, domAnimation, m } from "motion/react";
+import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
 import {
   DiscordIcon,
@@ -17,9 +17,16 @@ const OUTPUT_SEQUENCE_DURATION = OUTPUT_ROUTE_DURATION * 4;
 interface AnimatedPathProps {
   d: string;
   delay?: number;
+  markerId: string;
+  reducedMotion: boolean;
 }
 
-function AnimatedPath({ d, delay = 0 }: AnimatedPathProps) {
+function AnimatedPath({
+  d,
+  delay = 0,
+  markerId,
+  reducedMotion,
+}: AnimatedPathProps) {
   return (
     <>
       <path
@@ -27,42 +34,46 @@ function AnimatedPath({ d, delay = 0 }: AnimatedPathProps) {
         className="stroke-border"
         strokeWidth="1"
         strokeLinecap="round"
-        markerEnd="url(#workflow-arrow)"
+        markerEnd={`url(#${markerId})`}
       />
-      <path
-        d={d}
-        className="stroke-primary"
-        fill="none"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        pathLength="1"
-        strokeDasharray="0.055 0.945"
-        opacity="0"
-      >
-        <animate
-          attributeName="stroke-dashoffset"
-          values="0;-0.945;-0.945"
-          keyTimes="0;0.25;1"
-          begin={`${delay}s`}
-          dur={`${OUTPUT_SEQUENCE_DURATION}s`}
-          calcMode="linear"
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="opacity"
-          values="0;1;1;0;0"
-          keyTimes="0;0.008;0.245;0.25;1"
-          begin={`${delay}s`}
-          dur={`${OUTPUT_SEQUENCE_DURATION}s`}
-          repeatCount="indefinite"
-        />
-      </path>
+      {reducedMotion ? null : (
+        <path
+          d={d}
+          className="stroke-primary"
+          fill="none"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pathLength="1"
+          strokeDasharray="0.055 0.945"
+          opacity="0"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            values="0;-0.945;-0.945"
+            keyTimes="0;0.25;1"
+            begin={`${delay}s`}
+            dur={`${OUTPUT_SEQUENCE_DURATION}s`}
+            calcMode="linear"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="opacity"
+            values="0;1;1;0;0"
+            keyTimes="0;0.008;0.245;0.25;1"
+            begin={`${delay}s`}
+            dur={`${OUTPUT_SEQUENCE_DURATION}s`}
+            repeatCount="indefinite"
+          />
+        </path>
+      )}
     </>
   );
 }
 
 export function WorkflowDiagram() {
+  const reducedMotion = useReducedMotion() ?? false;
+
   return (
     <LazyMotion features={domAnimation}>
       <div className="relative mt-8 w-full select-none overflow-hidden border-border/70 ">
@@ -72,19 +83,19 @@ export function WorkflowDiagram() {
         />
 
         <div className="relative pt-3 sm:px-5 sm:pt-5">
-          <WorkflowDiagramDesktop />
-          <WorkflowDiagramMobile />
+          <WorkflowDiagramDesktop reducedMotion={reducedMotion} />
+          <WorkflowDiagramMobile reducedMotion={reducedMotion} />
         </div>
       </div>
     </LazyMotion>
   );
 }
 
-function WorkflowMarker() {
+function WorkflowMarker({ id }: { id: string }) {
   return (
     <defs>
       <marker
-        id="workflow-arrow"
+        id={id}
         viewBox="0 0 10 10"
         refX="8"
         refY="5"
@@ -98,7 +109,13 @@ function WorkflowMarker() {
   );
 }
 
-function WorkflowDiagramDesktop() {
+function WorkflowDiagramDesktop({
+  reducedMotion,
+}: {
+  reducedMotion: boolean;
+}) {
+  const markerId = "workflow-arrow-desktop";
+
   return (
     <div className="relative hidden w-full md:block">
       <svg
@@ -107,31 +124,39 @@ function WorkflowDiagramDesktop() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <WorkflowMarker />
+        <WorkflowMarker id={markerId} />
 
         <path
           d="M 92 200 L 220 200"
           className="stroke-border"
           strokeWidth="1"
           strokeLinecap="round"
-          markerEnd="url(#workflow-arrow)"
+          markerEnd={`url(#${markerId})`}
         />
 
         <AnimatedPath
           d="M 380 200 H 468 Q 478 200 478 190 V 60 Q 478 50 488 50 H 700"
           delay={0}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
         <AnimatedPath
           d="M 380 200 H 468 Q 478 200 478 190 V 160 Q 478 150 488 150 H 700"
           delay={OUTPUT_ROUTE_DURATION}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
         <AnimatedPath
           d="M 380 200 H 468 Q 478 200 478 210 V 240 Q 478 250 488 250 H 700"
           delay={OUTPUT_ROUTE_DURATION * 2}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
         <AnimatedPath
           d="M 380 200 H 468 Q 478 200 478 210 V 340 Q 478 350 488 350 H 700"
           delay={OUTPUT_ROUTE_DURATION * 3}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
 
         <foreignObject x="32" y="170" width="60" height="60">
@@ -141,15 +166,19 @@ function WorkflowDiagramDesktop() {
         <foreignObject x="92" y="192" width="128" height="16">
           <m.div
             className="flex items-center text-primary"
-            animate={{ x: [0, 112] }}
-            transition={{ repeat: Infinity, ease: "linear", duration: 1.6 }}
+            animate={reducedMotion ? undefined : { x: [0, 112] }}
+            transition={
+              reducedMotion
+                ? undefined
+                : { repeat: Infinity, ease: "linear", duration: 1.6 }
+            }
           >
             <GitPullRequest className="size-4" />
           </m.div>
         </foreignObject>
 
         <foreignObject x="220" y="166" width="160" height="68">
-          <GitLoudNode />
+          <GitLoudNode reducedMotion={reducedMotion} />
         </foreignObject>
 
         <foreignObject x="700" y="20" width="60" height="60">
@@ -177,7 +206,13 @@ function WorkflowDiagramDesktop() {
   );
 }
 
-function WorkflowDiagramMobile() {
+function WorkflowDiagramMobile({
+  reducedMotion,
+}: {
+  reducedMotion: boolean;
+}) {
+  const markerId = "workflow-arrow-mobile";
+
   return (
     <div className="relative mx-auto block w-full max-w-[320px] md:hidden">
       <svg
@@ -186,14 +221,14 @@ function WorkflowDiagramMobile() {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <WorkflowMarker />
+        <WorkflowMarker id={markerId} />
 
         <path
           d="M 160 76 L 160 178"
           className="stroke-border"
           strokeWidth="1"
           strokeLinecap="round"
-          markerEnd="url(#workflow-arrow)"
+          markerEnd={`url(#${markerId})`}
         />
 
         <foreignObject x="130" y="16" width="60" height="60">
@@ -203,32 +238,44 @@ function WorkflowDiagramMobile() {
         <foreignObject x="152" y="76" width="16" height="102">
           <m.div
             className="flex justify-center text-primary"
-            animate={{ y: [0, 86] }}
-            transition={{ repeat: Infinity, ease: "linear", duration: 1.6 }}
+            animate={reducedMotion ? undefined : { y: [0, 86] }}
+            transition={
+              reducedMotion
+                ? undefined
+                : { repeat: Infinity, ease: "linear", duration: 1.6 }
+            }
           >
             <GitPullRequest className="size-4" />
           </m.div>
         </foreignObject>
 
         <foreignObject x="80" y="178" width="160" height="68">
-          <GitLoudNode />
+          <GitLoudNode reducedMotion={reducedMotion} />
         </foreignObject>
 
         <AnimatedPath
           d="M 160 246 V 268 Q 160 278 150 278 H 88 Q 78 278 78 288 V 308"
           delay={0}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
         <AnimatedPath
           d="M 160 246 V 268 Q 160 278 170 278 H 232 Q 242 278 242 288 V 308"
           delay={OUTPUT_ROUTE_DURATION}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
         <AnimatedPath
           d="M 160 246 V 384 Q 160 394 150 394 H 88 Q 78 394 78 404 V 424"
           delay={OUTPUT_ROUTE_DURATION * 2}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
         <AnimatedPath
           d="M 160 246 V 384 Q 160 394 170 394 H 232 Q 242 394 242 404 V 424"
           delay={OUTPUT_ROUTE_DURATION * 3}
+          markerId={markerId}
+          reducedMotion={reducedMotion}
         />
 
         <foreignObject x="48" y="308" width="60" height="60">
@@ -264,15 +311,17 @@ function SourceNode() {
   );
 }
 
-function GitLoudNode() {
+function GitLoudNode({ reducedMotion }: { reducedMotion: boolean }) {
   return (
     <div className="relative border border-border rounded-sm flex size-full items-center justify-center overflow-hidden bg-background/95 shadow-[0_22px_55px_-28px_hsl(var(--primary)/0.65)] ring-1 ring-primary/35">
-      <m.span
-        aria-hidden="true"
-        className="absolute inset-y-0 w-12 bg-primary/10 blur-lg"
-        animate={{ x: [-70, 190] }}
-        transition={{ repeat: Infinity, ease: "linear", duration: 2.8 }}
-      />
+      {reducedMotion ? null : (
+        <m.span
+          aria-hidden="true"
+          className="absolute inset-y-0 w-12 bg-primary/10 blur-lg"
+          animate={{ x: [-70, 190] }}
+          transition={{ repeat: Infinity, ease: "linear", duration: 2.8 }}
+        />
+      )}
       <span className="relative flex items-center gap-2 text-sm font-semibold tracking-[0.12em] text-primary">
         <span className="size-1.5 bg-primary shadow-[0_0_12px_hsl(var(--primary))]" />
         GITLOUD

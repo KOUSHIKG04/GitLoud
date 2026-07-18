@@ -29,6 +29,18 @@ import {
 
 const DISCORD_WEBHOOK_DOCS_URL =
   "https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks";
+const publicationDateFormatter = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "UTC",
+});
+
+function formatPublicationDate(value: string) {
+  const date = new Date(value);
+  return Number.isFinite(date.valueOf())
+    ? publicationDateFormatter.format(date)
+    : "Unknown date";
+}
 
 export function SocialAccountsSettings() {
   const {
@@ -259,7 +271,7 @@ export function SocialAccountsSettings() {
                     </div>
                     <div className="wrap-break-words text-xs text-muted-foreground">
                       {publication.status.toUpperCase()} ·{" "}
-                      {new Date(publication.createdAt).toLocaleString()}
+                      {formatPublicationDate(publication.createdAt)}
                     </div>
                     {publication.errorMessage ? (
                       <div className="mt-1 line-clamp-2 text-xs text-destructive">

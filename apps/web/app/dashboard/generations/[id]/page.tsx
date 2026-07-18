@@ -85,9 +85,7 @@ export default async function GenerationDetailPage({
             <AccordionItem value="combined-sources" className="border-none">
               <AccordionTrigger className="items-start px-2 py-0 text-left hover:no-underline [&>svg]:mt-1">
                 <span className="block min-w-0 flex-1">
-                  <span
-                    role="heading"
-                    aria-level={1}
+                  <h1
                     className="flex min-w-0 w-full items-center gap-2 text-xl font-semibold tracking-tight"
                   >
                     <span className="mt-0.5 flex shrink-0 items-center gap-1 text-[13px] uppercase text-muted-foreground">
@@ -96,7 +94,7 @@ export default async function GenerationDetailPage({
                     <span className="min-w-0 flex-1">
                       <ResponsiveTitle title={title ?? ""} />
                     </span>
-                  </span>
+                  </h1>
                   <span className="mt-2 block break-all text-sm font-normal text-muted-foreground">
                     {source.owner}/{source.repo}
                   </span>

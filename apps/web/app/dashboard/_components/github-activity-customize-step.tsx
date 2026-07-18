@@ -45,7 +45,7 @@ export function GitHubActivityCustomizeStep({
                   : "commits"}
             </div>
 
-            <div className="relative mt-2 min-w-0 rounded-sm bg-muted/20 py-1.5 pl-4 pr-3">
+            <div className="relative mt-2 min-w-0 overflow-hidden rounded-sm bg-muted/20 py-1.5 pl-4 pr-3">
               <span className="absolute inset-y-0 left-0 w-1 bg-primary" />
               <p className="truncate text-sm font-semibold">
                 {selectedItems.length === 1

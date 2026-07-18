@@ -3,7 +3,7 @@
 import { CommitBranchIcon } from "@/assets/CommitBranchIcon";
 import { Check, GitPullRequest } from "lucide-react";
 import { DotMatrixLoader } from "@/components/DotMatrixLoader";
-import { type UIEvent, useState } from "react";
+import { type UIEvent, useMemo, useState } from "react";
 import type { ActivityType, GitHubActivityItem } from "./github-activity-types";
 
 const activityListHeightPx = 320;
@@ -38,6 +38,10 @@ export function GitHubActivitySelectionStep({
       activityScrollTrackHeightPx,
   );
   const scrollThumbVisible = estimatedScrollHeight > activityListHeightPx;
+  const selectedItemUrlSet = useMemo(
+    () => new Set(selectedItemUrls),
+    [selectedItemUrls],
+  );
 
   function handleActivityScroll(event: UIEvent<HTMLDivElement>) {
     const viewport = event.currentTarget;
@@ -89,7 +93,7 @@ export function GitHubActivitySelectionStep({
           >
             <div className="">
               {items.map((item) => {
-                const checked = selectedItemUrls.includes(item.url);
+                const checked = selectedItemUrlSet.has(item.url);
                 const updatedAt = item.updatedAt
                   ? new Date(item.updatedAt)
                   : null;

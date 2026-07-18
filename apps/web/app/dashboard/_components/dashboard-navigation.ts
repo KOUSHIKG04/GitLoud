@@ -17,7 +17,7 @@ export type DashboardSidebarItem = {
 
 export const dashboardOptions: DashboardSidebarItem[] = [
   {
-    label: "Quick Generation's",
+    label: "Quick Generations",
     href: "/dashboard",
     icon: LayoutDashboard,
     isActive: (pathname) => pathname === "/dashboard",
@@ -32,7 +32,7 @@ export const dashboardOptions: DashboardSidebarItem[] = [
 
 export const secondaryNavigationItems: DashboardSidebarItem[] = [
   {
-    label: "Generation's History",
+    label: "Generation History",
     href: "/dashboard/history",
     icon: History,
     isActive: (pathname) => pathname.startsWith("/dashboard/history"),

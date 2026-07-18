@@ -79,7 +79,7 @@ export function UserProfileMenu({
           type="button"
           variant={variant}
           className={cn(
-            "rounded-sm flex size-[31px] items-center justify-center  p-0 outline-none ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "rounded-sm flex size-[31px] items-center justify-center  p-0 outline-hidden ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
             variant !== "ghost" &&
               "rounded-sm bg-background hover:bg-muted",
             showLabel && "h-9 w-full justify-start gap-2 px-2",

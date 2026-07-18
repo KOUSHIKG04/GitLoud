@@ -140,7 +140,7 @@ export function FeedbackSection() {
             />
             <p className="text-right text-xs text-muted-foreground">
               <span className="mt-0.5 text-muted-foreground text-xs tracking-tight">
-                Minimum of 10 characters required to submit -
+                Minimum of 10 characters required to submit:
               </span>{" "}
               {message.length}/2000
             </p>

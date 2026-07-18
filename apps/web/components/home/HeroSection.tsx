@@ -22,7 +22,7 @@ export function HeroSection() {
                 className="pointer-event-none mb-12 border uppercase inline-flex items-center gap-4 bg-background/60 px-4  py-1.5  font-medium tracking-wide text-muted-foreground shadow-sm backdrop-blur-sm sm:text-sm"
               >
                 <span className="size-2 rounded-full bg-chart-1" />
-                <span className="text-[13px] text-white">
+                <span className="text-[13px] text-foreground">
                   Developer content assistant
                 </span>
               </Button>
