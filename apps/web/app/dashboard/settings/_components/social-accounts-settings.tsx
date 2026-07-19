@@ -88,18 +88,18 @@ export function SocialAccountsSettings() {
                 </span>
               </span>
               <span
-                className={`hidden shrink-0 items-center gap-2 rounded-sm border px-3 py-2 text-[11px] font-semibold tracking-wide sm:inline-flex ${
+                className={`hidden shrink-0 items-center rounded-sm border px-3 py-2 text-[11px] font-semibold tracking-wide sm:inline-flex ${
                   discordConnections.length > 0
                     ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                     : "border-border bg-muted/30 text-muted-foreground"
                 }`}
               >
                 <span
-                  className={`size-1 ${
-                    discordConnections.length > 0
-                      ? "bg-emerald-500"
-                      : "bg-muted-foreground/50"
-                  }`}
+                  // className={`size-1 ${
+                  //   discordConnections.length > 0
+                  //     ? "bg-emerald-500"
+                  //     : "bg-muted-foreground/50"
+                  // }`}
                 />
                 {discordConnections.length > 0
                   ? `${discordConnections.length} CONNECTED`

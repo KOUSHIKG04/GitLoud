@@ -8,6 +8,7 @@ const {
   composeDiscordContent,
   DiscordDeliveryUnknownError,
   normalizeDiscordWebhookUrl,
+  verifyDiscordWebhook,
 } = await import("../src/lib/social-publishing");
 const { createSocialPublishHandler } = await import("../src/routes/social");
 
@@ -57,6 +58,35 @@ test("rejects Discord lookalike hosts and insecure webhook URLs", () => {
     () =>
       normalizeDiscordWebhookUrl("http://discord.com/api/webhooks/123/token"),
     /official Discord webhook URL/,
+  );
+});
+
+test("identifies GitLoud with the required Discord API user agent", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestHeaders: Headers | undefined;
+
+  globalThis.fetch = async (_input, init) => {
+    requestHeaders = new Headers(init?.headers);
+
+    return Response.json({
+      id: "123456789",
+      name: "GitLoud Server",
+      channel_id: "987654321",
+    });
+  };
+
+  try {
+    await verifyDiscordWebhook(
+      "https://discord.com/api/webhooks/123456789/secret-token",
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.equal(requestHeaders?.get("Accept"), "application/json");
+  assert.match(
+    requestHeaders?.get("User-Agent") ?? "",
+    /^DiscordBot \(https:\/\/gitloud-web\.vercel\.app, 0\.1\.0\)$/,
   );
 });
 
