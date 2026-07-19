@@ -71,7 +71,7 @@ export function normalizeDiscordWebhookUrl(value: string) {
 
   return {
     webhookUrl: url.toString().replace(/\/$/, ""),
-    webhookId: match[1],
+    webhookId: match[1]!,
   };
 }
 
@@ -117,29 +117,22 @@ export async function saveDiscordConnection({
   displayName?: string;
 }): Promise<void> {
   const normalized = normalizeDiscordWebhookUrl(webhookUrl);
-  const webhook = await verifyDiscordWebhook(normalized.webhookUrl);
-
-  if (webhook.id !== normalized.webhookId) {
-    throw new Error("Discord returned an unexpected webhook identity.");
-  }
-
   const encrypted = encryptSocialSecret(normalized.webhookUrl);
-  const resolvedDisplayName =
-    displayName?.trim() || webhook.name?.trim() || "Discord channel";
+  const resolvedDisplayName = displayName?.trim() || "Discord channel";
 
   await db.socialConnection.upsert({
     where: {
       userId_provider_externalAccountId: {
         userId,
         provider: "DISCORD",
-        externalAccountId: webhook.id,
+        externalAccountId: normalized.webhookId,
       },
     },
     create: {
       userId,
       provider: "DISCORD",
       displayName: resolvedDisplayName,
-      externalAccountId: webhook.id,
+      externalAccountId: normalized.webhookId,
       ...encrypted,
     },
     update: {

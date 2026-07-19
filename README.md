@@ -363,7 +363,7 @@ Current active routes:
 | `POST`   | `/ai-credentials`                       | Save a custom AI provider key                             |
 | `DELETE` | `/ai-credentials/:provider`             | Delete a saved custom AI provider key                     |
 | `GET`    | `/social/connections`                   | List connected social publishing destinations             |
-| `POST`   | `/social/discord/connect`               | Verify and securely connect a Discord webhook              |
+| `POST`   | `/social/discord/connect`               | Validate, encrypt, and connect a Discord webhook            |
 | `DELETE` | `/social/connections/:id`               | Disconnect a social publishing destination                |
 | `POST`   | `/social/publish/discord`               | Publish generated Discord content with idempotency         |
 | `GET`    | `/social/publications`                  | Read recent direct publication attempts                    |
@@ -591,7 +591,7 @@ users get feedback when an API request takes longer than expected.
 - `GITHUB_PUBLIC_TOKEN` is optional and must not grant private repository access.
 - Custom AI API keys are encrypted before storage and returned by the API only
   as masked previews.
-- Discord webhook URLs are validated against official Discord hosts, encrypted
+- Discord webhook URLs are validated locally against official Discord hosts, encrypted
   before storage, excluded from AI prompts, and never returned by the API.
 - Discord publishing uses idempotency keys for best-effort duplicate protection
   when a request is retried or a publish action is clicked more than once.
