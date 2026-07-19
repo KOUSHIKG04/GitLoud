@@ -4,6 +4,8 @@ import { db } from "@repo/db/client";
 const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 const DISCORD_REQUEST_TIMEOUT_MS = 10_000;
 const DISCORD_CONTENT_LIMIT = 2_000;
+const DISCORD_USER_AGENT =
+  "DiscordBot (https://gitloud-web.vercel.app, 0.1.0)";
 
 type EncryptedSocialSecret = {
   secretEnc: string;
@@ -199,7 +201,15 @@ async function fetchWithTimeout(url: string, init: RequestInit) {
   );
 
   try {
-    const response = await fetch(url, { ...init, signal: controller.signal });
+    const headers = new Headers(init.headers);
+    headers.set("Accept", "application/json");
+    headers.set("User-Agent", DISCORD_USER_AGENT);
+
+    const response = await fetch(url, {
+      ...init,
+      headers,
+      signal: controller.signal,
+    });
     const data = await readJson(response, controller.signal);
 
     return { response, data };
