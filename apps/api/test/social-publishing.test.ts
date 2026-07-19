@@ -90,6 +90,45 @@ test("identifies GitLoud with the required Discord API user agent", async () => 
   );
 });
 
+test("reports when Discord says a webhook was deleted", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    Response.json({ message: "Unknown Webhook", code: 10015 }, { status: 404 });
+
+  try {
+    await assert.rejects(
+      verifyDiscordWebhook(
+        "https://discord.com/api/webhooks/123456789/deleted-token",
+      ),
+      /does not exist or was deleted.*Discord code 10015/i,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("reports when Discord or Cloudflare blocks verification", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response("Access denied", {
+      status: 403,
+      headers: { "Content-Type": "text/html" },
+    });
+
+  try {
+    await assert.rejects(
+      verifyDiscordWebhook(
+        "https://discord.com/api/webhooks/123456789/blocked-token",
+      ),
+      /Discord or Cloudflare denied.*HTTP 403/i,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("adds unique media links when the Discord message fits", () => {
   assert.equal(
     composeDiscordContent("Generated post", [

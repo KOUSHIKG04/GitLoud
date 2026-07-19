@@ -4,8 +4,7 @@ import { db } from "@repo/db/client";
 const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 const DISCORD_REQUEST_TIMEOUT_MS = 10_000;
 const DISCORD_CONTENT_LIMIT = 2_000;
-const DISCORD_USER_AGENT =
-  "DiscordBot (https://gitloud-web.vercel.app, 0.1.0)";
+const DISCORD_USER_AGENT = "DiscordBot (https://gitloud-web.vercel.app, 0.1.0)";
 
 type EncryptedSocialSecret = {
   secretEnc: string;
@@ -80,8 +79,14 @@ export async function verifyDiscordWebhook(webhookUrl: string) {
     method: "GET",
   });
 
-  if (!response.ok || !isDiscordWebhook(value)) {
-    throw new Error("Discord could not verify this webhook URL.");
+  if (!response.ok) {
+    throw new Error(getDiscordWebhookVerificationError(response.status, value));
+  }
+
+  if (!isDiscordWebhook(value)) {
+    throw new Error(
+      "Discord returned an unexpected response while verifying this webhook.",
+    );
   }
 
   return value;
@@ -228,7 +233,10 @@ async function fetchWithTimeout(url: string, init: RequestInit) {
   }
 }
 
-async function readJson(response: Response, signal: AbortSignal): Promise<unknown> {
+async function readJson(
+  response: Response,
+  signal: AbortSignal,
+): Promise<unknown> {
   try {
     return await response.json();
   } catch (error) {
@@ -278,6 +286,56 @@ function getDiscordErrorMessage(value: unknown) {
   }
 
   return "Discord rejected the post.";
+}
+
+function getDiscordWebhookVerificationError(status: number, value: unknown) {
+  const discordCode = getDiscordErrorCode(value);
+  const suffix = discordCode ? ` (Discord code ${discordCode})` : "";
+
+  if (status === 404 || discordCode === 10015) {
+    return `This Discord webhook does not exist or was deleted${suffix}. Create a new webhook and paste its current URL.`;
+  }
+
+  if (status === 429) {
+    return `Discord is rate-limiting webhook verification${suffix}. Wait a moment, then try again once.`;
+  }
+
+  if (status === 401 || status === 403) {
+    return `Discord or Cloudflare denied webhook verification from the GitLoud server (HTTP ${status})${suffix}.`;
+  }
+
+  if (status >= 500) {
+    return `Discord is temporarily unavailable while verifying this webhook (HTTP ${status})${suffix}.`;
+  }
+
+  const discordMessage = getDiscordApiMessage(value);
+  return `Discord rejected webhook verification (HTTP ${status})${suffix}${discordMessage ? `: ${discordMessage}` : "."}`;
+}
+
+function getDiscordErrorCode(value: unknown) {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "code" in value &&
+    typeof value.code === "number"
+  ) {
+    return value.code;
+  }
+
+  return null;
+}
+
+function getDiscordApiMessage(value: unknown) {
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "message" in value &&
+    typeof value.message === "string"
+  ) {
+    return value.message.slice(0, 160);
+  }
+
+  return null;
 }
 
 function encryptSocialSecret(value: string): EncryptedSocialSecret {
