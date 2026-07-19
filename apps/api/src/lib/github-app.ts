@@ -108,10 +108,27 @@ export async function getGitHubTokenForRepo({
     return undefined;
   }
 
-  return createInstallationToken(installation.installationId, {
-    permissions: repositoryReadPermissions,
-    repositoryNames: [repo],
-  });
+  try {
+    return await createInstallationToken(installation.installationId, {
+      permissions: repositoryReadPermissions,
+      repositoryNames: [repo],
+    });
+  } catch (error) {
+    if (!isMissingGitHubInstallationError(error)) {
+      throw error;
+    }
+
+    await db.gitHubInstallation
+      .deleteMany({
+        where: {
+          installationId: installation.installationId,
+          userId,
+        },
+      })
+      .catch(() => undefined);
+
+    return undefined;
+  }
 }
 
 export async function createRepositoryReadToken({
@@ -178,4 +195,13 @@ export async function syncInstallationRepositories(installationId: bigint) {
 
 export function getPublicGitHubToken() {
   return process.env.GITHUB_PUBLIC_TOKEN || undefined;
+}
+
+export function isMissingGitHubInstallationError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "status" in error &&
+    (error as { status?: unknown }).status === 404
+  );
 }

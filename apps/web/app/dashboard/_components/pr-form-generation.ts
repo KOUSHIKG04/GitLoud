@@ -5,6 +5,16 @@ import type {
   UploadedMediaAttachment,
 } from "@repo/shared/generations";
 
+export class GenerationRequestError extends Error {
+  constructor(
+    message: string,
+    readonly code?: "github_app_required" | "github_rate_limited",
+  ) {
+    super(message);
+    this.name = "GenerationRequestError";
+  }
+}
+
 export async function readProgressStream(
   response: Response,
   onProgress: (message: string) => void,
@@ -45,7 +55,7 @@ export async function readProgressStream(
       }
 
       if (event.type === "error") {
-        throw new Error(event.message);
+        throw new GenerationRequestError(event.message, event.code);
       }
 
       if (event.type === "done") {
