@@ -1,6 +1,6 @@
-import { Octokit } from "@octokit/rest";
 import { cleanPullRequestFiles } from "@repo/shared/pr-cleanup";
 import { commitResultSchema } from "@repo/shared/commit";
+import { requestWithPublicFallback } from "./client.js";
 
 type FetchCommitInput = {
     owner: string;
@@ -10,15 +10,14 @@ type FetchCommitInput = {
 };
 
 export async function fetchCommit(input: FetchCommitInput) {
-    const octokit = new Octokit({
-        auth: input.githubToken,
-    });
-
-    const commitResponse = await octokit.repos.getCommit({
-        owner: input.owner,
-        repo: input.repo,
-        ref: input.sha,
-    });
+    const commitResponse = await requestWithPublicFallback(
+        input.githubToken,
+        (octokit) => octokit.repos.getCommit({
+            owner: input.owner,
+            repo: input.repo,
+            ref: input.sha,
+        }),
+    );
 
     const commit = commitResponse.data;
 

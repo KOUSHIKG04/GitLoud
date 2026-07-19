@@ -33,6 +33,7 @@ import { persistentRateLimit } from "@/lib/rate-limit";
 import { getGitHubTokenForRepo, getPublicGitHubToken } from "@/lib/github-app";
 import { getUserFeatures } from "@/lib/features";
 import { getAiGenerationOptionsForUser } from "@/lib/ai-credentials";
+import { getGitHubGenerationError } from "@/lib/github-generation-error";
 
 const requestBodySchema = z.object({
   url: githubPrOrCommitUrlSchema,
@@ -801,10 +802,11 @@ function createProgressStream(run: (send: SendProgress) => Promise<void>) {
         try {
           await run(send);
         } catch (error) {
+          const generationError = getGenerationError(error);
           logger.error("GitHub URL processing failed", {
-            error: getErrorMessage(error),
+            error: generationError.message,
           });
-          send({ type: "error", message: getErrorMessage(error) });
+          send({ type: "error", ...generationError });
         } finally {
           controller.close();
         }
@@ -819,42 +821,27 @@ function createProgressStream(run: (send: SendProgress) => Promise<void>) {
   );
 }
 
-function getErrorMessage(error: unknown) {
-  if (isGithubRequestError(error)) {
-    if (error.status === 404) {
-      return "GitHub could not access that PR or commit. If it is private, install or sync the GitLoud GitHub App for that repository.";
-    }
+function getGenerationError(error: unknown) {
+  const githubError = getGitHubGenerationError(error);
 
-    if (error.status === 403) {
-      return "GitHub access was denied. Check that the GitLoud GitHub App is installed with read access for that repository.";
-    }
-
-    return `GitHub API error: ${error.message}`;
+  if (githubError) {
+    return githubError;
   }
 
   if (isAiProviderError(error)) {
-    return error instanceof Error
-      ? error.message
-      : "The AI provider is temporarily unavailable. Please try again in a minute.";
+    return {
+      message:
+        error instanceof Error
+          ? error.message
+          : "The AI provider is temporarily unavailable. Please try again in a minute.",
+    };
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return { message: error.message };
   }
 
-  return "Failed to process GitHub URL";
-}
-
-function isGithubRequestError(
-  error: unknown,
-): error is { message: string; status: number } {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "message" in error &&
-    "status" in error &&
-    typeof (error as { status?: unknown }).status === "number"
-  );
+  return { message: "Failed to process GitHub URL" };
 }
 
 function isAiProviderError(error: unknown) {

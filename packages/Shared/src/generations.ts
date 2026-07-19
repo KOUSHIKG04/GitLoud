@@ -91,7 +91,11 @@ export type GenerateDoneResponse = {
 export type GenerationProgressEvent =
   | { type: "progress"; message: string }
   | { type: "done"; data: GenerateDoneResponse }
-  | { type: "error"; message: string };
+  | {
+      type: "error";
+      message: string;
+      code?: "github_app_required" | "github_rate_limited";
+    };
 
 export type UploadedMediaAttachment = {
   id: string;

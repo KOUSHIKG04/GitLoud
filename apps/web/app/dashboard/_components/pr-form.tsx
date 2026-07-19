@@ -7,6 +7,7 @@ import { useAuth } from "@clerk/nextjs";
 import { Input } from "@repo/ui/components/input";
 import { ChevronRight, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 import { startBackendDelayToast } from "@/lib/api-delay-toast";
 import {
@@ -16,7 +17,12 @@ import {
   type ComponentPropsWithoutRef,
 } from "react";
 import { PrFormFooter } from "./pr-form-footer";
-import { readProgressStream, uploadMedia, wait } from "./pr-form-generation";
+import {
+  GenerationRequestError,
+  readProgressStream,
+  uploadMedia,
+  wait,
+} from "./pr-form-generation";
 import { formSchema, type FormValues } from "./pr-form.schema";
 import { getMediaValidationError, onInvalid } from "./pr-form-validation";
 import { useSidebar } from "@repo/ui/components/sidebar";
@@ -108,13 +114,21 @@ export function PrForm({
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Something went wrong";
+      const appRequired =
+        error instanceof GenerationRequestError &&
+        error.code === "github_app_required";
 
       toast.error(message, {
         id: toastId,
         duration: 7000,
         action: {
-          label: "Retry",
+          label: appRequired ? "Connect GitHub" : "Retry",
           onClick: () => {
+            if (appRequired) {
+              push("/dashboard/settings/github-app");
+              return;
+            }
+
             void generate(values);
           },
         },
@@ -208,6 +222,17 @@ export function PrForm({
                   <Info className="size-4" aria-hidden="true" />
                 </span>
               </div>
+              <p className="text-xs leading-5 text-muted-foreground">
+                Public repository links work without the GitHub App. For a
+                private repository,{" "}
+                <Link
+                  href="/dashboard/settings/github-app"
+                  className="font-medium text-foreground underline underline-offset-4"
+                >
+                  connect GitHub
+                </Link>{" "}
+                and grant access to that repository.
+              </p>
             </div>
 
             <div className="space-y-2">

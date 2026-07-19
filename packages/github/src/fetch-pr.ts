@@ -1,9 +1,9 @@
-import { Octokit } from "@octokit/rest";
 import { cleanPullRequestFiles } from "@repo/shared/pr-cleanup";
 import {
   pullRequestResultSchema,
   type PullRequestResult,
 } from "@repo/shared/pull-request";
+import { requestWithPublicFallback } from "./client.js";
 
 type FetchPullRequestInput = {
   owner: string;
@@ -14,22 +14,18 @@ type FetchPullRequestInput = {
 
 export type PullRequestMetadata = Omit<PullRequestResult, "files">;
 
-function createOctokit(githubToken: string | undefined) {
-  return new Octokit({
-    auth: githubToken,
-  });
-}
-
 export async function fetchPullRequestMetadata(
   input: FetchPullRequestInput,
 ): Promise<PullRequestMetadata> {
-  const octokit = createOctokit(input.githubToken);
-
-  const prResponse = await octokit.pulls.get({
-    owner: input.owner,
-    repo: input.repo,
-    pull_number: input.number,
-  });
+  const prResponse = await requestWithPublicFallback(
+    input.githubToken,
+    (octokit) =>
+      octokit.pulls.get({
+        owner: input.owner,
+        repo: input.repo,
+        pull_number: input.number,
+      }),
+  );
 
   const pr = prResponse.data;
 
@@ -50,14 +46,16 @@ export async function fetchPullRequestMetadata(
 }
 
 export async function fetchPullRequestFiles(input: FetchPullRequestInput) {
-  const octokit = createOctokit(input.githubToken);
-
-  const filesResponse = await octokit.paginate(octokit.rest.pulls.listFiles, {
-    owner: input.owner,
-    repo: input.repo,
-    pull_number: input.number,
-    per_page: 100,
-  });
+  const filesResponse = await requestWithPublicFallback(
+    input.githubToken,
+    (octokit) =>
+      octokit.paginate(octokit.rest.pulls.listFiles, {
+        owner: input.owner,
+        repo: input.repo,
+        pull_number: input.number,
+        per_page: 100,
+      }),
+  );
 
   return cleanPullRequestFiles(
     filesResponse.map((file) => ({
