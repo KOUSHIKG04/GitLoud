@@ -129,6 +129,64 @@ test("reports when Discord or Cloudflare blocks verification", async () => {
   }
 });
 
+test("reports Discord's exact webhook verification retry delay", async () => {
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    Response.json(
+      {
+        message: "You are being rate limited.",
+        retry_after: 64.57,
+        global: false,
+      },
+      { status: 429 },
+    );
+
+  try {
+    await assert.rejects(
+      verifyDiscordWebhook(
+        "https://discord.com/api/webhooks/123456789/rate-limited-token",
+      ),
+      /Retry after 65 seconds/i,
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("automatically retries a short Discord verification limit once", async () => {
+  const originalFetch = globalThis.fetch;
+  let requestCount = 0;
+
+  globalThis.fetch = async () => {
+    requestCount += 1;
+
+    if (requestCount === 1) {
+      return Response.json(
+        { message: "You are being rate limited.", retry_after: 0.001 },
+        { status: 429 },
+      );
+    }
+
+    return Response.json({
+      id: "123456789",
+      name: "GitLoud Server",
+      channel_id: "987654321",
+    });
+  };
+
+  try {
+    const webhook = await verifyDiscordWebhook(
+      "https://discord.com/api/webhooks/123456789/short-limit-token",
+    );
+
+    assert.equal(webhook.id, "123456789");
+    assert.equal(requestCount, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("adds unique media links when the Discord message fits", () => {
   assert.equal(
     composeDiscordContent("Generated post", [

@@ -4,6 +4,7 @@ import { db } from "@repo/db/client";
 const ENCRYPTION_ALGORITHM = "aes-256-gcm";
 const DISCORD_REQUEST_TIMEOUT_MS = 10_000;
 const DISCORD_CONTENT_LIMIT = 2_000;
+const DISCORD_VERIFICATION_AUTO_RETRY_MAX_MS = 3_000;
 const DISCORD_USER_AGENT = "DiscordBot (https://gitloud-web.vercel.app, 0.1.0)";
 
 type EncryptedSocialSecret = {
@@ -75,12 +76,26 @@ export function normalizeDiscordWebhookUrl(value: string) {
 }
 
 export async function verifyDiscordWebhook(webhookUrl: string) {
-  const { response, data: value } = await fetchWithTimeout(webhookUrl, {
+  let result = await fetchWithTimeout(webhookUrl, {
     method: "GET",
   });
 
+  if (result.response.status === 429) {
+    const retryAfterMs = getDiscordRetryAfterMs(result.response, result.data);
+
+    if (
+      retryAfterMs !== null &&
+      retryAfterMs <= DISCORD_VERIFICATION_AUTO_RETRY_MAX_MS
+    ) {
+      await wait(retryAfterMs + 100);
+      result = await fetchWithTimeout(webhookUrl, { method: "GET" });
+    }
+  }
+
+  const { response, data: value } = result;
+
   if (!response.ok) {
-    throw new Error(getDiscordWebhookVerificationError(response.status, value));
+    throw new Error(getDiscordWebhookVerificationError(response, value));
   }
 
   if (!isDiscordWebhook(value)) {
@@ -288,7 +303,11 @@ function getDiscordErrorMessage(value: unknown) {
   return "Discord rejected the post.";
 }
 
-function getDiscordWebhookVerificationError(status: number, value: unknown) {
+function getDiscordWebhookVerificationError(
+  response: Response,
+  value: unknown,
+) {
+  const { status } = response;
   const discordCode = getDiscordErrorCode(value);
   const suffix = discordCode ? ` (Discord code ${discordCode})` : "";
 
@@ -297,7 +316,13 @@ function getDiscordWebhookVerificationError(status: number, value: unknown) {
   }
 
   if (status === 429) {
-    return `Discord is rate-limiting webhook verification${suffix}. Wait a moment, then try again once.`;
+    const retryAfterMs = getDiscordRetryAfterMs(response, value);
+    const retryMessage =
+      retryAfterMs === null
+        ? "Wait at least one minute, then try again once."
+        : `Retry after ${Math.max(1, Math.ceil(retryAfterMs / 1_000))} seconds.`;
+
+    return `Discord is rate-limiting webhook verification${suffix}. ${retryMessage}`;
   }
 
   if (status === 401 || status === 403) {
@@ -310,6 +335,55 @@ function getDiscordWebhookVerificationError(status: number, value: unknown) {
 
   const discordMessage = getDiscordApiMessage(value);
   return `Discord rejected webhook verification (HTTP ${status})${suffix}${discordMessage ? `: ${discordMessage}` : "."}`;
+}
+
+function getDiscordRetryAfterMs(response: Response, value: unknown) {
+  const bodyRetryAfter = getNumericProperty(value, "retry_after");
+
+  if (bodyRetryAfter !== null && bodyRetryAfter >= 0) {
+    return bodyRetryAfter * 1_000;
+  }
+
+  const retryAfter = response.headers.get("retry-after");
+
+  if (retryAfter) {
+    const seconds = Number(retryAfter);
+
+    if (Number.isFinite(seconds) && seconds >= 0) {
+      return seconds * 1_000;
+    }
+
+    const retryAt = Date.parse(retryAfter);
+
+    if (Number.isFinite(retryAt)) {
+      return Math.max(0, retryAt - Date.now());
+    }
+  }
+
+  const resetAfter = Number(response.headers.get("x-ratelimit-reset-after"));
+  return Number.isFinite(resetAfter) && resetAfter >= 0
+    ? resetAfter * 1_000
+    : null;
+}
+
+function getNumericProperty(value: unknown, property: string) {
+  if (typeof value !== "object" || value === null || !(property in value)) {
+    return null;
+  }
+
+  const propertyValue = (value as Record<string, unknown>)[property];
+  const numericValue =
+    typeof propertyValue === "number"
+      ? propertyValue
+      : typeof propertyValue === "string"
+        ? Number(propertyValue)
+        : Number.NaN;
+
+  return Number.isFinite(numericValue) ? numericValue : null;
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function getDiscordErrorCode(value: unknown) {
