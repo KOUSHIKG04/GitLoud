@@ -42,6 +42,11 @@ const NAV_ITEMS: NavItem[] = [
     href: "/examples",
     component: Link,
   },
+  // {
+  //   label: "Why it matters",
+  //   href: "/why-it-matters",
+  //   component: Link,
+  // },
   {
     label: "Feedback",
     href: "/feedback",
@@ -133,7 +138,7 @@ export function Header() {
 
         <nav
           aria-label="Main navigation"
-          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-5 md:flex"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-4 md:flex lg:gap-5"
         >
           <Navigation />
         </nav>

@@ -81,26 +81,25 @@ export function FeedbackSection() {
           <p className="text-sm font-semibold text-primary tracking-wider">
             FEEDBACK
           </p>
-          <h2 className="max-w-xl text-[22px] font-semibold tracking-tight ">
+          <h1 className="max-w-xl text-[18px] font-semibold tracking-tight ">
             Help shape what GitLoud builds next.
-          </h2>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+          </h1>
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
             Report a problem, request a feature, or tell us where the workflow
             feels slow. Specific feedback helps us prioritize improvements that
             matter to developers using the product.
           </p>
 
-          <div className="flex gap-3 rounded-sm border bg-background py-2 px-3 text-xs leading-6 text-muted-foreground shadow-xs">
+          {/* <div className="flex gap-3 rounded-sm border bg-background py-2 px-3 text-xs leading-6 text-muted-foreground shadow-xs">
             Do not include repository secrets, API keys, passwords, or private
             source code in your message.
-          </div>
+          </div> */}
         </div>
 
         <form
           className="space-y-5 rounded-sm border border-border bg-background p-5 shadow-sm sm:p-6"
           onSubmit={submitFeedback}
         >
-         
           <fieldset className="space-y-2">
             <legend className="text-sm font-medium uppercase">
               Feedback type

@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud.app";
+import { getAbsoluteSiteUrl } from "@/lib/site-url";
 const LEGAL_PAGES_LAST_MODIFIED = new Date("2026-06-09T00:00:00.000Z");
 
 /**
@@ -11,28 +10,46 @@ const LEGAL_PAGES_LAST_MODIFIED = new Date("2026-06-09T00:00:00.000Z");
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
-      url: siteUrl,
+      url: getAbsoluteSiteUrl(),
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
     },
     {
-      url: `${siteUrl}/examples`,
+      url: getAbsoluteSiteUrl("/examples"),
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${siteUrl}/security-and-privacy`,
+      url: getAbsoluteSiteUrl("/why-it-matters"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: getAbsoluteSiteUrl("/security-and-privacy"),
       lastModified: LEGAL_PAGES_LAST_MODIFIED,
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${siteUrl}/terms`,
+      url: getAbsoluteSiteUrl("/terms"),
       lastModified: LEGAL_PAGES_LAST_MODIFIED,
       changeFrequency: "yearly",
       priority: 0.4,
+    },
+    {
+      url: getAbsoluteSiteUrl("/faq"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: getAbsoluteSiteUrl("/feedback"),
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
     },
   ];
 }

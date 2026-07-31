@@ -7,18 +7,19 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { ProfileSync } from "@/components/auth/ProfileSync";
 import { safeJsonLd } from "@/lib/safe-json-ld";
 import { WhatGitLoudDoesSection } from "@/components/home/WhatGitLoudDoesSection";
+import { siteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
-  title: "GitHub PR Summary and Social Post Generator",
+  title: "GitHub PR and Commit Content Generator for Developers",
   description:
-    "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key.",
+    "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key today.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "GitHub PR Summary and Social Post Generator",
+    title: "GitHub PR and Commit Content Generator for Developers",
     description:
-      "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key.",
+      "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key today.",
     url: "/",
     images: [
       {
@@ -31,15 +32,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GitHub PR Summary and Social Post Generator",
+    title: "GitHub PR and Commit Content Generator for Developers",
     description:
-      "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key.",
+      "Turn GitHub pull requests and commits into summaries and social posts using GitLoud or your own Gemini, OpenAI, Anthropic, or OpenRouter API key today.",
     images: ["/twitter-image"],
   },
 };
-
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -47,7 +45,7 @@ const structuredData = {
   name: "GitLoud",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Web",
-  url: siteUrl,
+  url: `${siteUrl}/`,
   description:
     "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts with support for your own AI API key.",
   offers: [
@@ -74,9 +72,7 @@ export default function Home() {
       <AuthToast />
       <ProfileSync />
 
-      <script type="application/ld+json">
-        {safeJsonLd(structuredData)}
-      </script>
+      <script type="application/ld+json">{safeJsonLd(structuredData)}</script>
 
       <div className="w-full max-w-5xl mx-auto md:border-x md:border-border bg-background">
         <Header />

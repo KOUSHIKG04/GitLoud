@@ -53,21 +53,27 @@ export function SecurityPrivacyContent({
           <p className="text-md font-semibold uppercase tracking-wider text-primary">
             LEGAL & TRUST
           </p>
-          <h1 className="mt-4 text-balance text-4xl font-bold tracking-tighter">
+          <h1 className="mt-2 text-balance text-3xl font-bold tracking-tighter">
             Security & Privacy
           </h1>
           <p className="mt-3 max-w-3xl text-md leading-6 text-muted-foreground tracking-tighter">
-            GitLoud limits private repository access through selected
-            GitHub App installations, read-only permissions, and
-            short-lived server-side tokens. We collect only the account
-            and project information needed to provide authentication,
-            generation history, and related product features.
+            GitLoud limits private repository access through selected GitHub App
+            installations, read-only permissions, and short-lived server-side
+            tokens. We collect only the account and project information needed
+            to provide authentication, generation history, and related product
+            features.
           </p>
         </div>
       </section>
 
+  
+
       <div className="border-t border-b border-border w-full">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-20 flex gap-8" role="tablist" aria-label="Legal and Trust Tabs">
+        <div
+          className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-20 flex gap-8"
+          role="tablist"
+          aria-label="Legal and Trust Tabs"
+        >
           <button
             ref={securityTabRef}
             id="tab-security"
@@ -135,9 +141,14 @@ export function SecurityPrivacyContent({
                   </p>
                   <div className="grid gap-3 sm:grid-cols-2 mt-4">
                     {securityControls.map((control) => (
-                      <div key={control} className="flex items-start gap-3 p-4 border border-border/50 bg-muted/10">
+                      <div
+                        key={control}
+                        className="flex items-start gap-3 p-4 border border-border/50 bg-muted/10"
+                      >
                         <ShieldCheck className="size-4 text-primary shrink-0 mt-0.5" />
-                        <span className="text-sm leading-normal text-muted-foreground">{control}</span>
+                        <span className="text-sm leading-normal text-muted-foreground">
+                          {control}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -145,7 +156,7 @@ export function SecurityPrivacyContent({
               </div>
             </section>
 
-            <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-10">
+            <section className="px-4  sm:px-6 lg:px-20">
               <div className="mx-auto max-w-5xl text-left space-y-4">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
                   Data Handling
@@ -189,8 +200,8 @@ export function SecurityPrivacyContent({
                     and its service providers.
                   </p>
                   <div className="border border-border bg-muted/20 p-4 text-sm leading-6 text-muted-foreground">
-                    If your organization requires vendor security review, complete
-                    that review before connecting private repositories.
+                    If your organization requires vendor security review,
+                    complete that review before connecting private repositories.
                   </div>
                 </div>
               </div>
@@ -214,14 +225,14 @@ export function SecurityPrivacyContent({
                     identifier, GitHub App installation metadata, selected
                     repository names, pull request or commit details, media
                     attachment metadata, generated content history, and feedback
-                    messages with an optional contact email to operate and improve
-                    GitLoud.
+                    messages with an optional contact email to operate and
+                    improve GitLoud.
                   </p>
                 </div>
               </div>
             </section>
 
-            <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-10">
+            <section className="px-4 sm:px-6 lg:px-20 ">
               <div className="mx-auto max-w-5xl text-left space-y-4">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
                   How It Is Used
@@ -229,12 +240,13 @@ export function SecurityPrivacyContent({
                 <div className="text-sm leading-6 text-muted-foreground">
                   <p>
                     Your information is used to sign you in, fetch GitHub PR or
-                    commit data you submit, generate content, save your generation
-                    history, improve reliability, and show the correct profile
-                    details in the app. For private repositories, GitLoud reads
-                    the selected PR or commit through a GitHub App installation
-                    token and sends the relevant metadata and code diff context to
-                    the configured AI provider for generation.
+                    commit data you submit, generate content, save your
+                    generation history, improve reliability, and show the
+                    correct profile details in the app. For private
+                    repositories, GitLoud reads the selected PR or commit
+                    through a GitHub App installation token and sends the
+                    relevant metadata and code diff context to the configured AI
+                    provider for generation.
                   </p>
                 </div>
               </div>
@@ -248,17 +260,17 @@ export function SecurityPrivacyContent({
                 <div className="text-sm leading-6 text-muted-foreground">
                   <p>
                     GitLoud uses infrastructure, authentication, database, media
-                    storage, GitHub, payment, and AI provider services to deliver
-                    the product. These providers process data only as needed for
-                    the requested feature. Do not connect repositories that
-                    contain data you are not allowed to process through these
-                    services.
+                    storage, GitHub, payment, and AI provider services to
+                    deliver the product. These providers process data only as
+                    needed for the requested feature. Do not connect
+                    repositories that contain data you are not allowed to
+                    process through these services.
                   </p>
                 </div>
               </div>
             </section>
 
-            <section className="px-4 py-10 sm:px-6 lg:px-20 lg:py-10">
+            <section className="pb-10 px-4 sm:px-6 lg:px-20">
               <div className="mx-auto max-w-5xl text-left space-y-4">
                 <h2 className="text-xl font-bold tracking-tight text-foreground">
                   Data Control
@@ -266,11 +278,11 @@ export function SecurityPrivacyContent({
                 <div className="text-sm leading-6 text-muted-foreground">
                   <p>
                     You can request deletion or correction of account-related
-                    data. Saved generations are also removed by retention cleanup
-                    after the configured retention period. Disconnecting GitHub
-                    from the settings page uninstalls the GitHub App for that
-                    installation and removes the local installation record. Some
-                    records may be retained when required for security,
+                    data. Saved generations are also removed by retention
+                    cleanup after the configured retention period. Disconnecting
+                    GitHub from the settings page uninstalls the GitHub App for
+                    that installation and removes the local installation record.
+                    Some records may be retained when required for security,
                     compliance, or abuse prevention.
                   </p>
                 </div>

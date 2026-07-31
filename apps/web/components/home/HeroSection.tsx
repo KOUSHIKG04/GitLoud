@@ -29,7 +29,7 @@ export function HeroSection() {
             </MotionItem>
 
             <MotionItem>
-              <p className="relative z-10 uppercase text-balance mt-4 sm:mt-5 text-3xl font-bold tracking-tighter sm:text-4xl lg:text-[40px]">
+              <h1 className="relative z-10 uppercase text-balance mt-4 sm:mt-5 text-3xl font-bold tracking-tighter sm:text-4xl lg:text-[40px]">
                 Ship it,{" "}
                 <span
                   className={cn(
@@ -39,7 +39,7 @@ export function HeroSection() {
                 >
                   Make noise.
                 </span>
-              </p>
+              </h1>
             </MotionItem>
 
             <MotionItem>

@@ -1,4 +1,8 @@
-import { MotionItem, MotionViewportStagger } from "@/components/LandingMotion";
+import {
+  MotionItem,
+  MotionSection,
+  MotionViewportStagger,
+} from "@/components/LandingMotion";
 import {
   Accordion,
   AccordionContent,
@@ -74,22 +78,20 @@ export function WhatGitLoudDoesSection() {
         </MotionViewportStagger>
 
         <Accordion type="multiple" className="w-full">
-          <MotionViewportStagger className="grid w-full gap-4 px-4 pb-2 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-5 lg:px-12 lg:pb-8">
+          <div className="grid w-full gap-4 px-4 pb-2 sm:px-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-5 lg:px-12 lg:pb-8">
             {features.map((feature, index) => (
-              <div
+              <MotionSection
                 key={feature.title}
                 className={`${getFeatureOffset(index)} min-w-0`}
               >
-                <MotionItem>
-                  <FeatureItem
-                    {...feature}
-                    index={index}
-                    value={`feature-${index}`}
-                  />
-                </MotionItem>
-              </div>
+                <FeatureItem
+                  {...feature}
+                  index={index}
+                  value={`feature-${index}`}
+                />
+              </MotionSection>
             ))}
-          </MotionViewportStagger>
+          </div>
         </Accordion>
       </div>
     </section>

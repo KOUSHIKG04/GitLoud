@@ -5,19 +5,19 @@ import { Toaster } from "@repo/ui/components/sonner";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { siteUrl } from "@/lib/site-url";
 
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://gitloud-web.vercel.app/";
 const siteName = "GitLoud";
 const siteDescription =
   "Generate GitHub pull request and commit summaries, changelog entries, portfolio bullets, and share-ready posts using GitLoud or your own AI API key.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(`${siteUrl}/`),
   applicationName: siteName,
   title: {
     default: "GitLoud - GitHub PR Summary and Social Post Generator",
@@ -89,7 +89,6 @@ export const metadata: Metadata = {
   },
 };
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -106,11 +105,9 @@ export default function RootLayout({
         className={`${geistMono.variable} selection:bg-neutral-500/30 relative isolate h-dvh overflow-hidden bg-background`}
         suppressHydrationWarning
       >
-
         <ClerkProvider>
           <Providers initialTheme="dark">
             <ScrollArea id="app-scroll-area" className="relative z-10 h-dvh">
-
               {children}
             </ScrollArea>
             <Toaster />

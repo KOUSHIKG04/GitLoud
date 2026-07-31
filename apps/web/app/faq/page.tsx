@@ -11,9 +11,12 @@ import {
 } from "@repo/ui/components/accordion";
 
 export const metadata: Metadata = {
-  title: "FAQ - GitLoud",
+  title: "Frequently Asked Questions About GitHub Content",
   description:
-    "Find answers to frequently asked questions about GitLoud, the GitHub PR and commit summary generator.",
+    "Find clear answers about GitHub PR and commit summaries, private repository access, AI providers, content formats, security, and publishing workflows.",
+  alternates: {
+    canonical: "/faq",
+  },
 };
 
 export default function FaqPage() {

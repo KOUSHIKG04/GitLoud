@@ -49,9 +49,6 @@ export function Footer() {
               >
                 koushikgdatta5@gmail.com <MailOpen size={10} />
               </a>
-             
-                
-            
             </h3>
             <p className="text-xs pt-3 text-muted-foreground/60 tracking-normal">
               Copyright &copy; {currentYear} GitLoud. All rights reserved.
@@ -103,9 +100,12 @@ export function Footer() {
       </div>
 
       <div className="overflow-hidden px-4 pt-10 pb-2">
-        <h1 className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] tracking-tight bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6">
+        <div
+          aria-hidden="true"
+          className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] tracking-tight bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6"
+        >
           GitLoud
-        </h1>
+        </div>
       </div>
     </footer>
   );
