@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { FeedbackSection } from "./FeedBackSection";
+import { FeedbackSection } from "@/features/feedback/components/feedback-section";
 import { PageStructuredData } from "@/components/seo/PageStructuredData";
 
 const title = "Product Feedback and Developer Feature Requests";
 const description =
   "Share product feedback, report bugs, or request features that improve GitHub content generation, repository workflows, publishing, and the developer experience.";
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: {
-    canonical: "/feedback",
-  },
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: title,
+  description: description,
+  path: "/feedback",
+});
 
 export default function FeedbackPage() {
   return (

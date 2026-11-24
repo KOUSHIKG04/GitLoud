@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { useClerk, useUser } from "@clerk/nextjs";
-import { getUserDisplayName } from "@/lib/userDisplayName";
+import { getUserDisplayName } from "@repo/shared/user-display-name";
 import {
   // BadgeCheck, Bell,
   LogOut,

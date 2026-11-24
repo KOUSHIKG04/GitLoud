@@ -1,5 +1,4 @@
 @import "@repo/ui/globals.css";
-@import "../components/dotmatrix-loader.css";
 @source "../../../packages/ui/src";
 
 .gitloud-activity-scroll {
@@ -62,4 +61,36 @@
   select
 ) {
   border-radius: var(--radius-sm);
+}
+
+/* Dithered text: a 2px checker of dots in the element's own colour, over a
+   faint solid copy of the glyphs so small text keeps its shape. The pattern
+   is clipped to the text, so it never paints the element's box. */
+.dither {
+  --dither-ink: currentColor;
+  background-image:
+    radial-gradient(var(--dither-ink) 0.85px, transparent 1.05px),
+    radial-gradient(var(--dither-ink) 0.85px, transparent 1.05px),
+    linear-gradient(
+      color-mix(in oklab, var(--dither-ink) 30%, transparent),
+      color-mix(in oklab, var(--dither-ink) 30%, transparent)
+    );
+  background-size:
+    3px 3px,
+    3px 3px,
+    auto;
+  background-position:
+    0 0,
+    1.5px 1.5px,
+    0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (forced-colors: active) {
+  .dither {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
 }

@@ -2,16 +2,16 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { getAllowedOrigins, isAllowedOrigin, normalizeOrigin } from "@/env";
-import { scheduleLazyCleanup } from "@/lib/lazy-cleanup";
-import { aiCredentialRoutes } from "@/routes/ai-credentials";
-import { feedbackRoutes } from "@/routes/feedback";
-import { generationRoutes } from "@/routes/generations";
-import { githubRoutes } from "@/routes/github";
-import { healthRoutes } from "@/routes/health";
-import { mediaRoutes } from "@/routes/media";
-import { prRoutes } from "@/routes/pr";
-import { profileRoutes } from "@/routes/profile";
-import { socialRoutes } from "@/routes/social";
+import { scheduleLazyCleanup } from "@/features/generations/lazy-cleanup";
+import { aiCredentialRoutes } from "@/features/ai-credentials/routes";
+import { feedbackRoutes } from "@/features/feedback/routes";
+import { generationRoutes } from "@/features/generations/routes";
+import { githubRoutes } from "@/features/github/routes";
+import { healthRoutes } from "@/features/health/routes";
+import { mediaRoutes } from "@/features/media/routes";
+import { prRoutes } from "@/features/pr/routes";
+import { profileRoutes } from "@/features/profile/routes";
+import { socialRoutes } from "@/features/social/routes";
 
 /**
  * Creates the Hono API app with shared middleware and route registration.

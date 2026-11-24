@@ -55,7 +55,7 @@ generation with your preferred provider. Saved credentials are encrypted before
 storage, and GitLoud returns only masked key previews.
 
 The project is a Turborepo workspace with a standalone Hono API, a Next.js web
-app, shared domain packages, and Electron/mobile workspaces prepared for reuse.
+app, shared domain packages, and an Electron workspace prepared for reuse.
 The separated backend is the source of truth for generation, media, profile, and
 history workflows so web and desktop clients can call the same API.
 
@@ -256,11 +256,6 @@ Electron app and future clients.
         <sub><strong>Vercel</strong></sub>
       </td>
       <td align="center" width="120">
-        <img src="https://cdn.simpleicons.org/expo/000020" width="36" height="36" alt="Expo" />
-        <br />
-        <sub><strong>Expo</strong></sub>
-      </td>
-      <td align="center" width="120">
         <img src="https://cdn.simpleicons.org/electron/47848F" width="36" height="36" alt="Electron" />
         <br />
         <sub><strong>Electron</strong></sub>
@@ -281,8 +276,6 @@ apps/
   api/                  Standalone Hono backend API
   web/                  Next.js web application
   electron/             Electron desktop workspace
-  mobile/               Expo mobile workspace
-  docs/                 Documentation/example workspace
 
 packages/
   ai/                   Prompting and AI generation logic
@@ -294,17 +287,25 @@ packages/
   typescript-config/    Shared TypeScript config
 ```
 
-Web structure:
+Web structure (feature-based):
 
 ```txt
-apps/web/app/           Next.js routes and route-only files
-apps/web/components/    Shared web UI components
-apps/web/lib/           Shared web helpers and API clients
-apps/web/assets/        Web UI assets
+apps/web/app/            Routes only: page, layout, loading, error, metadata. Pages fetch and compose.
+apps/web/features/       One folder per feature: components/, hooks/, lib/ owned by that feature
+  landing/ examples/ faq/ feedback/ legal/
+  auth/                  Sign-in shell, email-code form, toast, profile sync, SSO callback, safe redirect
+  dashboard/             Shell, sidebar, navigation, resize handle, backend wake screen
+  generate/              Quick-generate form, schema, validation, generation request
+  github-activity/       Repository activity picker and its hook
+  generations/           Generation detail and history, generations API
+  settings/              API key, GitHub App, social accounts
+apps/web/components/     Shared UI used by several features (header, footer, user menu, icons, loader)
+apps/web/lib/            Shared helpers (api/ client core, site URL, JSON-LD, scroll)
 ```
 
-Route-only components are colocated in `_components` folders inside the route
-that owns them.
+Rules: routes import features, features import `components/` and `lib/`, and
+shared code never imports a feature. A feature uses another feature only
+through its public files (today: `github-activity` uses `generate/lib`).
 
 ## Web Routes
 
@@ -534,7 +535,6 @@ requests.
 | `npm run api`                    | Run only the standalone API       |
 | `npm run desktop`                | Run the Electron app              |
 | `npm run desktop:build`          | Build the Electron app            |
-| `npm run mobile`                 | Run the mobile workspace          |
 | `npm run lint`                   | Lint all workspaces               |
 | `npm run check-types`            | Type-check all workspaces         |
 | `npm run build`                  | Build all workspaces              |

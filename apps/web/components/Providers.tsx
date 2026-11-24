@@ -2,34 +2,25 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { ThemeProvider } from "@/lib/theme-provider";
-import { BackendWakeScreen } from "@/components/BackendWakeScreen";
-import type { ThemeMode as Theme } from "@repo/shared/app-state";
 
-/**
- * Renders third-party provider contexts (QueryClient and Theme) around the application layout.
- *
- * @param props - Element properties.
- * @param props.children - Child elements to wrap.
- * @param props.initialTheme - The default theme to inject.
- * @returns Wrapped component hierarchy.
- */
-
-export function Providers({
-  children,
-  initialTheme,
-}: {
-  children: React.ReactNode;
-  initialTheme: Theme;
-}) {
-  const [queryClient] = useState(() => new QueryClient());
+export function Providers({ children }: { children: React.ReactNode }) {
+  // Cached data shows instantly on revisit: fresh for 60s (no refetch),
+  // then kept 30 min and refreshed in the background while it is shown.
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 60_000,
+            gcTime: 30 * 60_000,
+          },
+        },
+      }),
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider initialTheme={initialTheme}>
-        <BackendWakeScreen />
-        {children}
-      </ThemeProvider>
+      {children}
     </QueryClientProvider>
   );
 }

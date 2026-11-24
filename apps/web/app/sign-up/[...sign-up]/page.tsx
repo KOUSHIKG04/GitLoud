@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { AuthShell } from "@/components/auth/AuthShell";
-import { EmailCodeAuthForm } from "@/components/auth/EmailCodeAuthForm";
-import { getSafeRedirect } from "@/lib/safe-redirect";
+import { AuthShell } from "@/features/auth/components/auth-shell";
+import { EmailCodeAuthForm } from "@/features/auth/components/email-code-auth-form";
+import { getSafeRedirect } from "@/features/auth/lib/safe-redirect";
 
 export const metadata: Metadata = {
   title: "Sign Up",

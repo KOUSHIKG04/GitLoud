@@ -1,7 +1,7 @@
 import { createClerkClient, verifyToken } from "@clerk/backend";
 import { db } from "@repo/db/client";
 import { logger } from "@/lib/logger";
-import { getUserDisplayName } from "@/lib/user-display-name";
+import { getUserDisplayName } from "@repo/shared/user-display-name";
 
 const secretKey = process.env.CLERK_SECRET_KEY;
 const clerkClient = secretKey ? createClerkClient({ secretKey }) : null;

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { ContentExamplesSection } from "@/components/home/ContentExamplesSection";
+import { ContentExamplesSection } from "@/features/examples/components/content-examples-section";
+import { FeatureCardsSection } from "@/features/examples/components/feature-cards-section";
 import { PageStructuredData } from "@/components/seo/PageStructuredData";
 
 const title = "AI GitHub PR and Commit Content Examples";
@@ -54,11 +55,11 @@ export default function ExamplesPage() {
                 EXAMPLES
               </p>
 
-              <h1 className="mt-4 text-balance text-4xl font-bold tracking-tighter">
+              <h1 className="mt-4 text-balance text-4xl font-bold">
                 See what GitLoud can generate
               </h1>
 
-              <p className="mt-3 max-w-4xl text-md leading-6 text-muted-foreground tracking-tighter">
+              <p className="mt-3 max-w-4xl text-md leading-6 text-muted-foreground">
                 Example below was generated from a GitHub pull request or
                 commit. GitLoud transforms technical changes into clear,
                 shareable content for teammates, recruiters, & your developer
@@ -67,9 +68,9 @@ export default function ExamplesPage() {
             </div>
           </section>
 
-          <ContentExamplesSection />
-
-          
+          <ContentExamplesSection>
+            <FeatureCardsSection />
+          </ContentExamplesSection>
         </div>
 
         <Footer />

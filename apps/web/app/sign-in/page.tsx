@@ -9,4 +9,4 @@ export const metadata: Metadata = {
   },
 };
 
-export { default } from "./[...sign-in]/page";
+export { default } from "@/app/sign-in/[...sign-in]/page";

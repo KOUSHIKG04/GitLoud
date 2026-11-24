@@ -11,14 +11,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: [
-        "/api",
-        "/api/",
-        "/dashboard",
-        "/dashboard/",
-        "/sign-in",
-        "/sign-up",
-      ],
+      // Sign-in and sign-up stay crawlable so Google can read their noindex tag;
+      // the dashboard is private and also noindex.
+      disallow: ["/dashboard", "/dashboard/", "/sso-callback"],
     },
     sitemap: `${siteUrl}/sitemap.xml`,
   };

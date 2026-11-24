@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { DotMatrixLoader } from "@/components/DotMatrixLoader";
-import { HistoryList } from "./_components/history-list";
+import { SectionSkeleton } from "@/components/SectionSkeleton";
+import { HistoryList } from "@/features/generations/components/history-list";
 
 export const metadata: Metadata = {
   title: "History",
@@ -34,8 +34,16 @@ export default async function HistoryPage({
   return (
     <main className="relative isolate h-[calc(100dvh-3.5rem)] mx-auto w-full max-w-5xl overflow-hidden">
       <section className="h-full flex flex-col gap-4 px-4 pb-4 pt-4 overflow-hidden">
-
-        <Suspense fallback={<DotMatrixLoader className="min-h-64 flex-1" label="Loading history" />}>
+        <Suspense
+          fallback={
+            <SectionSkeleton
+              label="Loading history"
+              rows={6}
+              rowClassName="h-16"
+              bordered={false}
+            />
+          }
+        >
           <HistoryList
             date={legacyDateParam}
             from={fromParam}

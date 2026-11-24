@@ -1,0 +1,34 @@
+{
+  "name": "@repo/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./github": "./src/github.ts",
+    "./changed-file": "./src/changed-file.ts",
+    "./pull-request": "./src/pull-request.ts",
+    "./pr-cleanup": "./src/pr-cleanup.ts",
+    "./generated-content": "./src/generated-content.ts",
+    "./generations": "./src/generations.ts",
+    "./commit": "./src/commit.ts",
+    "./github-app": "./src/github-app.ts",
+    "./ai-credentials": "./src/ai-credentials.ts",
+    "./app-state": "./src/app-state.ts",
+    "./electron": "./src/electron.ts",
+    "./social": "./src/social.ts",
+    "./user-display-name": "./src/user-display-name.ts"
+  },
+  "scripts": {
+    "build": "tsc && tsc-alias -p tsconfig.json --resolve-full-paths",
+    "test": "node --test --import tsx ./test/*.test.ts"
+  },
+  "dependencies": {
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.20.6",
+    "typescript": "5.9.2"
+  }
+}

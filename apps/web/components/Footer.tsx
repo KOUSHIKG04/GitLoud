@@ -1,108 +1,96 @@
 "use client";
 
-import { AppLogo } from "@/assets/AppLogo";
-import { HomeLink } from "@/components/HomeLink";
-import { MailOpen } from "lucide-react";
 import Link from "next/link";
+import { Mail } from "lucide-react";
+import { AppLogo } from "@/components/icons/AppLogo";
+import { HomeLink } from "@/components/HomeLink";
 
 const currentYear = new Date().getFullYear();
 
-const navigationLinks = [
-  { href: "/", label: "Home", isHome: true },
-  { href: "/examples", label: "Examples" },
-  { href: "/feedback", label: "Feedback" },
+const columns = [
+  {
+    title: "Product",
+    links: [
+      { href: "/", label: "Home", isHome: true },
+      { href: "/examples", label: "Examples" },
+      { href: "/feedback", label: "Send feedback" },
+    ],
+  },
+  {
+    title: "Support",
+    links: [
+      { href: "/faq", label: "FAQ" },
+      { href: "/security-and-privacy", label: "Security and privacy" },
+      { href: "/terms", label: "Terms of service" },
+    ],
+  },
 ];
 
-const supportLinks = [
-  { href: "/terms", label: "Terms of Service" },
-  { href: "/faq", label: "FAQ" },
-  { href: "/security-and-privacy", label: "Security & Privacy" },
-];
+const linkClass =
+  "text-sm text-muted-foreground transition-colors hover:text-foreground";
 
 export function Footer() {
   return (
-    <footer className="bg-background border-t">
-      <div className="border-b">
-        <div className="mx-auto w-full max-w-7xl px-10 py-12">
-          <div className="flex items-center gap-3">
-            <AppLogo className="size-4 text-foreground" />
-            <span className="text-md font-bold tracking-tight text-foreground">
-              GitLoud
-            </span>
+    <footer className="border-t border-border bg-background">
+      <div className="border-b border-border">
+        <div className="mx-auto grid w-full max-w-5xl grid-cols-1 divide-y divide-border md:grid-cols-4 md:divide-x md:divide-y-0 md:border-x md:border-border">
+          <div className="space-y-4 p-6 sm:p-10 lg:px-12 md:col-span-2">
+            <HomeLink className="inline-flex items-center gap-2.5">
+              <AppLogo className="size-6 text-foreground" />
+              <span className="text-xl font-bold text-foreground">
+                GitLoud
+              </span>
+            </HomeLink>
+            <p className="max-w-md text-sm leading-6 text-muted-foreground">
+              Free and open source. GitLoud costs nothing to use and its code
+              is public on GitHub.
+            </p>
+            <a
+              href="mailto:koushikgdatta5@gmail.com"
+              className="inline-flex items-center gap-2 text-sm text-foreground transition-colors hover:text-primary"
+            >
+              <Mail className="size-4" aria-hidden="true" />
+              koushikgdatta5@gmail.com
+            </a>
           </div>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            GitLoud turns GitHub pull requests and commits into clear summaries,
-            changelog entries, portfolio bullets, and social posts. Built for
-            developers who ship in public.
-          </p>
+
+          {columns.map((column) => (
+            <nav
+              key={column.title}
+              aria-label={column.title}
+              className="p-6 sm:p-10 lg:px-12"
+            >
+              <h3 className="text-sm font-semibold text-foreground">
+                {column.title}
+              </h3>
+              <ul className="mt-4 space-y-3">
+                {column.links.map((link) => (
+                  <li key={link.href}>
+                    {"isHome" in link ? (
+                      <HomeLink className={linkClass}>{link.label}</HomeLink>
+                    ) : (
+                      <Link href={link.href} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
         </div>
       </div>
 
-      <div className="border-b">
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 md:grid-cols-4 md:divide-x">
-          <div className="border-b md:border-b-0 md:col-span-2 p-6 sm:p-10 flex flex-col items-start justify-center">
-            <h3 className="text-sm font-semibold uppercase tracking-normal text-foreground">
-              Contact Us:{" "}
-              <a
-                href="mailto:koushikgdatta5@gmail.com"
-                className="inline-flex gap-1.5 items-center font-medium text-foreground lowercase hover:text-chart-3 transition-colors"
-              >
-                koushikgdatta5@gmail.com <MailOpen size={10} />
-              </a>
-            </h3>
-            <p className="text-xs pt-3 text-muted-foreground/60 tracking-normal">
-              Copyright &copy; {currentYear} GitLoud. All rights reserved.
-            </p>
-          </div>
-
-          <div className="hidden md:block border-b md:border-b-0 p-6 sm:p-10">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Navigation
-            </h3>
-            <ul className="pt-3 space-y-3 text-sm uppercase">
-              {navigationLinks.map(({ href, label, isHome }) => (
-                <li key={href}>
-                  {isHome ? (
-                    <HomeLink className="text-muted-foreground hover:text-chart-3 transition-colors">
-                      {label}
-                    </HomeLink>
-                  ) : (
-                    <Link
-                      href={href}
-                      className="text-muted-foreground hover:text-chart-3 transition-colors"
-                    >
-                      {label}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="p-6 sm:p-10">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Support
-            </h3>
-            <ul className="pt-3 space-y-3 text-sm uppercase">
-              {supportLinks.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-muted-foreground hover:text-chart-3 transition-colors"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+      <div className="border-b border-border">
+        <div className="mx-auto w-full max-w-5xl px-6 py-5 text-xs text-muted-foreground sm:px-10 md:border-x md:border-border lg:px-12">
+          © {currentYear} GitLoud. All rights reserved.
         </div>
       </div>
 
       <div className="overflow-hidden px-4 pt-10 pb-2">
         <div
           aria-hidden="true"
-          className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] tracking-tight bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6"
+          className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6"
         >
           GitLoud
         </div>

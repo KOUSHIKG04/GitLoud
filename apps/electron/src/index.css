@@ -17,9 +17,13 @@ body,
   box-sizing: border-box;
 }
 
+:root {
+  --font-geist-sans: "Geist Variable";
+  --font-geist-mono: "Geist Mono Variable";
+}
+
 body {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family: var(--font-sans);
   background: var(--background);
   color: var(--foreground);
 }

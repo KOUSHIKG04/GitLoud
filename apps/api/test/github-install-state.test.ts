@@ -3,7 +3,7 @@ import test from "node:test";
 import {
   createGitHubInstallState,
   verifyGitHubInstallState,
-} from "../src/lib/github-install-state";
+} from "../src/features/github/install-state";
 
 const secret = "0123456789abcdef0123456789abcdef";
 const originalStateSecret = process.env.GITHUB_APP_STATE_SECRET;
