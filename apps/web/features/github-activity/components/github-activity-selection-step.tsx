@@ -2,9 +2,12 @@
 
 import { CommitBranchIcon } from "@/components/icons/CommitBranchIcon";
 import { Check, GitPullRequest } from "lucide-react";
-import { DotMatrixLoader } from "@/components/DotMatrixLoader";
+import { SectionSkeleton } from "@/components/SectionSkeleton";
 import { type UIEvent, useMemo, useState } from "react";
-import type { ActivityType, GitHubActivityItem } from "@/features/github-activity/lib/github-activity-types";
+import type {
+  ActivityType,
+  GitHubActivityItem,
+} from "@/features/github-activity/lib/github-activity-types";
 
 const activityListHeightPx = 320;
 const activityScrollTrackHeightPx = activityListHeightPx - 8;
@@ -66,17 +69,13 @@ export function GitHubActivitySelectionStep({
   return (
     <div className="h-80 w-full overflow-hidden rounded-sm border bg-background">
       {loadingActivity ? (
-        <output
-          className="flex h-full items-center justify-center"
-          aria-label="Loading GitHub activity"
-        >
-          <DotMatrixLoader
-            className="h-full"
-            size={40}
-            dotSize={5}
-            label="Loading GitHub activity"
-          />
-        </output>
+        <SectionSkeleton
+          label="Loading GitHub activity"
+          rows={5}
+          rowClassName="h-12"
+          bordered={false}
+          className="p-3"
+        />
       ) : items.length === 0 ? (
         <div className="flex h-full items-center justify-center p-4 text-center text-sm text-muted-foreground">
           No recent{" "}

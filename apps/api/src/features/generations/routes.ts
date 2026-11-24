@@ -14,9 +14,13 @@ import {
   parseGithubPullRequestUrl,
 } from "@repo/shared/github";
 import { Hono } from "hono";
+import { z } from "zod";
 import { getAuthenticatedUserId } from "@/lib/auth";
 import { getAiGenerationOptionsForUser } from "@/features/ai-credentials/service";
-import { getGitHubTokenForRepo, getPublicGitHubToken } from "@/features/github/app";
+import {
+  getGitHubTokenForRepo,
+  getPublicGitHubToken,
+} from "@/features/github/app";
 import { getRequestIp } from "@/lib/ip";
 import { logger } from "@/lib/logger";
 import { persistentRateLimit } from "@/lib/rate-limit";
@@ -35,6 +39,10 @@ const generatedContentSelect = {
   changelogEntry: true,
   beginnerSummary: true,
 } as const;
+
+const attachMediaSchema = z.object({
+  mediaAttachmentId: z.string().trim().min(1).max(128),
+});
 
 export const generationRoutes: Hono = new Hono()
   .get("/", async (context) => {
@@ -75,42 +83,44 @@ export const generationRoutes: Hono = new Hono()
       ],
     };
 
-    const generations = await db.generatedContent.findMany({
-      where: whereFilter,
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        sourceType: true,
-        createdAt: true,
-        pullRequest: {
-          select: {
-            title: true,
-            owner: true,
-            repo: true,
-            url: true,
+    // The page of rows and the total count are independent, so run them
+    // together: each query is a full round trip to the database.
+    const [generations, totalCount] = await Promise.all([
+      db.generatedContent.findMany({
+        where: whereFilter,
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          sourceType: true,
+          createdAt: true,
+          pullRequest: {
+            select: {
+              title: true,
+              owner: true,
+              repo: true,
+              url: true,
+            },
+          },
+          commit: {
+            select: {
+              message: true,
+              owner: true,
+              repo: true,
+              url: true,
+            },
+          },
+          combinedSources: true,
+          _count: {
+            select: {
+              mediaAttachments: true,
+            },
           },
         },
-        commit: {
-          select: {
-            message: true,
-            owner: true,
-            repo: true,
-            url: true,
-          },
-        },
-        combinedSources: true,
-        _count: {
-          select: {
-            mediaAttachments: true,
-          },
-        },
-      },
-      skip,
-      take: pageSize,
-    });
-    const totalCount = await db.generatedContent.count({
-      where: whereFilter,
-    });
+        skip,
+        take: pageSize,
+      }),
+      db.generatedContent.count({ where: whereFilter }),
+    ]);
     const totalPages = Math.ceil(totalCount / pageSize);
     const hasNextPage = page < totalPages;
 
@@ -262,6 +272,51 @@ export const generationRoutes: Hono = new Hono()
 
     return context.json({ ok: true });
   })
+  // Attach an already-uploaded media file to an existing generation, so media
+  // can be added on the result page instead of before generating.
+  .post("/:id/media", async (context) => {
+    const userId = await getAuthenticatedUserId(context.req.raw);
+
+    if (!userId) {
+      return context.json({ error: "Unauthorized" }, 401);
+    }
+
+    const body = attachMediaSchema.safeParse(
+      await context.req.json().catch(() => null),
+    );
+
+    if (!body.success) {
+      return context.json({ error: "Choose a media file to attach" }, 400);
+    }
+
+    const generationId = context.req.param("id");
+    const generation = await db.generatedContent.findFirst({
+      where: { id: generationId, userId },
+      select: { id: true },
+    });
+
+    if (!generation) {
+      return context.json({ error: "Generated content was not found" }, 404);
+    }
+
+    const attached = await db.mediaAttachment.updateMany({
+      where: {
+        id: body.data.mediaAttachmentId,
+        userId,
+        generatedContentId: null,
+      },
+      data: {
+        generatedContentId: generationId,
+        generatedContentUserId: userId,
+      },
+    });
+
+    if (attached.count === 0) {
+      return context.json({ error: "Media attachment was not found" }, 404);
+    }
+
+    return context.json({ ok: true });
+  })
   .post("/:id/regenerate", async (context) => {
     const userId = await getAuthenticatedUserId(context.req.raw);
 
@@ -318,11 +373,12 @@ export const generationRoutes: Hono = new Hono()
           owner: generation.pullRequest.owner,
           repo: generation.pullRequest.repo,
           number: generation.pullRequest.number,
-          githubToken: (await getGitHubTokenForRepo({
-                userId,
-                owner: generation.pullRequest.owner,
-                repo: generation.pullRequest.repo,
-              })) ?? getPublicGitHubToken(),
+          githubToken:
+            (await getGitHubTokenForRepo({
+              userId,
+              owner: generation.pullRequest.owner,
+              repo: generation.pullRequest.repo,
+            })) ?? getPublicGitHubToken(),
         });
 
         const generatedContent = await generateContentFromPullRequest(
@@ -367,11 +423,12 @@ export const generationRoutes: Hono = new Hono()
           owner: generation.commit.owner,
           repo: generation.commit.repo,
           sha: generation.commit.sha,
-          githubToken: (await getGitHubTokenForRepo({
-                userId,
-                owner: generation.commit.owner,
-                repo: generation.commit.repo,
-              })) ?? getPublicGitHubToken(),
+          githubToken:
+            (await getGitHubTokenForRepo({
+              userId,
+              owner: generation.commit.owner,
+              repo: generation.commit.repo,
+            })) ?? getPublicGitHubToken(),
         });
 
         const generatedContent = await generateContentFromCommit(
@@ -420,11 +477,12 @@ export const generationRoutes: Hono = new Hono()
         }
 
         const firstSource = combinedSources[0]!;
-        const githubToken = (await getGitHubTokenForRepo({
-              userId,
-              owner: firstSource.owner,
-              repo: firstSource.repo,
-            })) ?? getPublicGitHubToken();
+        const githubToken =
+          (await getGitHubTokenForRepo({
+            userId,
+            owner: firstSource.owner,
+            repo: firstSource.repo,
+          })) ?? getPublicGitHubToken();
         const sourceType = firstSource.sourceType;
         let generatedContent;
         let refreshedCombinedSources: CombinedGenerationSource[] | undefined;

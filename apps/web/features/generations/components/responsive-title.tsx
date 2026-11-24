@@ -73,7 +73,7 @@ export function ResponsiveTitle({ title }: { title: string }) {
     const resizeObserver = new ResizeObserver(() => {
       updateTruncation();
     });
-    
+
     resizeObserver.observe(parent);
 
     return () => {

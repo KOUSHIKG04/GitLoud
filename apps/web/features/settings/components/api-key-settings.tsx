@@ -20,7 +20,7 @@ import {
   providerLabels,
   useApiKeySettings,
 } from "@/features/settings/hooks/use-api-key-settings";
-import { DotMatrixLoader } from "@/components/DotMatrixLoader";
+import { SectionSkeleton } from "@/components/SectionSkeleton";
 
 export function ApiKeySettings() {
   const {
@@ -39,7 +39,7 @@ export function ApiKeySettings() {
   } = useApiKeySettings();
 
   if (loading) {
-    return <DotMatrixLoader className="min-h-64" label="Loading settings" />;
+    return <SectionSkeleton label="Loading AI key settings" rows={2} />;
   }
 
   if (!data) {

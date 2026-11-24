@@ -5,9 +5,7 @@ const WhyComponent = () => {
     <section className="border-t px-4 py-10 sm:px-6 lg:px-20">
       <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2">
         <div className="space-y-3">
-          <h2 className="text-xl font-bold">
-            A least-access approach
-          </h2>
+          <h2 className="text-xl font-bold">A least-access approach</h2>
           <p className="text-sm leading-6 text-muted-foreground">
             Public pull request and commit links can be processed without a
             GitHub App installation. Private repository access is optional and
@@ -26,9 +24,7 @@ const WhyComponent = () => {
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-xl font-bold">
-            Your role in protecting data
-          </h2>
+          <h2 className="text-xl font-bold">Your role in protecting data</h2>
           <p className="text-sm leading-6 text-muted-foreground">
             Review organizational policy before submitting private code to any
             hosted or AI-assisted workflow. Repositories containing credentials,

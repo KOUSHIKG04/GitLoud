@@ -106,9 +106,7 @@ export function DiscordPublishButton({
         );
       }
 
-      const nextConnections = (
-        value as SocialConnectionsResponse
-      ).connections;
+      const nextConnections = (value as SocialConnectionsResponse).connections;
       dispatch({ type: "connectionsLoaded", connections: nextConnections });
     } catch (error) {
       toast.error(
@@ -163,9 +161,7 @@ export function DiscordPublishButton({
       dispatch({ type: "openChanged", open: false });
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not publish to Discord",
+        error instanceof Error ? error.message : "Could not publish to Discord",
       );
     } finally {
       dispatch({ type: "publishingChanged", publishing: false });
@@ -190,8 +186,8 @@ export function DiscordPublishButton({
         <DialogHeader>
           <DialogTitle>Publish to Discord</DialogTitle>
           <DialogDescription>
-            Choose a connected channel, review the generated post, then
-            confirm. This sends a real Discord message.
+            Choose a connected channel, review the generated post, then confirm.
+            This sends a real Discord message.
           </DialogDescription>
         </DialogHeader>
 
@@ -203,7 +199,7 @@ export function DiscordPublishButton({
           <div className="space-y-3 rounded-sm border border-border bg-muted/20 p-4 text-sm">
             <p>No Discord channel is connected yet.</p>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/dashboard/settings/social">Connect Discord</Link>
+              <Link href="/dashboard/settings#social">Connect Discord</Link>
             </Button>
           </div>
         ) : (

@@ -15,7 +15,10 @@ import type {
   ShareMediaAttachment,
   SharePlatform,
 } from "@/features/generations/components/generated-content-types";
-import { createShareUrls, withMediaLinks } from "@/features/generations/components/generated-content-share";
+import {
+  createShareUrls,
+  withMediaLinks,
+} from "@/features/generations/components/generated-content-share";
 import { DiscordPublishButton } from "@/features/generations/components/discord-publish-button";
 
 export function ContentActions({

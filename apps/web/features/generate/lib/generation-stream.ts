@@ -1,8 +1,6 @@
-import { apiFetch } from "@/lib/api/client";
 import type {
   GenerateDoneResponse,
   GenerationProgressEvent,
-  UploadedMediaAttachment,
 } from "@repo/shared/generations";
 
 export class GenerationRequestError extends Error {
@@ -71,29 +69,4 @@ export async function readProgressStream(
 
 export function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-export async function uploadMedia(
-  file: File,
-  getToken: () => Promise<string | null>,
-) {
-  const formData = new FormData();
-  formData.set("file", file);
-
-  const response = await apiFetch(
-    "/media",
-    {
-      method: "POST",
-      body: formData,
-    },
-    getToken,
-  );
-
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(body?.error ?? "Could not upload media");
-  }
-
-  return body.mediaAttachment as UploadedMediaAttachment;
 }

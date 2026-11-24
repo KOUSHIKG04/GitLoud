@@ -1,7 +1,7 @@
 export function getSafeRedirect(
   callbackUrl?: string,
   redirectUrl?: string,
-  fallbackUrl: string = "/"
+  fallbackUrl: string = "/",
 ): string {
   const requestedUrl = callbackUrl ?? redirectUrl;
   const isSafeRedirect =

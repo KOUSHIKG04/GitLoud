@@ -3,49 +3,34 @@
 import { useAuth } from "@clerk/nextjs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { GitHubInstallationsResponse } from "@repo/shared/github-app";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api/client";
 import { getApiError } from "@/lib/api/response";
+import { useCachedResource } from "@/lib/api/use-cached-resource";
+import {
+  GITHUB_INSTALLATIONS_RESOURCE,
+  fetchGitHubInstallations,
+} from "@/lib/api/github-installations";
 
 export function useGitHubAppSettings() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
-  const [data, setData] = useState<GitHubInstallationsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    data,
+    loading,
+    reload: loadSettings,
+  } = useCachedResource<GitHubInstallationsResponse>(
+    GITHUB_INSTALLATIONS_RESOURCE,
+    () => fetchGitHubInstallations(getToken),
+    "Could not load settings",
+  );
   const [syncing, setSyncing] = useState(false);
 
   const hasConnectedGitHub = useMemo(
     () => (data?.installations.length ?? 0) > 0,
     [data],
   );
-
-  const loadSettings = useCallback(async () => {
-    setLoading(true);
-
-    try {
-      const response = await apiFetch("/github/installations", {}, getToken);
-      const value = (await response.json()) as
-        | GitHubInstallationsResponse
-        | { error?: string };
-
-      if (!response.ok) {
-        throw new Error(getApiError(value, "Could not load GitHub settings"));
-      }
-
-      setData(value as GitHubInstallationsResponse);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not load settings",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
 
   const disconnectInstallationMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -62,7 +47,9 @@ export function useGitHubAppSettings() {
     },
     onSuccess: async () => {
       toast.success("GitHub App disconnected");
-      await queryClient.invalidateQueries({ queryKey: ["github-installations"] });
+      await queryClient.invalidateQueries({
+        queryKey: ["github-installations"],
+      });
       await loadSettings();
     },
     onError: (error) => {

@@ -6,10 +6,11 @@ import type {
   AiCredentialsResponse,
   AiProvider,
 } from "@repo/shared/ai-credentials";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api/client";
 import { getApiError } from "@/lib/api/response";
+import { useCachedResource } from "@/lib/api/use-cached-resource";
 
 export const providerLabels = {
   gemini: "Gemini",
@@ -20,8 +21,22 @@ export const providerLabels = {
 
 export function useApiKeySettings() {
   const { getToken } = useAuth();
-  const [data, setData] = useState<AiCredentialsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, setData } = useCachedResource<AiCredentialsResponse>(
+    "ai-credentials",
+    async () => {
+      const response = await apiFetch("/ai-credentials", {}, getToken);
+      const value = (await response.json()) as
+        | AiCredentialsResponse
+        | { error?: string };
+
+      if (!response.ok) {
+        throw new Error(getApiError(value, "Could not load AI settings"));
+      }
+
+      return value as AiCredentialsResponse;
+    },
+    "Could not load settings",
+  );
   const [apiKey, setApiKey] = useState("");
   const [savingKey, setSavingKey] = useState(false);
   const [selectedProvider, setSelectedProvider] =
@@ -45,34 +60,7 @@ export function useApiKeySettings() {
           }
         : current,
     );
-  }, []);
-
-  const loadSettings = useCallback(async () => {
-    setLoading(true);
-
-    try {
-      const response = await apiFetch("/ai-credentials", {}, getToken);
-      const value = (await response.json()) as
-        | AiCredentialsResponse
-        | { error?: string };
-
-      if (!response.ok) {
-        throw new Error(getApiError(value, "Could not load AI settings"));
-      }
-
-      setData(value as AiCredentialsResponse);
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not load settings",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
+  }, [setData]);
 
   const saveAiKey = useCallback(async () => {
     setSavingKey(true);

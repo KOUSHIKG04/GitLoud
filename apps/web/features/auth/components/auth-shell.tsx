@@ -4,7 +4,6 @@ import { Header } from "@/components/Header";
 import { Dithering } from "@paper-design/shaders-react";
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
-  
   const colorBack = "#0a0a0a";
 
   return (

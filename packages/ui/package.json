@@ -4,18 +4,12 @@
   "private": true,
   "type": "module",
   "imports": {
-    "#lib/dotmatrix-core": "./src/lib/dotmatrix-core.tsx",
-    "#lib/dotmatrix-hooks": "./src/lib/dotmatrix-hooks.ts",
-    "#components/dotm-square-4": "./src/components/dotm-square-4.tsx",
     "#components/*": "./src/components/*.tsx",
     "#lib/*": "./src/lib/*.ts",
     "#hooks/*": "./src/hooks/*.ts"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
-    "./lib/dotmatrix-core": "./src/lib/dotmatrix-core.tsx",
-    "./lib/dotmatrix-hooks": "./src/lib/dotmatrix-hooks.ts",
-    "./components/dotm-square-4": "./src/components/dotm-square-4.tsx",
     "./components/*": "./src/components/*.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",

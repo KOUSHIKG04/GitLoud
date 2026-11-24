@@ -8,10 +8,11 @@ import type {
   SocialPublication,
   SocialPublicationsResponse,
 } from "@repo/shared/social";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api/client";
 import { getApiError } from "@/lib/api/response";
+import { useCachedResource } from "@/lib/api/use-cached-resource";
 
 export const socialProviderLabels = {
   discord: "Discord",
@@ -19,20 +20,19 @@ export const socialProviderLabels = {
 
 export function useSocialSettings() {
   const { getToken } = useAuth();
-  const [connections, setConnections] = useState<SocialConnection[]>([]);
-  const [publications, setPublications] = useState<SocialPublication[]>([]);
   const [displayName, setDisplayName] = useState("");
   const [webhookUrl, setWebhookUrl] = useState("");
-  const [loading, setLoading] = useState(true);
   const [savingProvider, setSavingProvider] = useState<SocialProvider | null>(
     null,
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const loadSettings = useCallback(async () => {
-    setLoading(true);
-
-    try {
+  const { data, loading, setData } = useCachedResource<{
+    connections: SocialConnection[];
+    publications: SocialPublication[];
+  }>(
+    "social-settings",
+    async () => {
       const [connectionsResponse, publicationsResponse] = await Promise.all([
         apiFetch("/social/connections", {}, getToken),
         apiFetch("/social/publications?limit=10", {}, getToken),
@@ -56,26 +56,25 @@ export function useSocialSettings() {
         );
       }
 
-      setConnections(
-        (connectionsValue as SocialConnectionsResponse).connections,
-      );
-      setPublications(
-        (publicationsValue as SocialPublicationsResponse).publications,
-      );
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Could not load social settings",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [getToken]);
-
-  useEffect(() => {
-    void loadSettings();
-  }, [loadSettings]);
+      return {
+        connections: (connectionsValue as SocialConnectionsResponse)
+          .connections,
+        publications: (publicationsValue as SocialPublicationsResponse)
+          .publications,
+      };
+    },
+    "Could not load social settings",
+  );
+  const connections = data?.connections ?? [];
+  const publications = data?.publications ?? [];
+  const setConnections = useCallback(
+    (next: SocialConnection[]) =>
+      setData((current) => ({
+        connections: next,
+        publications: current?.publications ?? [],
+      })),
+    [setData],
+  );
 
   const connectDiscord = useCallback(async () => {
     setSavingProvider("discord");
@@ -112,7 +111,7 @@ export function useSocialSettings() {
     } finally {
       setSavingProvider(null);
     }
-  }, [displayName, getToken, webhookUrl]);
+  }, [displayName, getToken, setConnections, webhookUrl]);
 
   const disconnect = useCallback(
     async (connection: SocialConnection) => {
@@ -156,7 +155,7 @@ export function useSocialSettings() {
         setDeletingId(null);
       }
     },
-    [getToken],
+    [getToken, setConnections],
   );
 
   return {

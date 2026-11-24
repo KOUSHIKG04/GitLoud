@@ -1,7 +1,7 @@
 "use client";
 
 import { DiscordIcon } from "@/components/icons/social-icons";
-import { DotMatrixLoader } from "@/components/DotMatrixLoader";
+import { SectionSkeleton } from "@/components/SectionSkeleton";
 import type { SocialConnection } from "@repo/shared/social";
 import {
   Accordion,
@@ -62,7 +62,13 @@ export function SocialAccountsSettings() {
   );
 
   if (loading) {
-    return <DotMatrixLoader className="min-h-64" label="Loading accounts" />;
+    return (
+      <SectionSkeleton
+        label="Loading social accounts"
+        rows={2}
+        rowClassName="h-16"
+      />
+    );
   }
 
   return (
@@ -95,11 +101,11 @@ export function SocialAccountsSettings() {
                 }`}
               >
                 <span
-                  // className={`size-1 ${
-                  // discordConnections.length > 0
-                  // ? "bg-emerald-500"
-                  // : "bg-muted-foreground/50"
-                  // }`}
+                // className={`size-1 ${
+                // discordConnections.length > 0
+                // ? "bg-emerald-500"
+                // : "bg-muted-foreground/50"
+                // }`}
                 />
                 {discordConnections.length > 0
                   ? `${discordConnections.length} CONNECTED`
@@ -208,11 +214,7 @@ export function SocialAccountsSettings() {
                     </div>
                   </div>
                 </div>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
+                <Button asChild variant="outline" className="w-full sm:w-auto">
                   <a
                     href={DISCORD_WEBHOOK_DOCS_URL}
                     target="_blank"

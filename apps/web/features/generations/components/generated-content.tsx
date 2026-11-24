@@ -10,7 +10,10 @@ import {
   SocialPostCard,
 } from "@/features/generations/components/generated-content-blocks";
 import { ContentActions } from "@/features/generations/components/content-actions";
-import { getShareableFiles, withMediaLinks } from "@/features/generations/components/generated-content-share";
+import {
+  getShareableFiles,
+  withMediaLinks,
+} from "@/features/generations/components/generated-content-share";
 import type { ShareMediaAttachment } from "@/features/generations/components/generated-content-types";
 
 type GeneratedContentViewProps = {
@@ -107,9 +110,7 @@ export function GeneratedContentView({
   return (
     <section className="space-y-4">
       <div className="border-t pt-6">
-        <h2 className="text-xl font-semibold">
-          GENERATED CONTENT
-        </h2>
+        <h2 className="text-xl font-semibold">GENERATED CONTENT</h2>
       </div>
 
       {isRegenerating ? (
@@ -121,8 +122,8 @@ export function GeneratedContentView({
           {isReducedFallbackContent ? (
             <div className="rounded-sm border border-amber-500/40 bg-amber-500/10 p-4 text-sm leading-6 text-amber-900 dark:text-amber-100">
               Free fallback AI generated a shorter result with only the X post,
-              short summary, and beginner-friendly explanation. Regenerate
-              later for the full content set.
+              short summary, and beginner-friendly explanation. Regenerate later
+              for the full content set.
             </div>
           ) : null}
 

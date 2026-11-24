@@ -154,7 +154,7 @@ githubRoutes.get("/callback", async (context) => {
     await syncInstallationRepositories(numericInstallationId);
 
     return context.redirect(
-      `${getWebAppUrl()}/dashboard/settings/github-app?github=connected`,
+      `${getWebAppUrl()}/dashboard/settings?github=connected#github`,
     );
   } catch (error) {
     logger.error("GitHub callback failed", {

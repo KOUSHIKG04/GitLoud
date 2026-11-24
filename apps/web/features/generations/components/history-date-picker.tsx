@@ -103,7 +103,7 @@ function HistoryDatePickerContent() {
           {selectedRange?.from ? (
             selectedRange.to ? (
               <>
-                {format(selectedRange.from, "MMM d, yyyy")} - {" "}
+                {format(selectedRange.from, "MMM d, yyyy")} -{" "}
                 {format(selectedRange.to, "MMM d, yyyy")}
               </>
             ) : (

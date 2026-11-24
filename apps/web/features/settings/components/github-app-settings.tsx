@@ -16,7 +16,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useGitHubAppSettings } from "@/features/settings/hooks/use-github-app-settings";
-import { DotMatrixLoader } from "@/components/DotMatrixLoader";
+import { SectionSkeleton } from "@/components/SectionSkeleton";
 
 export function GitHubAppSettings() {
   const {
@@ -49,7 +49,7 @@ export function GitHubAppSettings() {
   }, []);
 
   if (loading) {
-    return <DotMatrixLoader className="min-h-64" label="Loading settings" />;
+    return <SectionSkeleton label="Loading GitHub settings" rows={2} />;
   }
 
   if (!data) {

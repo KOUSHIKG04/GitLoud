@@ -66,8 +66,6 @@ export function SecurityPrivacyContent({
         </div>
       </section>
 
-  
-
       <div className="border-t border-b border-border w-full">
         <div
           className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-20 flex gap-8"

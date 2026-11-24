@@ -51,10 +51,16 @@ export function useEmailCodeAuthFormController({
   redirectUrl: string;
 }) {
   const { push, refresh } = useRouter();
-  const { isLoaded: isSignInLoaded, setActive: setSignInActive, signIn } =
-    useSignIn();
-  const { isLoaded: isSignUpLoaded, setActive: setSignUpActive, signUp } =
-    useSignUp();
+  const {
+    isLoaded: isSignInLoaded,
+    setActive: setSignInActive,
+    signIn,
+  } = useSignIn();
+  const {
+    isLoaded: isSignUpLoaded,
+    setActive: setSignUpActive,
+    signUp,
+  } = useSignUp();
   const [state, dispatch] = useReducer(authFormReducer, initialAuthFormState);
   const { email, username, code, legalAccepted, pendingAction } = state;
   const setEmail = (value: string) => dispatch({ type: "email", value });
@@ -62,7 +68,8 @@ export function useEmailCodeAuthFormController({
   const setCode = (value: string) => dispatch({ type: "code", value });
   const setLegalAccepted = (value: boolean) =>
     dispatch({ type: "legalAccepted", value });
-  const setStep = (value: "email" | "code") => dispatch({ type: "step", value });
+  const setStep = (value: "email" | "code") =>
+    dispatch({ type: "step", value });
   const setPendingAction = (value: PendingAction) =>
     dispatch({ type: "pendingAction", value });
   const setErrorMessage = (value: string | null) =>
@@ -82,7 +89,9 @@ export function useEmailCodeAuthFormController({
           (factor) => factor.strategy === "email_code",
         );
         if (!emailCodeFactor || emailCodeFactor.strategy !== "email_code") {
-          throw new Error("Email code sign-in is not enabled for this account.");
+          throw new Error(
+            "Email code sign-in is not enabled for this account.",
+          );
         }
         await signIn.prepareFirstFactor({
           strategy: "email_code",
@@ -99,8 +108,12 @@ export function useEmailCodeAuthFormController({
     }
 
     if (!isSignUpLoaded || !signUp) return;
-    if (!username.trim()) return showMessage("Enter a username to create an account.");
-    if (!legalAccepted) return showMessage("Accept the Terms and Privacy Policy to create an account.");
+    if (!username.trim())
+      return showMessage("Enter a username to create an account.");
+    if (!legalAccepted)
+      return showMessage(
+        "Accept the Terms and Privacy Policy to create an account.",
+      );
 
     setPendingAction("email");
     setErrorMessage(null);
@@ -141,7 +154,10 @@ export function useEmailCodeAuthFormController({
     }
 
     if (!isSignUpLoaded || !signUp) return;
-    if (!legalAccepted) return showMessage("Accept the Terms and Privacy Policy to create an account.");
+    if (!legalAccepted)
+      return showMessage(
+        "Accept the Terms and Privacy Policy to create an account.",
+      );
     setPendingAction("google");
     setErrorMessage(null);
     try {
@@ -164,7 +180,10 @@ export function useEmailCodeAuthFormController({
     try {
       if (mode === "sign-in") {
         if (!isSignInLoaded || !signIn || !setSignInActive) return;
-        const result = await signIn.attemptFirstFactor({ strategy: "email_code", code });
+        const result = await signIn.attemptFirstFactor({
+          strategy: "email_code",
+          code,
+        });
         if (result.status !== "complete" || !result.createdSessionId) {
           throw new Error("Could not complete sign in with this code.");
         }
@@ -179,9 +198,14 @@ export function useEmailCodeAuthFormController({
               unsafeMetadata: { displayName: username.trim() },
               legalAccepted,
             });
-            await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+            await signUp.prepareEmailAddressVerification({
+              strategy: "email_code",
+            });
             setCode("");
-            showMessage("Your previous code was created before passwordless sign-up was enabled. We sent a new verification code.", "info");
+            showMessage(
+              "Your previous code was created before passwordless sign-up was enabled. We sent a new verification code.",
+              "info",
+            );
             return;
           }
           const missingFields = result.missingFields.join(", ");
@@ -216,7 +240,9 @@ export function useEmailCodeAuthFormController({
           (factor) => factor.strategy === "email_code",
         );
         if (!emailCodeFactor || emailCodeFactor.strategy !== "email_code") {
-          throw new Error("Email code sign-in is not enabled for this account.");
+          throw new Error(
+            "Email code sign-in is not enabled for this account.",
+          );
         }
         await signIn.prepareFirstFactor({
           strategy: "email_code",
@@ -224,7 +250,9 @@ export function useEmailCodeAuthFormController({
         });
       } else {
         if (!isSignUpLoaded || !signUp) return;
-        await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+        await signUp.prepareEmailAddressVerification({
+          strategy: "email_code",
+        });
       }
     } catch (error) {
       showAuthError(error);

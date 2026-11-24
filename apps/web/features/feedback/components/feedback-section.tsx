@@ -148,9 +148,7 @@ export function FeedbackSection() {
           <div>
             <label htmlFor="feedback-email" className="text-sm font-medium">
               Contact email{" "}
-              <span className="text-muted-foreground text-xs">
-                (optional)
-              </span>
+              <span className="text-muted-foreground text-xs">(optional)</span>
             </label>
             <Input
               id="feedback-email"

@@ -122,7 +122,7 @@ export function LandingDocument() {
         <Accordion
           type="single"
           collapsible
-          defaultValue="faq-1"
+          defaultValue="faq-3"
           className="mt-6"
         >
           {seoFaqItems.map((item, index) => (

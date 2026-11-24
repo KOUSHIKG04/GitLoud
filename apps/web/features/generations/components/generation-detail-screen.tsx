@@ -131,6 +131,7 @@ export function GenerationDetailScreen({
           </div>
 
           <AttachedMediaSection
+            generationId={generation.id}
             mediaAttachments={generation.mediaAttachments}
           />
         </section>
