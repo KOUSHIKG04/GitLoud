@@ -8,8 +8,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-family-sans: var(--font-sans);
-  --font-family-mono: var(--font-mono);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -176,7 +176,10 @@
 
 @layer base {
   html {
-    @apply font-mono;
+    @apply font-sans;
+    caret-color: var(--primary);
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 45%, transparent)
+      var(--background);
     scroll-behavior: smooth;
     scroll-padding-top: 4rem;
   }
@@ -295,3 +298,43 @@
   display: none !important;
 }
 
+
+/* Tactile button surface: a fill, a 1px inner stroke that fades from white
+   at the top, a soft drop shadow, an inner white glow and a 1px outer edge
+   in the fill color. Shadows go through Tailwind's --tw-* shadow variables
+   so focus-visible:ring-* still layers on top instead of replacing them.
+   Set --btn-fill (and optionally --btn-stroke / --btn-edge) per variant. */
+@layer components {
+  .btn-tactile {
+    --btn-stroke: rgb(255 255 255 / 0.4);
+    --tw-inset-shadow: inset 0 0 6px 2px rgb(255 255 255 / 0.24);
+    --tw-shadow:
+      0 3px 6px rgb(0 0 0 / 0.2), 0 0 0 1px var(--btn-edge, var(--btn-fill));
+    border-color: transparent;
+    background:
+      linear-gradient(var(--btn-fill), var(--btn-fill)) padding-box,
+      linear-gradient(to bottom, var(--btn-stroke), transparent) border-box;
+    box-shadow:
+      var(--tw-inset-shadow), var(--tw-inset-ring-shadow, 0 0 #0000),
+      var(--tw-ring-offset-shadow, 0 0 #0000),
+      var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    transition-property: filter, transform, box-shadow;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  .btn-tactile:hover {
+    filter: brightness(1.06);
+  }
+
+  /* Pressed: the inner glow tightens so the button reads as pushed in */
+  .btn-tactile:active:not([aria-haspopup]) {
+    --tw-inset-shadow: inset 0 1px 4px 1px rgb(0 0 0 / 0.18);
+    filter: brightness(0.98);
+  }
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--primary) 85%, transparent);
+  color: var(--primary-foreground);
+}

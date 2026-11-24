@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { DotMatrixLoader } from "@/components/DotMatrixLoader";
-import { HistoryList } from "./_components/history-list";
+import { HistoryList } from "@/features/generations/components/history-list";
 
 export const metadata: Metadata = {
   title: "History",

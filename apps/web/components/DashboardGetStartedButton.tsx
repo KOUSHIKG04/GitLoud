@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
+import { AuthRequiredDialog } from "@/components/AuthRequiredDialog";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@repo/ui/components/button";
 import { useRouter } from "next/navigation";

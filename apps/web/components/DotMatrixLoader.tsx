@@ -1,7 +1,7 @@
 "use client";
 
 import { DotmSquare4 } from "@repo/ui/components/dotm-square-4";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 interface DotMatrixLoaderProps {
   className?: string;

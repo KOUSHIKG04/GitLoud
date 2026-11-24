@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { HistoryIcon, Home, PlusCircle, SettingsIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
-import TopBar from "./components/topBar";
+import TopBar from "./components/TopBar";
 import HomeScreen from "./screens/Home";
 import GenerateScreen from "./screens/Generate";
 import HistoryScreen from "./screens/History";

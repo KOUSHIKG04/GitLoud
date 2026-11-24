@@ -5,9 +5,9 @@ process.env.DATABASE_URL ??= "postgresql://test:test@localhost:5432/test";
 
 const { fetchPullRequestMetadata } = await import("@repo/github/fetch-pr");
 const { getGitHubGenerationError } =
-  await import("../src/lib/github-generation-error");
+  await import("../src/features/github/generation-error");
 const { isMissingGitHubInstallationError } =
-  await import("../src/lib/github-app");
+  await import("../src/features/github/app");
 
 test("retries a public GitHub request without a rejected token", async () => {
   const originalFetch = globalThis.fetch;

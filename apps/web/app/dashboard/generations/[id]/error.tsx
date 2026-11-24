@@ -22,7 +22,7 @@ export default function Error({
       <section className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center px-4 pb-8 pt-0">
         <div className="flex flex-col items-center gap-5 text-center">
           <div className="space-y-1">
-            <p className="text-2xl font-bold tracking-tight">GitLoud</p>
+            <p className="text-2xl font-bold">GitLoud</p>
             <p className="text-sm text-muted-foreground">
               Could not load generated content.
             </p>

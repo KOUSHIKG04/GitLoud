@@ -12,10 +12,9 @@ import { UserProfileMenu } from "@/components/UserProfileMenu";
 import { HomeLink } from "@/components/HomeLink";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { AppLogo } from "@/assets/AppLogo";
+import { AppLogo } from "@/components/icons/AppLogo";
 import type { MouseEvent } from "react";
 import { Menu } from "lucide-react";
-import { ThemeToggle } from "@/components/ToggleThemeBtn";
 import { GithubIconIcon } from "@repo/ui/components/icons/logos-github-icon";
 
 type NavItem = {
@@ -42,11 +41,6 @@ const NAV_ITEMS: NavItem[] = [
     href: "/examples",
     component: Link,
   },
-  // {
-  //   label: "Why it matters",
-  //   href: "/why-it-matters",
-  //   component: Link,
-  // },
   {
     label: "Feedback",
     href: "/feedback",
@@ -130,7 +124,7 @@ export function Header() {
     <>
       <header className="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-border bg-background/80 px-6 lg:px-12 py-0 shadow-xs backdrop-blur-md dark:border-white/10">
         <div className="flex items-center">
-          <HomeLink className="flex items-center gap-2 text-lg font-bold tracking-tight">
+          <HomeLink className="flex items-center gap-2 text-lg font-bold">
             <AppLogo className="size-6" />
             <span>GitLoud</span>
           </HomeLink>
@@ -144,7 +138,6 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <ThemeToggle />
           <Button
             asChild
             variant="ghost"

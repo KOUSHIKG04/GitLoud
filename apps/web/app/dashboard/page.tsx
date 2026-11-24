@@ -1,4 +1,4 @@
-import { PrForm } from "./_components/pr-form";
+import { PrForm } from "@/features/generate/components/pr-form";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,10 +15,10 @@ export default function DashboardPage() {
       <div className="flex justify-center px-4 pb-6 pt-0 sm:px-8">
         <section className="w-full space-y-4">
           <div className="space-y-2">
-            <h1 className="font-semibold tracking-tight sm:text-2xl">
+            <h1 className="font-semibold sm:text-2xl">
               DASHBOARD
             </h1>
-            <p className="text-md text-muted-foreground tracking-normal">
+            <p className="text-base text-muted-foreground tracking-normal">
               Paste a GitHub pull request or commit link to start generating
               summaries and share-ready posts for free.
             </p>

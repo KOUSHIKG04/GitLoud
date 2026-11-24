@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SettingsClient } from "../settings-client";
+import { SettingsClient } from "@/features/settings/components/settings-client";
 
 export const metadata: Metadata = {
   title: "GitHub App Settings",
@@ -15,7 +15,7 @@ export default function GitHubAppSettingsPage() {
       <div className="flex flex-1 justify-center px-4 pb-6 pt-0 sm:px-8">
         <section className="w-full space-y-6">
           <div className="space-y-1 mt-5">
-            <h1 className="font-semibold tracking-tight sm:text-2xl">
+            <h1 className="font-semibold sm:text-2xl">
               GITHUB APP
             </h1>
             <p className="text-sm text-muted-foreground">

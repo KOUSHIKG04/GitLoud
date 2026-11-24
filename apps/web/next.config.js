@@ -17,6 +17,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/why-it-matters",
+        destination: "/",
+        permanent: true,
+      },
+      {
         source: "/security",
         destination: "/security-and-privacy?tab=security",
         permanent: true,

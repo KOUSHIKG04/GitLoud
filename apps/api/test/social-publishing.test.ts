@@ -9,8 +9,8 @@ const {
   DiscordDeliveryUnknownError,
   normalizeDiscordWebhookUrl,
   verifyDiscordWebhook,
-} = await import("../src/lib/social-publishing");
-const { createSocialPublishHandler } = await import("../src/routes/social");
+} = await import("../src/features/social/publishing");
+const { createSocialPublishHandler } = await import("../src/features/social/routes");
 
 const USER_ID = "user-1";
 const CONNECTION_ID = "connection-1";

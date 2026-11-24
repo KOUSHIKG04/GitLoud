@@ -1,4 +1,4 @@
-import { GitHubActivityPanel } from "../_components/github-activity-panel";
+import { GitHubActivityPanel } from "@/features/github-activity/components/github-activity-panel";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default function GitHubActivityPage() {
       <div className="flex min-w-0 justify-center px-3 sm:px-6 lg:px-8">
         <section className="min-w-0 w-full space-y-4">
           <div className="space-y-2">
-            <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            <h1 className="text-xl font-semibold sm:text-2xl">
               GITHUB ACTIVITY
             </h1>
             <p className="max-w-2xl text-sm leading-6 tracking-normal text-muted-foreground sm:text-base sm:leading-7">

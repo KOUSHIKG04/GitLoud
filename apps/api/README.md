@@ -26,10 +26,25 @@ GET    /github/installations
 GET    /github/activity
 POST   /github/sync-installation
 DELETE /github/installations/:id
-POST   /jobs/delete-old-generations
 ```
 
-The same routes are also available under `/v1/*`.
+## Source layout
+
+```text
+src/
+  index.ts, app.ts, env.ts   entry, Hono app and middleware, env helpers
+  features/<feature>/        routes.ts plus the logic only that feature owns
+    ai-credentials/          routes, service (encrypted key storage)
+    generations/             routes, cleanup, lazy-cleanup
+    github/                  routes, app (GitHub App tokens), install-state, generation-error
+    pr/                      routes (single and combined generation)
+    social/                  routes, publishing (Discord delivery)
+    feedback/ health/ media/ profile/
+  lib/                       cross-cutting only: auth, logger, rate-limit, ip
+```
+
+A feature may import another feature's module only through that module's
+exports (for example `features/github/app`); `lib/` never imports a feature.
 
 Web and Electron should call this service with a Clerk bearer token:
 
@@ -61,7 +76,6 @@ GEMINI_API_KEY=
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
-CRON_SECRET=
 ```
 
 `GITHUB_PUBLIC_TOKEN` is optional. If configured, it must be a read-only token

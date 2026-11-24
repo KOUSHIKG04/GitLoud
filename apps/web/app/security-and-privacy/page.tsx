@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
-import { SecurityPrivacyContent } from "./_components/security-privacy-content";
+import { SecurityPrivacyContent } from "@/features/legal/components/security-privacy-content";
 import { PageStructuredData } from "@/components/seo/PageStructuredData";
 
 const title = "GitHub Repository Security and Privacy Practices";
 const description =
   "Learn how GitLoud protects private repositories with read-only GitHub permissions, short-lived tokens, encrypted credentials, and user-controlled connections.";
 
-export const metadata: Metadata = {
-  title,
-  description,
-  alternates: {
-    canonical: "/security-and-privacy",
-  },
-};
+export const metadata: Metadata = buildPageMetadata({
+  title: title,
+  description: description,
+  path: "/security-and-privacy",
+});
 
 type SecurityPageSearchParams = {
   tab?: string;

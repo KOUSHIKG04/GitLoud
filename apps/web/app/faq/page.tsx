@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { buildPageMetadata } from "@/lib/seo";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { seoFaqItems } from "@/components/home/seo-faq-items";
+import { seoFaqItems } from "@/features/faq/faq-items";
 import { safeJsonLd } from "@/lib/safe-json-ld";
 import {
   Accordion,
@@ -10,14 +11,12 @@ import {
   AccordionTrigger,
 } from "@repo/ui/components/accordion";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = buildPageMetadata({
   title: "Frequently Asked Questions About GitHub Content",
   description:
     "Find clear answers about GitHub PR and commit summaries, private repository access, AI providers, content formats, security, and publishing workflows.",
-  alternates: {
-    canonical: "/faq",
-  },
-};
+  path: "/faq",
+});
 
 export default function FaqPage() {
   return (
@@ -46,11 +45,11 @@ export default function FaqPage() {
               FAQ
             </p>
 
-            <h1 className="mt-4 text-balance text-4xl font-bold tracking-tighter">
+            <h1 className="mt-4 text-balance text-4xl font-bold">
               Frequently Asked Questions
             </h1>
 
-            <p className="mt-3 max-w-3xl text-md leading-6 text-muted-foreground tracking-tighter">
+            <p className="mt-3 max-w-3xl text-md leading-6 text-muted-foreground">
               Quick answers about GitLoud&apos;s features, summary generation
               formats, and security policies for public and private
               repositories.
@@ -68,7 +67,7 @@ export default function FaqPage() {
                     value={`faq-item-${index}`}
                     className="border-b border-border py-1 last:border-b-0"
                   >
-                    <AccordionTrigger className="px-4 sm:px-6 lg:px-10 text-left text-lg font-semibold tracking-tight hover:no-underline text-foreground py-4">
+                    <AccordionTrigger className="px-4 sm:px-6 lg:px-10 text-left text-lg font-semibold hover:no-underline text-foreground py-4">
                       {item.question}
                     </AccordionTrigger>
                     <AccordionContent className="px-4 sm:px-6 lg:px-10 text-base leading-7 text-muted-foreground pb-4">

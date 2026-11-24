@@ -1,6 +1,6 @@
 "use client";
 
-import { AppLogo } from "@/assets/AppLogo";
+import { AppLogo } from "@/components/icons/AppLogo";
 import { HomeLink } from "@/components/HomeLink";
 import { MailOpen } from "lucide-react";
 import Link from "next/link";
@@ -11,6 +11,12 @@ const navigationLinks = [
   { href: "/", label: "Home", isHome: true },
   { href: "/examples", label: "Examples" },
   { href: "/feedback", label: "Feedback" },
+];
+
+const resourceLinks = [
+  { href: "/examples", label: "Examples" },
+  { href: "/security-and-privacy", label: "Security and privacy" },
+  { href: "/feedback", label: "Send feedback" },
 ];
 
 const supportLinks = [
@@ -24,17 +30,34 @@ export function Footer() {
     <footer className="bg-background border-t">
       <div className="border-b">
         <div className="mx-auto w-full max-w-7xl px-10 py-12">
-          <div className="flex items-center gap-3">
-            <AppLogo className="size-4 text-foreground" />
-            <span className="text-md font-bold tracking-tight text-foreground">
-              GitLoud
-            </span>
+          <div className="max-w-2xl">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              <HomeLink className="flex items-center gap-2.5">
+                <AppLogo className="size-6 text-foreground" />
+                <span className="text-xl font-bold text-foreground">
+                  GitLoud
+                </span>
+              </HomeLink>
+              <span className="h-5 w-px bg-border" aria-hidden="true" />
+              <h3 className="text-base font-semibold text-foreground">
+                Free, and open source
+              </h3>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              GitLoud costs nothing to use and its code is public on GitHub.
+            </p>
+            <p className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+              {resourceLinks.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="text-foreground underline decoration-muted-foreground/60 underline-offset-4 transition-colors hover:decoration-primary"
+                >
+                  {label}
+                </Link>
+              ))}
+            </p>
           </div>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            GitLoud turns GitHub pull requests and commits into clear summaries,
-            changelog entries, portfolio bullets, and social posts. Built for
-            developers who ship in public.
-          </p>
         </div>
       </div>
 
@@ -102,7 +125,7 @@ export function Footer() {
       <div className="overflow-hidden px-4 pt-10 pb-2">
         <div
           aria-hidden="true"
-          className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] tracking-tight bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6"
+          className="text-center text-[20vw] md:text-[15vw] font-bold leading-[0.85] bg-linear-to-b from-transparent/30 to-primary/40 bg-clip-text text-transparent -mb-6"
         >
           GitLoud
         </div>

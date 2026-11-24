@@ -51,3 +51,6 @@ example/
 
 reports/
 outputs/
+.impeccable/
+.claude/
+.agents/

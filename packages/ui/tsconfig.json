@@ -4,11 +4,10 @@
     "outDir": "dist",
     "rootDir": ".",
     "strictNullChecks": true,
-    "baseUrl": ".",
     "paths": {
-      "#components/*": ["src/components/*"],
-      "#lib/*": ["src/lib/*"],
-      "#hooks/*": ["src/hooks/*"]
+      "#components/*": ["./src/components/*"],
+      "#lib/*": ["./src/lib/*"],
+      "#hooks/*": ["./src/hooks/*"]
     }
   },
   "include": ["src"],
